@@ -112,12 +112,12 @@ public final class VehiclePanel extends PanelViewer {
                     if (name.startsWith("wheel_")) {
                         IGeometry in = new IGeometry(wheelName+"_l0");
 //                        IGeometry out = new IGeometry(wheelName+"_l1");
-                        in.getLocalTransform().scale(s, s, s);
+                        in.transform.localMatrix.scale(s, s, s);
 //                        out.getLocalTransform().scale(s, s, s);
                         in.attach(node);
 //                        out.attach(node);
                         if (name.startsWith("wheel_l"))
-                            node.getLocalTransform().rotate(Vector3.Z, 180);
+                            node.transform.localMatrix.rotate(Vector3.Z, 180);
                         wheelNodes.add(in);
 //                        wheelNodes.add(out);
                     }
@@ -134,7 +134,7 @@ public final class VehiclePanel extends PanelViewer {
                         wheelNodes.add(w);
                     }
                     if (name.startsWith("wheel_l"))
-                        node.getLocalTransform().rotate(Vector3.Z, 180);
+                        node.transform.localMatrix.rotate(Vector3.Z, 180);
                 }
                 break;
         }

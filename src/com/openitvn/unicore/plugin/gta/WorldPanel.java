@@ -384,7 +384,7 @@ public final class WorldPanel extends PanelViewer {
         String modName = modelNameMap.get(inst.modId);
         if (modName != null) {
             IGeometry geo = new IGeometry(modName);
-            geo.getLocalTransform().set(transform);
+            geo.transform.localMatrix.set(transform);
             geo.setLayerIndex(modelLayerMap.get(inst.modId));
             geo.attach(group);
             
@@ -402,7 +402,7 @@ public final class WorldPanel extends PanelViewer {
             // collision mesh
             if (col.model != null) {
                 IGeometry geo = new IGeometry(col.model.getName());
-                geo.getLocalTransform().set(transform);
+                geo.transform.localMatrix.set(transform);
                 geo.setLayerIndex(LAYER_COLLISION);
                 geo.attach(group);
 //                System.out.println("1, CLM_" + inst.modName);
@@ -431,7 +431,7 @@ public final class WorldPanel extends PanelViewer {
         PATHSegment path = pathMap.get(inst.modName);
         if (path != null) {
             PathSegment seg = new PathSegment(path);
-            seg.getLocalTransform().set(transform);
+            seg.transform.localMatrix.set(transform);
             seg.setLayerIndex(LAYER_CAR_PATH);
             seg.attach(group);
         }
@@ -646,11 +646,12 @@ public final class WorldPanel extends PanelViewer {
                 boolean oppositeFix = false;
                 for (PathNode b : allPorts) {
                     if (!b.segment.isCross() && a.position.dst(b.position) < 0.4f) {
-                        if (a.leftLanes.size() != b.rightLanes.size() ||
-                                a.rightLanes.size() != b.leftLanes.size()) {
-                            a.computeLanes(b.rightLanes.size(), b.leftLanes.size());
-                            oppositeFix = true;
-                        }
+                        oppositeFix = tryFixLane(a, b);
+                        break;
+                    }
+                    // special com_cust_roads45 next to roadcustc1w010 (COMNbtm)
+                    else if (b.segment.getName().endsWith("roadcustc1w010") && a.position.dst(b.position) < 0.4f) {
+                        a.computeLanes(b.rightLanes.size(), b.leftLanes.size());
                         break;
                     }
                 }
@@ -663,19 +664,28 @@ public final class WorldPanel extends PanelViewer {
             }
         }
         // STEP: cross without opposite fix
-        
-        // STEP: com_cust_roads57
         for (PathNode a : allPorts) {
-            if (a.segment.getName().equals("SEG_com_cust_roads57")) {
+            String segName = a.segment.getName().substring(4);
+            if (segName.equals("com_cust_roads57")) {
                 for (PathNode b : allPorts) {
-                    if (b.segment.getName().equals("SEG_rd_CrossRoads11") && a.position.dst(b.position) < 0.4f) {
-                        if (a.leftLanes.size() != b.rightLanes.size() ||
-                                a.rightLanes.size() != b.leftLanes.size()) {
-                            a.computeLanes(b.rightLanes.size(), b.leftLanes.size());
-                        }
+                    if (b.segment.getName().endsWith("rd_CrossRoads11") && a.position.dst(b.position) < 0.4f) {
+                        tryFixLane(a, b);
                         break;
                     }
                 }
+            }
+            if (segName.equals("com_roadkb17") ||
+                    segName.equals("com_roadkb13")) {
+                for (PathNode b : allPorts) {
+                    if (b.segment.isCross() && a.position.dst(b.position) < 0.4f) {
+                        tryFixLane(a, b);
+                        break;
+                    }
+                }
+                // fix opposite port
+                PathNode b = a.segment.getOffensivePort(a);
+                if (b != null)
+                    b.computeLanes(a.rightLanes.size(), a.leftLanes.size());
             }
         }
         // STEP: 
@@ -686,5 +696,14 @@ public final class WorldPanel extends PanelViewer {
                 seg.rebuildModel();
             }
         }
+    }
+    
+    private boolean tryFixLane(PathNode a, PathNode b) {
+        if (a.leftLanes.size() != b.rightLanes.size() ||
+                a.rightLanes.size() != b.leftLanes.size()) {
+            a.computeLanes(b.rightLanes.size(), b.leftLanes.size());
+            return true;
+        }
+        return false;
     }
 }

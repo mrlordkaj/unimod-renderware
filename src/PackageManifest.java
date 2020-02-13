@@ -48,7 +48,7 @@ public final class PackageManifest extends PluginManifest {
 
     @Override
     public String getId() {
-        return "com.openitvn.unimod.codec.renderware";
+        return "com.unimod.renderware";
     }
 
     @Override

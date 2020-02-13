@@ -98,7 +98,7 @@ public class RwDff extends IWorld {
                         // crete node/geometry
                         INode node = isGeo ? new IGeometry() : new INode();
                         node.setName(frmData.name);
-                        node.getLocalTransform().set(frmData.combineMatrix4());
+                        node.transform.localMatrix.set(frmData.combineMatrix4());
                         if (allClump)
                             node.setLayerIndex(clumpId);
                         frameMap.put(frmData, node);

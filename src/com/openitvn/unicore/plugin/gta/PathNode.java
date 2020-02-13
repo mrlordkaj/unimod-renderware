@@ -109,16 +109,14 @@ class PathNode {
         if (    !isPort() || !b.isPort() ||
                 segment == b.segment ||
                 segment.isCross() || b.segment.isCross() ||
-//                data.numLefts != b.data.numRights ||
-//                data.numRights != b.data.numLefts ||
                 position.dst(b.position) > 0.8f) {
             return false;
         }
         
         PathNode a2 = segment.getSecondPort(this);
         PathNode b2 = b.segment.getSecondPort(b);
-        if (    a2.data.numLefts != b2.data.numRights ||
-                a2.data.numRights != b2.data.numLefts) {
+        if (    a2.leftLanes.size() != b2.rightLanes.size() ||
+                a2.rightLanes.size() != b2.leftLanes.size()) {
             return false;
         }
         

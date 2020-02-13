@@ -8,6 +8,7 @@ package com.openitvn.test;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,7 +17,7 @@ import java.util.logging.Logger;
  *
  * @author Thinh
  */
-public class Water {
+public class WaterMax {
 
     /**
      * @param args the command line arguments
@@ -25,7 +26,9 @@ public class Water {
         try (FileInputStream fis = new FileInputStream("D:/Games/Grand Theft Auto III/data/water.dat");
                 InputStreamReader isr = new InputStreamReader(fis);
                 BufferedReader br = new BufferedReader(isr)) {
+            // read planes
             String line;
+            int id = 1, vId = 1;
             while ((line = br.readLine()) != null) {
                 if (!line.startsWith(";")) {
                     String[] params = line.split("[\\,]?\\t+");
@@ -35,17 +38,19 @@ public class Water {
                         float yBottom = Float.parseFloat(params[2]);
                         float xRight = Float.parseFloat(params[3]);
                         float yTop = Float.parseFloat(params[4]);
-                        float x = (xRight + xLeft) / 2 * 100;
-                        float y = -(yBottom + yTop) / 2 * 100;
-                        float z = level * 100;
-                        float width = Math.abs(xRight - xLeft);
-                        float length = Math.abs(yBottom - yTop);
-                        System.out.printf("(X=%.3f,Y=%.3f,Z=%.3f) | (X=%.3f,Y=%.3f,Z=1)\n", x, y, z, width, length);
+                        System.out.printf("v %f, %f, %f\n", xLeft, level, -yTop);
+                        System.out.printf("v %f, %f, %f\n", xRight, level, -yTop);
+                        System.out.printf("v %f, %f, %f\n", xRight, level, -yBottom);
+                        System.out.printf("v %f, %f, %f\n", xLeft, level, -yBottom);
+                        System.out.printf("o Water%d\n", id);
+                        System.out.printf("f %d %d %d %d\n", vId, vId+1, vId+2, vId+3);
+                        id++;
+                        vId += 4;
                     }
                 }
             }
         } catch (IOException ex) {
-            Logger.getLogger(Water.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(WaterMax.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     

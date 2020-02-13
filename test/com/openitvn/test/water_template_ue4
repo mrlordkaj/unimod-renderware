@@ -1,0 +1,22 @@
+      Begin Actor Class=/Script/Engine.StaticMeshActor Name=Water_%d Archetype=/Script/Engine.StaticMeshActor'/Script/Engine.Default__StaticMeshActor'
+         Begin Object Class=/Script/Engine.StaticMeshComponent Name="StaticMeshComponent0" Archetype=StaticMeshComponent'/Script/Engine.Default__StaticMeshActor:StaticMeshComponent0'
+         End Object
+         Begin Object Name="StaticMeshComponent0"
+            StaticMesh=StaticMesh'"/Engine/BasicShapes/Plane.Plane"'
+            StaticMeshImportVersion=1
+            bUseDefaultCollision=False
+            StreamingTextureData(0)=(PackedRelativeBox=67043328,TextureLevelIndex=3,TexelFactor=100.000000)
+            StaticMeshDerivedDataKey="STATICMESH_9891BF2FF72141F6921E24E347DB73C1_228332BAE0224DD294E232B87D83948FQuadricMeshReduction_V1$2e0_3F8C76BE469D6CAEBDC47F82BF7099390000000001000000010000000000000001000000010000000000000000000000010000000001000000000000010000000000803F0000803F0000803F0000803F00000000050000004E6F6E650030000000803F0000803F0000000000000041000000000000A04203030300000000000000000"
+            MaterialStreamingRelativeBoxes(0)=67043328
+            OverrideMaterials(0)=Material'"/Game/ReactiveWater/Materials/M_Water.M_Water"'
+            bCastStaticShadow=False
+            BodyInstance=(CollisionEnabled=NoCollision,bInterpolateWhenSubStepping=False,CollisionProfileName="NoCollision",CollisionResponses=(ResponseArray=((Channel="Visibility",Response=ECR_Ignore),(Channel="Camera",Response=ECR_Ignore))))
+            RelativeLocation=(X=%f,Y=%f,Z=%f)
+            RelativeScale3D=(X=%f,Y=%f,Z=1)
+         End Object
+         StaticMeshComponent="StaticMeshComponent0"
+         RootComponent="StaticMeshComponent0"
+         ActorLabel="Water"
+         FolderPath="Water"
+         bIsEditorPreviewActor=True
+      End Actor

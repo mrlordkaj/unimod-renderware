@@ -84,7 +84,7 @@ class PathSegment extends IGeometry {
     
     void compileData() {
         for (PathNode node : nodes) {
-            node.computePosition(globalTransform);
+            node.computePosition(transform.worldMatrix);
         }
         for (PathNode node : nodes) {
             node.computeLanes();
@@ -267,6 +267,18 @@ class PathSegment extends IGeometry {
                 rs.add(node);
         }
         return rs;
+    }
+    
+    PathNode getPortAt(int i) {
+        int j = 0;
+        for (PathNode node : nodes) {
+            if (node.links.size() == 1) {
+                if (i == j)
+                    return node;
+                j++;
+            }
+        }
+        return null;
     }
     
     PathNode getOffensivePort(PathNode a) {
