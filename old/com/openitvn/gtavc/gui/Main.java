@@ -17,7 +17,7 @@
 package com.openitvn.gtavc.gui;
 
 import com.openitvn.gtavc.core.GtaAssetModel;
-import com.openitvn.control.KFileChooser;
+import com.openitvn.control.JuniFileChooser;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.gtavc.core.item.CARSEntry;
@@ -936,7 +936,7 @@ public class Main extends javax.swing.JFrame {
 
     private void btnExportSceneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportSceneActionPerformed
         if (!checkBusy()) {
-            KFileChooser fcSave = new KFileChooser(currentFile);
+            JuniFileChooser fcSave = new JuniFileChooser(currentFile);
             fcSave.setAcceptAllFileFilterUsed(false);
             fcSave.addChoosableFileFilter(new FileNameExtensionFilter("Autodesk Filmbox (fbx)", "fbx"));
             if (fcSave.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -957,9 +957,9 @@ public class Main extends javax.swing.JFrame {
         int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (selId >= 0) {
             RwArchiveEntry entry = assetModel.getEntry(selId);
-            KFileChooser fcSave = new KFileChooser(currentFile);
+            JuniFileChooser fcSave = new JuniFileChooser(currentFile);
             fcSave.setSelectedFile(new File(entry.getName()));
-            if (fcSave.showSaveDialog(this) == KFileChooser.APPROVE_OPTION) {
+            if (fcSave.showSaveDialog(this) == JuniFileChooser.APPROVE_OPTION) {
                 File out = fcSave.getSelectedFile();
                 try (FileOutputStream fos = new FileOutputStream(out)) {
                     byte[] bb = assetModel.getEntry(selId).getData();

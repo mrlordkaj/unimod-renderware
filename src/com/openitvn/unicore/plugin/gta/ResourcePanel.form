@@ -98,7 +98,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="com.openitvn.control.KTextField" name="txtSearch">
+    <Component class="com.openitvn.control.JuniTextField" name="txtSearch">
       <Properties>
         <Property name="prompt" type="java.lang.String" value="search here"/>
       </Properties>

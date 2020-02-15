@@ -203,7 +203,7 @@ public final class VehiclePanel extends PanelViewer {
         rdoNormal = new javax.swing.JRadioButton();
         rdoDamage = new javax.swing.JRadioButton();
         rdoDistance = new javax.swing.JRadioButton();
-        txtSearch = new com.openitvn.control.KTextField();
+        txtSearch = new com.openitvn.control.JuniTextField();
 
         setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 4, 4, 4));
         setName("Vehicle"); // NOI18N
@@ -274,7 +274,7 @@ public final class VehiclePanel extends PanelViewer {
     private javax.swing.JRadioButton rdoDistance;
     private javax.swing.JRadioButton rdoNormal;
     private javax.swing.JTable tblCar;
-    private com.openitvn.control.KTextField txtSearch;
+    private com.openitvn.control.JuniTextField txtSearch;
     private javax.swing.ButtonGroup viewGroup;
     // End of variables declaration//GEN-END:variables
 }
