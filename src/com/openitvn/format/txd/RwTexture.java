@@ -60,12 +60,12 @@ public class RwTexture extends ITexture {
     }
 
     @Override
-    public byte[] unwrap() throws UnsupportedOperationException {
+    public byte[] compilePatch(ITexture customTexture) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public byte[] encodeImage(IRaster src, IPixelFormat fmt) {
+    public byte[] encodeImage(IRaster src, int face) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

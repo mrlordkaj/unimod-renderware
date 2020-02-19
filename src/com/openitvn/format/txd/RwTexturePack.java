@@ -39,7 +39,7 @@ public class RwTexturePack extends ITexturePack {
     public void decode(DataStream ds) {
         RpSection grand = RpSection.fromData(ds, null);
         for (RpTextureNative tex : grand.getChildren(RpTextureNative.class))
-            addTexture(new RwTexture(tex.textureName, tex));
+            textures.add(new RwTexture(tex.textureName, tex));
     }
     
     @Override
@@ -50,15 +50,5 @@ public class RwTexturePack extends ITexturePack {
     @Override
     public Collection<DumpEntry> dump(DataStream ds) {
         return new ArrayList();
-    }
-
-    @Override
-    public byte[] unwrap() throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public boolean isEditable() {
-        return false;
     }
 }
