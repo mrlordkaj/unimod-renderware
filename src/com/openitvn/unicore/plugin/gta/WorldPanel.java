@@ -17,7 +17,7 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.openitvn.control.JuniBooleanCellRenderer;
+import com.openitvn.control.JuBooleanCellRenderer;
 import com.openitvn.engine.renderware.RpClump;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
@@ -90,7 +90,7 @@ public final class WorldPanel extends PanelViewer {
         cm.getColumn(WorldScriptModel.COL_TYPE).setMinWidth(40);
         cm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
         refineWorldTable(null);
-        tblMap.setDefaultRenderer(Boolean.class, new JuniBooleanCellRenderer());
+        tblMap.setDefaultRenderer(Boolean.class, new JuBooleanCellRenderer());
         // prepare world world
         world = WorldFactory.create("GTA World");
         world.setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
@@ -280,7 +280,7 @@ public final class WorldPanel extends PanelViewer {
                     }
                     Logger.printNormal("Data exported: %s", out);
                 } catch (IOException ex) {
-                    Logger.showErrorDialog(Unicore.getMainFrame(), ex);
+                    Logger.showErrorDialog(ex);
                 }
             }
         }
