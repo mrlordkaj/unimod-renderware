@@ -31,11 +31,6 @@ import java.util.Collection;
 public class RwTexturePack extends ITexturePack {
     
     @Override
-    public void fromSource(ITexturePack source) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
     public void decode(DataStream ds) {
         RpSection grand = RpSection.fromData(ds, null);
         for (RpTextureNative tex : grand.getChildren(RpTextureNative.class))

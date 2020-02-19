@@ -48,12 +48,7 @@ public class RwTexture extends ITexture {
     @Override public ICubeMapHeader getCubeMapHeader() { return null; }
     @Override public IPixelFormat getPixelFormat() { return texture.getPixelFormat(); }
     @Override public boolean isMipMapUsed() { return true; }
-
-    @Override
-    public boolean replace(ITexture src) throws UnsupportedOperationException, IndexOutOfBoundsException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
+    
     @Override
     public byte[] getImageBuffer(int face, int mip) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -63,12 +58,7 @@ public class RwTexture extends ITexture {
     public byte[] compilePatch(ITexture customTexture) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
-    @Override
-    public byte[] encodeImage(IRaster src, int face) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
+    
     @Override
     public void decodeImage(IRaster dst, int face, int mip) throws UnsupportedOperationException {
         ByteBuffer bb = (ByteBuffer) texture.nativeData.rewind();
