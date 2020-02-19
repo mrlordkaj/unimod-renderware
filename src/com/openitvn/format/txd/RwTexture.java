@@ -36,18 +36,8 @@ public class RwTexture extends ITexture {
     
     public RwTexture(String name, RpTextureNative tex) {
         super(name);
-        super.setUWrap(tex.getUWrap());
-        super.setVWrap(tex.getVWrap());
         this.texture = tex;
     }
-
-    @Override public int getWidth() { return texture.width; }
-    @Override public int getHeight() { return texture.height; }
-    @Override public int getFaceCount() { return 1; }
-    @Override public int getMipCount() { return texture.mipCount; }
-    @Override public ICubeMapHeader getCubeMapHeader() { return null; }
-    @Override public IPixelFormat getPixelFormat() { return texture.getPixelFormat(); }
-    @Override public boolean isMipMapUsed() { return true; }
     
     @Override
     public byte[] getImageBuffer(int face, int mip) throws UnsupportedOperationException {
@@ -112,5 +102,49 @@ public class RwTexture extends ITexture {
         ByteBuffer rs = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
         bb.limit(bb.capacity());
         return rs;
+    }
+    
+    @Override
+    public int getWidth() {
+        return texture.width;
+    }
+    
+    @Override
+    public int getHeight() {
+        return texture.height;
+    }
+    
+    @Override
+    public int getFaceCount() {
+        return 1;
+    }
+    
+    @Override public int getMipCount() {
+        return texture.mipCount;
+    }
+    
+    @Override
+    public int getUWrap() {
+        return texture.getUWrap();
+    }
+
+    @Override
+    public int getVWrap() {
+        return texture.getVWrap();
+    }
+    
+    @Override
+    public ICubeMapHeader getCubeMapHeader() {
+        return null;
+    }
+    
+    @Override
+    public IPixelFormat getPixelFormat() {
+        return texture.getPixelFormat();
+    }
+    
+    @Override
+    public boolean isMipMapUsed() {
+        return true;
     }
 }
