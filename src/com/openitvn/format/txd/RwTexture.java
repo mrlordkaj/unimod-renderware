@@ -16,8 +16,8 @@
  */
 package com.openitvn.format.txd;
 
-import com.openitvn.unicore.raster.ICubeMap;
-import com.openitvn.unicore.raster.IPixelFormat;
+import com.openitvn.unicore.world.resource.ICubeMap;
+import com.openitvn.unicore.world.resource.IPixelFormat;
 import com.openitvn.unicore.world.resource.ITexture;
 import com.openitvn.engine.renderware.RpTextureNative;
 import java.nio.ByteBuffer;
