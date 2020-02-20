@@ -18,12 +18,9 @@ package com.openitvn.format.txd;
 
 import com.openitvn.unicore.raster.ICubeMap;
 import com.openitvn.unicore.raster.IPixelFormat;
-import com.openitvn.unicore.raster.IRaster;
 import com.openitvn.unicore.world.resource.ITexture;
 import com.openitvn.engine.renderware.RpTextureNative;
-import java.awt.Dimension;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  *
@@ -32,10 +29,39 @@ import java.nio.ByteOrder;
 public class RwTexture extends ITexture {
     
     private final RpTextureNative texture;
+    private final byte[][] imageBuffers;
+    private byte[][] palette;
     
-    public RwTexture(String name, RpTextureNative tex) {
+    public RwTexture(String name, RpTextureNative texture) {
         super(name);
-        this.texture = tex;
+        this.texture = texture;
+        ByteBuffer bb = texture.nativeData;
+        bb.rewind();
+        // read palette
+        switch (texture.getPixelFormat()) {
+            case PALETTE4_RGBA8_OES:
+            case PALETTE4_RGB8_OES:
+                bb.position(bb.position() + 32 * 2);
+                break;
+                
+            case PALETTE8_RGBA8_OES:
+            case PALETTE8_RGB8_OES:
+                palette = new byte[256][4];
+                for (byte[] c : palette) {
+                    c[0] = bb.get();
+                    c[1] = bb.get();
+                    c[2] = bb.get();
+                    c[3] = bb.get();
+                }
+                break;
+        }
+        // read image buffers
+        imageBuffers = new byte[texture.mipCount][];
+        for (int i = 0; i < texture.mipCount; i++) {
+            int size = bb.getInt();
+            imageBuffers[i] = new byte[size];
+            bb.get(imageBuffers[i]);
+        }
     }
     
     @Override
@@ -44,63 +70,13 @@ public class RwTexture extends ITexture {
     }
     
     @Override
-    public byte[] getImageBuffer(int face, int mip) throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public byte[][] getPalette() {
+        return palette;
     }
     
     @Override
-    public void decodeImage(IRaster dst, int face, int mip) throws UnsupportedOperationException {
-        ByteBuffer bb = (ByteBuffer) texture.nativeData.rewind();
-        IPixelFormat fmt = texture.getPixelFormat();
-        Dimension mipSize = ITexture.computeMipMapSize(texture.width, texture.height, mip);
-        switch (fmt) {
-            case D3DFMT_DXT1:
-            case D3DFMT_DXT3:
-            case D3DFMT_DXT5:
-            case D3DFMT_L8:
-            case D3DFMT_A8R8G8B8:
-            case D3DFMT_X8R8G8B8:
-                fmt.decodeImage(dst, mipSize, sliceMipBuffer(bb, mip));
-                break;
-                
-            case PALETTE4_RGBA8_OES:
-            case PALETTE4_RGB8_OES:
-                // TODO
-                break;
-
-            case PALETTE8_RGBA8_OES:
-            case PALETTE8_RGB8_OES:
-                byte[][] pal = new byte[256][4];
-                for (byte[] c : pal) {
-                    c[0] = bb.get();
-                    c[1] = bb.get();
-                    c[2] = bb.get();
-                    c[3] = bb.get();
-                }
-                bb = sliceMipBuffer(bb, mip);
-                for (int y = 0; y < dst.getHeight(); y++) {
-                    for (int x = 0; x < dst.getWidth(); x++) {
-                        int id = bb.get() & 0xff;
-                        dst.setRGBA(x, y, pal[id]);
-                    }
-                }
-                break;
-        }
-    }
-    
-    private static ByteBuffer sliceMipBuffer(ByteBuffer bb, int mip) {
-        int pos = bb.position();
-        int size;
-        for (int i = 0; i < mip; i++) {
-            size = bb.getInt();
-            pos += size + 4;
-            bb.position(pos);
-        }
-        size = bb.getInt();
-        bb.limit(bb.position() + size);
-        ByteBuffer rs = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
-        bb.limit(bb.capacity());
-        return rs;
+    public byte[] getImageBuffer(int faceId, int mipLevel) throws UnsupportedOperationException {
+        return imageBuffers[mipLevel];
     }
     
     @Override

@@ -35,10 +35,10 @@ public final class PackageManifest extends PluginManifest {
     
     public PackageManifest() {
         // TODO: define your supported file extensions here
-        putFileView("RenderWare Archive",   loadIcon("/_img.png"), FileType.Archive, RwArchive.class,     "img");
-        putFileView("RenderWare Texture",   loadIcon("/_txd.png"), FileType.Texture, RwTexturePack.class, "txd");
-        putFileView("RenderWare Model",     loadIcon("/_dff.png"), FileType.World,   RwDff.class,       "dff");
-        putFileView("GTA Collision",        loadIcon("/_col.png"), FileType.World,   ColPack.class,    "col");
+        putFileView("RenderWare Archive", FileType.Archive, RwArchive.class, "img");
+        putFileView("RenderWare Texture", FileType.Texture, RwTexturePack.class, "txd");
+        putFileView("RenderWare Model", FileType.World, RwDff.class, "dff");
+        putFileView("GTA Collision", FileType.World, ColPack.class, "col");
         
         // TODO: define your custom control panel here
         putControlPanel("GTA Resource", PanelLocation.Sidebar, ResourcePanel.class, true);
