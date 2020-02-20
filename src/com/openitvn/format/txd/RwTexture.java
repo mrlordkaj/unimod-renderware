@@ -16,11 +16,10 @@
  */
 package com.openitvn.format.txd;
 
-import com.openitvn.unicore.raster.ICubeMapHeader;
+import com.openitvn.unicore.raster.ICubeMap;
 import com.openitvn.unicore.raster.IPixelFormat;
 import com.openitvn.unicore.raster.IRaster;
 import com.openitvn.unicore.world.resource.ITexture;
-import com.openitvn.unicore.raster.TextureHelper;
 import com.openitvn.engine.renderware.RpTextureNative;
 import java.awt.Dimension;
 import java.nio.ByteBuffer;
@@ -40,12 +39,12 @@ public class RwTexture extends ITexture {
     }
     
     @Override
-    public byte[] getImageBuffer(int face, int mip) throws UnsupportedOperationException {
+    public byte[] compileTexture(ITexture src) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
+    
     @Override
-    public byte[] compilePatch(ITexture customTexture) throws UnsupportedOperationException {
+    public byte[] getImageBuffer(int face, int mip) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
     
@@ -53,7 +52,7 @@ public class RwTexture extends ITexture {
     public void decodeImage(IRaster dst, int face, int mip) throws UnsupportedOperationException {
         ByteBuffer bb = (ByteBuffer) texture.nativeData.rewind();
         IPixelFormat fmt = texture.getPixelFormat();
-        Dimension mipSize = TextureHelper.calcMipMapSize(texture.width, texture.height, mip);
+        Dimension mipSize = ITexture.computeMipMapSize(texture.width, texture.height, mip);
         switch (fmt) {
             case D3DFMT_DXT1:
             case D3DFMT_DXT3:
@@ -61,7 +60,7 @@ public class RwTexture extends ITexture {
             case D3DFMT_L8:
             case D3DFMT_A8R8G8B8:
             case D3DFMT_X8R8G8B8:
-                TextureHelper.decodeImage(dst, mipSize, fmt, sliceMipBuffer(bb, mip));
+                fmt.decodeImage(dst, mipSize, sliceMipBuffer(bb, mip));
                 break;
                 
             case PALETTE4_RGBA8_OES:
@@ -134,7 +133,7 @@ public class RwTexture extends ITexture {
     }
     
     @Override
-    public ICubeMapHeader getCubeMapHeader() {
+    public ICubeMap getCubeMapHeader() {
         return null;
     }
     
