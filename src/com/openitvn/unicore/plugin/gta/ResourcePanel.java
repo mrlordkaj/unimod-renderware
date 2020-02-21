@@ -105,7 +105,7 @@ public final class ResourcePanel extends PanelViewer {
                 return null;
             }
         };
-        txtSearch = new com.openitvn.control.JuTextField();
+        txtSearch = new com.openitvn.control.UCTextField();
         lblInfo = new javax.swing.JLabel();
 
         mnuOpen.setText("Open...");
@@ -185,6 +185,6 @@ public final class ResourcePanel extends PanelViewer {
     private javax.swing.JPopupMenu mnuEntry;
     private javax.swing.JMenuItem mnuOpen;
     private javax.swing.JTable resTable;
-    private com.openitvn.control.JuTextField txtSearch;
+    private com.openitvn.control.UCTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }

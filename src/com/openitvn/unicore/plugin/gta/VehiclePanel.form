@@ -110,7 +110,7 @@
         <Property name="text" type="java.lang.String" value="Distance"/>
       </Properties>
     </Component>
-    <Component class="com.openitvn.control.JuTextField" name="txtSearch">
+    <Component class="com.openitvn.control.UCTextField" name="txtSearch">
       <Properties>
         <Property name="prompt" type="java.lang.String" value="search here"/>
       </Properties>

@@ -17,7 +17,7 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.openitvn.control.JuBooleanCellRenderer;
+import com.openitvn.control.UCBooleanCellRenderer;
 import com.openitvn.engine.renderware.RpClump;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
@@ -90,7 +90,7 @@ public final class WorldPanel extends PanelViewer {
         cm.getColumn(WorldScriptModel.COL_TYPE).setMinWidth(40);
         cm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
         refineWorldTable(null);
-        tblMap.setDefaultRenderer(Boolean.class, new JuBooleanCellRenderer());
+        tblMap.setDefaultRenderer(Boolean.class, new UCBooleanCellRenderer());
         // prepare world world
         world = WorldFactory.create("GTA World");
         world.setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
