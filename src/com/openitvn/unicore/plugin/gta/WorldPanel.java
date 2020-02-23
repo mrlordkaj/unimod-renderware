@@ -17,7 +17,7 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.openitvn.control.UCBooleanCellRenderer;
+import com.openitvn.control.table.UCBooleanCellRenderer;
 import com.openitvn.engine.renderware.RpClump;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
