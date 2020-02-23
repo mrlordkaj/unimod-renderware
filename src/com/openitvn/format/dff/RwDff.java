@@ -97,10 +97,10 @@ public class RwDff extends IWorld {
                         boolean isGeo = frmData.geometry != null;
                         // crete node/geometry
                         INode node = isGeo ? new IGeometry() : new INode();
-                        node.name = frmData.name;
+                        node.setName(frmData.name);
                         node.transform.localMatrix.set(frmData.combineMatrix4());
                         if (allClump)
-                            node.layerIndex = clumpId;
+                            node.setLayerIndex(clumpId);
                         frameMap.put(frmData, node);
                         // create model and materials
                         if (isGeo) {

@@ -18,7 +18,7 @@ package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.format.dff.RwDff;
-import com.openitvn.unicore.WorldFactory;
+import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.plugin.PanelViewer;
 import com.openitvn.unicore.plugin.gta.item.CARSEntry;
@@ -108,7 +108,7 @@ public final class VehiclePanel extends PanelViewer {
                 String wheelName = wheelMap.get(e.wheelModelId);
                 float s = e.wheelScale;
                 for (INode node : nodes) {
-                    name = node.name;
+                    name = node.getName();
                     if (name.startsWith("wheel_")) {
                         IGeometry in = new IGeometry(wheelName+"_l0");
 //                        IGeometry out = new IGeometry(wheelName+"_l1");
@@ -127,7 +127,7 @@ public final class VehiclePanel extends PanelViewer {
 
             case GameConfig.ALIAS_SA:
                 for (INode node : nodes) {
-                    name = node.name;
+                    name = node.getName();
                     if (name.startsWith("wheel_") && !name.startsWith("wheel_rf")) {
                         IGeometry w = new IGeometry("wheel");
                         w.attach(node);
@@ -162,7 +162,7 @@ public final class VehiclePanel extends PanelViewer {
     
     private void update() {
         for (INode node : nodes) {
-            String n = node.name;
+            String n = node.getName();
             if (n == null) {
                 node.setVisible(false);
                 continue;

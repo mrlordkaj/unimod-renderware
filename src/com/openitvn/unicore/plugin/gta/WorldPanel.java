@@ -29,7 +29,7 @@ import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.Unicore;
-import com.openitvn.unicore.WorldFactory;
+import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.data.BufferStream;
 import com.openitvn.unicore.data.DataStream;
@@ -270,7 +270,7 @@ public final class WorldPanel extends PanelViewer {
         if (fc.showOpenDialog(Unicore.getMainFrame()) == JFileChooser.APPROVE_OPTION) {
             String dir = fc.getSelectedFile().getAbsolutePath();
             for (INode group : world.getChildrenByClass(INode.class, false)) {
-                String name = group.name;
+                String name = group.getName();
                 name = name.substring(0, name.length() - 4);
                 File out = new File(dir + "/" + name + ".road");
                 try (FileOutputStream os = new FileOutputStream(out, false);
@@ -385,7 +385,7 @@ public final class WorldPanel extends PanelViewer {
         if (modName != null) {
             IGeometry geo = new IGeometry(modName);
             geo.transform.localMatrix.set(transform);
-            geo.layerIndex = modelLayerMap.get(inst.modId);
+            geo.setLayerIndex(modelLayerMap.get(inst.modId));
             geo.attach(group);
             
         }/* else {
@@ -403,7 +403,7 @@ public final class WorldPanel extends PanelViewer {
             if (col.model != null) {
                 IGeometry geo = new IGeometry(col.model.getName());
                 geo.transform.localMatrix.set(transform);
-                geo.layerIndex = LAYER_COLLISION;
+                geo.setLayerIndex(LAYER_COLLISION);
                 geo.attach(group);
 //                System.out.println("1, CLM_" + inst.modName);
             }
@@ -432,7 +432,7 @@ public final class WorldPanel extends PanelViewer {
         if (path != null) {
             PathSegment seg = new PathSegment(path);
             seg.transform.localMatrix.set(transform);
-            seg.layerIndex = LAYER_CAR_PATH;
+            seg.setLayerIndex(LAYER_CAR_PATH);
             seg.attach(group);
         }
     }
@@ -630,7 +630,7 @@ public final class WorldPanel extends PanelViewer {
         }
         // STEP: cross with opposite fix
         for (PathNode a : allPorts) {
-            String segName = a.segment.name.substring(4);
+            String segName = a.segment.getName().substring(4);
             if (segName.equals("rd_CrossRoads11") ||
                     segName.equals("rd_CrossRoads12") ||
                     segName.equals("rd_TJunction12") ||
@@ -650,7 +650,7 @@ public final class WorldPanel extends PanelViewer {
                         break;
                     }
                     // special com_cust_roads45 next to roadcustc1w010 (COMNbtm)
-                    else if (b.segment.name.endsWith("roadcustc1w010") && a.position.dst(b.position) < 0.4f) {
+                    else if (b.segment.getName().endsWith("roadcustc1w010") && a.position.dst(b.position) < 0.4f) {
                         a.computeLanes(b.rightLanes.size(), b.leftLanes.size());
                         break;
                     }
@@ -665,10 +665,10 @@ public final class WorldPanel extends PanelViewer {
         }
         // STEP: cross without opposite fix
         for (PathNode a : allPorts) {
-            String segName = a.segment.name.substring(4);
+            String segName = a.segment.getName().substring(4);
             if (segName.equals("com_cust_roads57")) {
                 for (PathNode b : allPorts) {
-                    if (b.segment.name.endsWith("rd_CrossRoads11") && a.position.dst(b.position) < 0.4f) {
+                    if (b.segment.getName().endsWith("rd_CrossRoads11") && a.position.dst(b.position) < 0.4f) {
                         tryFixLane(a, b);
                         break;
                     }

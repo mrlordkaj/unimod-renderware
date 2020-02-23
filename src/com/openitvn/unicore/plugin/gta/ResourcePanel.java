@@ -18,7 +18,7 @@ package com.openitvn.unicore.plugin.gta;
 
 import com.openitvn.format.dff.RwDff;
 import com.openitvn.format.img.RwArchiveEntry;
-import com.openitvn.unicore.WorldFactory;
+import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.plugin.PanelViewer;
 import java.awt.event.MouseEvent;
