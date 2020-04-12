@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -71,28 +72,31 @@ public final class VehiclePanel extends PanelViewer {
         cm.getColumn(ResourceModel.COL_SIZE).setMinWidth(40);
         cm.getColumn(ResourceModel.COL_SIZE).setMaxWidth(40);
         // item change listener
-        tblCar.getSelectionModel().addListSelectionListener((ListSelectionEvent evt) -> {
-            int row = tblCar.getSelectedRow();
-            if (row >= 0 && !evt.getValueIsAdjusting()) {
-                int id = tblCar.convertRowIndexToModel(row);
-                CARSEntry e = vehicleModel.entries.get(id);
-                WorldFactory.unregister(viewer);
-                viewer = ResourceModel.getInstance().extractModel(e.modName, nodes);
-                if (viewer != null) {
-                    // add common resources
-                    viewer.resource.register(vehicleModel.comTexLib);
-                    viewer.resource.register(vehicleModel.comMatLib);
-                    viewer.resource.register(vehicleModel.comModLib);
-                    switch (e.type) {
-                        case "car":
-                        case "mtruck":
-                        case "trailer":
-                            createWheels(e);
-                            break;
+        tblCar.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent evt) {
+                int row = tblCar.getSelectedRow();
+                if (row >= 0 && !evt.getValueIsAdjusting()) {
+                    int id = tblCar.convertRowIndexToModel(row);
+                    CARSEntry e = vehicleModel.entries.get(id);
+                    WorldFactory.unregister(viewer);
+                    viewer = ResourceModel.getInstance().extractModel(e.modName, nodes);
+                    if (viewer != null) {
+                        // add common resources
+                        viewer.resource.register(vehicleModel.comTexLib);
+                        viewer.resource.register(vehicleModel.comMatLib);
+                        viewer.resource.register(vehicleModel.comModLib);
+                        switch (e.type) {
+                            case "car":
+                            case "mtruck":
+                            case "trailer":
+                                createWheels(e);
+                                break;
+                        }
+                        viewer.construct(viewer.resource);
+                        WorldFactory.focusTo(viewer);
+                        update();
                     }
-                    viewer.construct(viewer.resource);
-                    WorldFactory.focusTo(viewer);
-                    update();
                 }
             }
         });

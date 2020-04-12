@@ -24,7 +24,6 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.plugin.gta.item.PATHSegment;
@@ -95,10 +94,10 @@ class PathSegment extends IGeometry {
      * Sorts nodes by optimized order. Ready for rebuild or export data.
      */
     void optimizeData() {
-        ArrayList<PathNode> sortedNodes = new ArrayList();
+        ArrayList<PathNode> sortedNodes = new ArrayList<>();
         if (crossNode == null) {
             for (PathNode node : nodes) {
-                node.tmpLinks = new ArrayList(node.links);
+                node.tmpLinks = new ArrayList<>(node.links);
             }
             PathNode curNode = getPorts().get(0);
             short i = 1;
@@ -116,15 +115,16 @@ class PathSegment extends IGeometry {
                 curNode = nextNode;
             }
         } else {
-            // add cross node first
-            crossNode.nextIndex = -1;
-            sortedNodes.add(crossNode);
             nodes.remove(crossNode);
-            // all other ports connect to cross node
+            short crossId = (short)nodes.size();
+            // all ports connect to cross node
             for (PathNode node : nodes) {
-                node.nextIndex = 0;
+                node.nextIndex = crossId;
                 sortedNodes.add(node);
             }
+            // add cross node at last
+            crossNode.nextIndex = -1;
+            sortedNodes.add(crossNode);
         }
         nodes = sortedNodes;
     }
@@ -168,87 +168,97 @@ class PathSegment extends IGeometry {
             modInst = null;
         }
         
-        ModelBuilder mb = new ModelBuilder();
-        mb.begin();
+        ModelBuilder builder = new ModelBuilder();
+        builder.begin();
         
         // updade nodes
         short i = 0, j = 0, k = 0;
         int numVertices = nodes.size();
-        float[] vertexData = new float[numVertices * 4];
+        float[] nodeVertexData = new float[numVertices * 4];
         short[] nodeIndexData = new short[numVertices];
+        float[] linkVertexData = new float[numVertices * 8]; // origin + clone
         short[] linkIndexData = new short[numVertices * 2]; // max, but not size
         for (PathNode node : nodes) {
-            // vertex data
-            vertexData[j++] = node.position.x;
-            vertexData[j++] = node.position.y + 0.2f; // move up 20cm for easy debug
-            vertexData[j++] = node.position.z;
+            // node vertex data
+            nodeVertexData[j++] = node.position.x;
+            nodeVertexData[j++] = node.position.y + 0.2f; // move up 20cm for easy debug
+            nodeVertexData[j++] = node.position.z;
             int type = node.links.size();
             if (type > 3) type = 3;
-            vertexData[j++] = NODE_COLORS[type];
+            nodeVertexData[j++] = NODE_COLORS[type];
             // node index data
             nodeIndexData[i] = i;
             // link index data
             if (node.nextIndex >= 0) {
-                linkIndexData[k++] = i;
-                linkIndexData[k++] = node.nextIndex;
+                linkIndexData[k++] = i; // in original data part
+                linkIndexData[k++] = (short)(node.nextIndex + numVertices); // in clone data part
             }
             i++;
         }
-        // node part
+        // create node mesh part
         Mesh nodeMesh = new Mesh(true, numVertices, numVertices, VertexAttribute.Position(), VertexAttribute.ColorPacked());
-        nodeMesh.setVertices(vertexData);
+        nodeMesh.setVertices(nodeVertexData);
         nodeMesh.setIndices(nodeIndexData);
-        mb.part(null, nodeMesh, GL20.GL_POINTS, new Material());
-        // link part
+        builder.part(null, nodeMesh, GL20.GL_POINTS, new Material());
+        
+        // create link vertex data: origin part with color black, and clone part with color white
+        System.arraycopy(nodeVertexData, 0, linkVertexData, 0, nodeVertexData.length); // origin data part
+        System.arraycopy(nodeVertexData, 0, linkVertexData, nodeVertexData.length, nodeVertexData.length); // clone data part
+        for (i = 0; i < numVertices; i++) {
+            int offset = (i * 4) + 3;
+            linkVertexData[offset] = NODE_COLORS[0]; // black for origin
+            linkVertexData[offset + nodeVertexData.length] = Color.WHITE_FLOAT_BITS; // white for clone
+        }
+        // create link mesh part
         linkIndexData = Arrays.copyOf(linkIndexData, k);
-        Mesh linkMesh = new Mesh(true, numVertices, k, VertexAttribute.Position(), VertexAttribute.ColorPacked());
-        linkMesh.setVertices(vertexData);
+        Mesh linkMesh = new Mesh(true, numVertices * 2, k, VertexAttribute.Position(), VertexAttribute.ColorPacked());
+        linkMesh.setVertices(linkVertexData);
         linkMesh.setIndices(linkIndexData);
-        mb.part(null, linkMesh, GL20.GL_LINES, new Material(ColorAttribute.createDiffuse(Color.BLACK)));
+        builder.part(null, linkMesh, GL20.GL_LINES, new Material());
         
         // update lanes
         float leftColor = NODE_COLORS[1];
         float rightColor = NODE_COLORS[3];
-        vertexData = new float[numVertices * 8 * 4]; // max 8 points, 4 channels, but not real size
+        nodeVertexData = new float[numVertices * 8 * 4]; // max 8 points, 4 channels, but not real size
         nodeIndexData = new short[numVertices * 8 * 2]; // max, but not real size
         j = 0; k = 0;
         for (PathNode node : nodes) {
             // left direction
             for (PathLane lane : node.leftLanes) {
-                vertexData[j++] = lane.start.x;
-                vertexData[j++] = lane.start.y + 0.2f;
-                vertexData[j++] = lane.start.z;
-                vertexData[j++] = leftColor;
-                vertexData[j++] = lane.end.x;
-                vertexData[j++] = lane.end.y + 0.2f;
-                vertexData[j++] = lane.end.z;
-                vertexData[j++] = leftColor;
+                nodeVertexData[j++] = lane.start.x;
+                nodeVertexData[j++] = lane.start.y + 0.2f;
+                nodeVertexData[j++] = lane.start.z;
+                nodeVertexData[j++] = leftColor;
+                nodeVertexData[j++] = lane.end.x;
+                nodeVertexData[j++] = lane.end.y + 0.2f;
+                nodeVertexData[j++] = lane.end.z;
+                nodeVertexData[j++] = leftColor;
                 k++; nodeIndexData[k] = k;
                 k++; nodeIndexData[k] = k;
             }
             // right direction
             for (PathLane lane : node.rightLanes) {
-                vertexData[j++] = lane.start.x;
-                vertexData[j++] = lane.start.y + 0.4f; // up 40cm for easy debug
-                vertexData[j++] = lane.start.z;
-                vertexData[j++] = rightColor;
-                vertexData[j++] = lane.end.x;
-                vertexData[j++] = lane.end.y + 0.4f; // up 40cm for easy debug
-                vertexData[j++] = lane.end.z;
-                vertexData[j++] = rightColor;
+                nodeVertexData[j++] = lane.start.x;
+                nodeVertexData[j++] = lane.start.y + 0.4f; // up 40cm for easy debug
+                nodeVertexData[j++] = lane.start.z;
+                nodeVertexData[j++] = rightColor;
+                nodeVertexData[j++] = lane.end.x;
+                nodeVertexData[j++] = lane.end.y + 0.4f; // up 40cm for easy debug
+                nodeVertexData[j++] = lane.end.z;
+                nodeVertexData[j++] = rightColor;
                 k++; nodeIndexData[k] = k;
                 k++; nodeIndexData[k] = k;
             }
         }
-        vertexData = Arrays.copyOf(vertexData, j);
+        nodeVertexData = Arrays.copyOf(nodeVertexData, j);
         nodeIndexData = Arrays.copyOf(nodeIndexData, k);
         Mesh laneMesh = new Mesh(true, j, k, VertexAttribute.Position(), VertexAttribute.ColorPacked());
-        laneMesh.setVertices(vertexData);
+        laneMesh.setVertices(nodeVertexData);
         laneMesh.setIndices(nodeIndexData);
-        mb.part(null, laneMesh, GL20.GL_LINES, new Material());
+        builder.part(null, laneMesh, GL20.GL_LINES, new Material());
         
         // apply to model instance
-        modInst = new ModelInstance(mb.end());
+        modInst = new ModelInstance(builder.end());
     }
     
     @Override

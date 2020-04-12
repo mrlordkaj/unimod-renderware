@@ -24,6 +24,7 @@ import com.openitvn.unicore.plugin.PanelViewer;
 import java.awt.event.MouseEvent;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -64,23 +65,26 @@ public final class ResourcePanel extends PanelViewer {
         cm.getColumn(ResourceModel.COL_SIZE).setMinWidth(48);
         cm.getColumn(ResourceModel.COL_SIZE).setMaxWidth(48);
         // item change listener
-        resTable.getSelectionModel().addListSelectionListener((ListSelectionEvent evt) -> {
-            int row = resTable.getSelectedRow();
-            if (row >= 0 && !evt.getValueIsAdjusting()) {
-                int id = resTable.convertRowIndexToModel(row);
-                ResourceModel res = ResourceModel.getInstance();
-                RwArchiveEntry e = res.entries.get(id);
-                String name = e.getName().toLowerCase();
-                if (name.endsWith(".dff")) {
-                    String modName = name.substring(0, name.length() - 4);
-                    String txdName = res.dffTxdMap.get(modName);
-                    lblInfo.setText(String.format("%1$s < %2$s", modName, txdName));
-                    WorldFactory.unregister(viewer);
-                    viewer = res.extractModel(modName);
-                    if (viewer != null) {
-                        viewer.construct(viewer.resource);
-                        WorldFactory.register(viewer);
-                        WorldFactory.focusTo(viewer);
+        resTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent evt) {
+                int row = resTable.getSelectedRow();
+                if (row >= 0 && !evt.getValueIsAdjusting()) {
+                    int id = resTable.convertRowIndexToModel(row);
+                    ResourceModel res = ResourceModel.getInstance();
+                    RwArchiveEntry e = res.entries.get(id);
+                    String name = e.getName().toLowerCase();
+                    if (name.endsWith(".dff")) {
+                        String modName = name.substring(0, name.length() - 4);
+                        String txdName = res.dffTxdMap.get(modName);
+                        lblInfo.setText(String.format("%1$s < %2$s", modName, txdName));
+                        WorldFactory.unregister(viewer);
+                        viewer = res.extractModel(modName);
+                        if (viewer != null) {
+                            viewer.construct(viewer.resource);
+                            WorldFactory.register(viewer);
+                            WorldFactory.focusTo(viewer);
+                        }
                     }
                 }
             }

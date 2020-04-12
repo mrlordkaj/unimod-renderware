@@ -197,7 +197,7 @@ class WorldScriptModel extends AbstractTableModel {
             if (active) {
                 // activation need a async task because it take long time
                 // in fact, deactivation is very fast, so it not need to
-                ArrayList<String> deps = GameConfig.getDependencies(name);
+                final ArrayList<String> deps = GameConfig.getDependencies(name);
                 BackgroundTask.run(new BackgroundTask(name, deps.size()+1) {
                     @Override
                     protected Void doInBackground() {
