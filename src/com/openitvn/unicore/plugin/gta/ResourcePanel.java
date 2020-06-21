@@ -79,12 +79,11 @@ public final class ResourcePanel extends PanelViewer {
                         String txdName = res.dffTxdMap.get(modName);
                         lblInfo.setText(String.format("%1$s < %2$s", modName, txdName));
                         WorldFactory.unregister(viewer);
-                        viewer = res.extractModel(modName);
-                        if (viewer != null) {
-                            viewer.construct(viewer.resource);
-                            WorldFactory.register(viewer);
-                            WorldFactory.focusTo(viewer);
-                        }
+                        viewer = new RwDff(modName);
+                        res.extractModel(viewer);
+                        viewer.construct(viewer.resource);
+                        WorldFactory.register(viewer);
+                        WorldFactory.focusTo(viewer);
                     }
                 }
             }
@@ -165,8 +164,8 @@ public final class ResourcePanel extends PanelViewer {
 
     private void txtSearchKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyReleased
         String regex = txtSearch.getSearchRegex();
-        ((TableRowSorter) resTable.getRowSorter())
-            .setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
+        TableRowSorter sorter = (TableRowSorter) resTable.getRowSorter();
+        sorter.setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
     }//GEN-LAST:event_txtSearchKeyReleased
 
     private void resTableMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_resTableMouseReleased

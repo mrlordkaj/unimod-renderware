@@ -18,8 +18,11 @@ package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.format.dff.RwDff;
+import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
+import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.plugin.PanelViewer;
 import com.openitvn.unicore.plugin.gta.item.CARSEntry;
 import com.openitvn.unicore.world.IGeometry;
@@ -38,7 +41,7 @@ import javax.swing.table.TableRowSorter;
  */
 public final class VehiclePanel extends PanelViewer {
 
-    private RwDff viewer;
+    private RwDff vehicleWorld;
     private final VehicleModel vehicleModel = new VehicleModel();
     
     private final ArrayList<INode> nodes = new ArrayList<>(); // for easy control
@@ -52,8 +55,8 @@ public final class VehiclePanel extends PanelViewer {
 
     @Override
     public boolean requestClose() {
-        WorldFactory.unregister(viewer);
-        viewer = null;
+        WorldFactory.unregister(vehicleWorld);
+        vehicleWorld = null;
         return true;
     }
     
@@ -77,26 +80,30 @@ public final class VehiclePanel extends PanelViewer {
             public void valueChanged(ListSelectionEvent evt) {
                 int row = tblCar.getSelectedRow();
                 if (row >= 0 && !evt.getValueIsAdjusting()) {
+                    // unregister current world
+                    WorldFactory.unregister(vehicleWorld);
+                    // create new world and pre-register libraries
                     int id = tblCar.convertRowIndexToModel(row);
                     CARSEntry e = vehicleModel.entries.get(id);
-                    WorldFactory.unregister(viewer);
-                    viewer = ResourceModel.getInstance().extractModel(e.modName, nodes);
-                    if (viewer != null) {
-                        // add common resources
-                        viewer.resource.register(vehicleModel.comTexLib);
-                        viewer.resource.register(vehicleModel.comMatLib);
-                        viewer.resource.register(vehicleModel.comModLib);
-                        switch (e.type) {
-                            case "car":
-                            case "mtruck":
-                            case "trailer":
-                                createWheels(e);
-                                break;
-                        }
-                        viewer.construct(viewer.resource);
-                        WorldFactory.focusTo(viewer);
-                        update();
+                    vehicleWorld = new RwDff(e.modName);
+                    vehicleWorld.resource.register(vehicleModel.comTexLib);
+                    vehicleWorld.resource.register(vehicleModel.comMatLib);
+                    vehicleWorld.resource.register(vehicleModel.comModLib);
+                    // load world from dff stream
+                    ResourceModel rm = ResourceModel.getInstance();
+                    rm.extractModel(vehicleWorld, nodes);
+                    // create wheels
+                    switch (e.type) {
+                        case "car":
+                        case "mtruck":
+                        case "trailer":
+                            createWheels(e);
+                            break;
                     }
+                    // update world
+                    vehicleWorld.construct(vehicleWorld.resource);
+                    WorldFactory.focusTo(vehicleWorld);
+                    update();
                 }
             }
         });

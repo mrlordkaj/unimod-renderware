@@ -26,30 +26,33 @@ import com.openitvn.engine.renderware.RpTextureNative;
  */
 public class RwMaterial extends IMaterial {
     
-    public RwMaterial(String matName, RpMaterial rMat, RpTextureNative rTex) {
+    public RwMaterial(String matName, RpMaterial matData) {
         super(matName);
-        color.a = rMat.color.a / 255f;
-        color.b = rMat.color.b / 255f;
-        color.g = rMat.color.g / 255f;
-        color.r = rMat.color.r / 255f;
+        // precomputed alpha
+        color.a = matData.color.a / 255f;
         // enable alpha test when needed
-        boolean masked = (rTex != null && rTex.hasAlpha) || rMat.isMasked();
-        if (rMat.textured && masked) {
-            alphaBlend = true;
-            cullFace = false;
-        } else if (color.a < 1) {
+        if (matData.isMasked() || color.a < 1) {
             alphaBlend = true;
             cullFace = false;
             alphaTest = color.a - 0.01f;
         }
+        // shadingn factors
+        ambientFactor = matData.ambient;
+        diffuseFactor = matData.diffuse;
+        specularFactor = matData.specular;
         // texture or color
-        if (rMat.textured && rTex != null) {
-            diffuseTexture = rTex.getMapperName();
-            specularFactor = 0f;
-        } else {
-            ambientFactor = rMat.ambient;
-            diffuseFactor = rMat.diffuse;
-            specularFactor = rMat.specular;
+        if (!matData.textured) {
+            color.b = matData.color.b / 255f;
+            color.g = matData.color.g / 255f;
+            color.r = matData.color.r / 255f;
         }
+    }
+    
+    public void bindTextureData(RpTextureNative texData) {
+        if (texData.hasAlpha) {
+            alphaBlend = true;
+            cullFace = false;
+        }
+        diffuseTexture = texData.getMapperName();
     }
 }

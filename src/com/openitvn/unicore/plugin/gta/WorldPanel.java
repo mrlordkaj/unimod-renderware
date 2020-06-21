@@ -351,7 +351,9 @@ public final class WorldPanel extends PanelViewer {
                                     texData.getMapperName() + "m";
                             // register new material when missing
                             if (world.resource.findMaterial(matName) == null) {
-                                world.resource.register(new RwMaterial(matName, matData, texData));
+                                RwMaterial mat = new RwMaterial(matName, matData);
+                                mat.bindTextureData(texData);
+                                world.resource.register(mat);
                                 reg.matNames.add(matName);
                             }
                             // mesh

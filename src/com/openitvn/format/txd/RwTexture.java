@@ -64,6 +64,10 @@ public class RwTexture extends ITexture {
         }
     }
     
+    public RpTextureNative getTextureData() {
+        return texture;
+    }
+    
     @Override
     public byte[] compileTexture(ITexture src) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");

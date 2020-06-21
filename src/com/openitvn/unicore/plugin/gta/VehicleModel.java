@@ -54,14 +54,16 @@ public class VehicleModel extends AbstractTableModel {
         switch (GameConfig.getAlias()) {
             case GameConfig.ALIAS_III:
             case GameConfig.ALIAS_VC:
-                RwDff extraLib = res.extractModel("wheels");
+                RwDff extraLib = new RwDff("wheels");
+                res.extractModel(extraLib);
                 comTexLib.addAll(extraLib.resource.getTextures());
                 comMatLib.addAll(extraLib.resource.getMaterials());
                 comModLib.addAll(extraLib.resource.getModels());
                 break;
                 
             case GameConfig.ALIAS_SA:
-                try (FileStream fs = new FileStream(GameConfig.getDirectory()+"/models/generic/vehicle.txd")) {
+                String extraTxd = GameConfig.getDirectory()+"/models/generic/vehicle.txd";
+                try (FileStream fs = new FileStream(extraTxd)) {
                     RwTexturePack texDic = new RwTexturePack();
                     texDic.decode(fs);
                     comTexLib.addAll(texDic.textures);

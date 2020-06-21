@@ -22,6 +22,7 @@ import com.openitvn.format.img.RwArchive;
 import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.INode;
 import java.io.BufferedReader;
 import java.io.File;
@@ -160,27 +161,29 @@ class ResourceModel extends AbstractTableModel {
         }
     }
     
-    RwDff extractModel(String modName) {
-        return extractModel(modName, null);
+    void extractModel(RwDff mod) {
+        extractModel(mod, null);
     }
     
-    RwDff extractModel(String modName, ArrayList<INode> nodeList) {
+    void extractModel(RwDff mod, ArrayList<INode> nodeList) {
+        String modName = mod.getName();
         RwArchiveEntry me = findEntry(modName + ".dff");
         if (me != null) {
             try (BufferStream ms = me.toDataStream()) {
                 String txdName = dffTxdMap.get(modName.toLowerCase());
-                RwArchiveEntry te = findEntry((txdName == null ? modName : txdName) + ".txd");
-                BufferStream ts = te == null ? null : te.toDataStream();
-                RwDff mod = new RwDff(modName);
-                Collection<INode> nodes = mod.fromData(ms, ts, false);
+                RwArchiveEntry txdEntry = findEntry((txdName == null ? modName : txdName) + ".txd");
+                if (txdEntry != null) {
+                    try (DataStream ds = txdEntry.toDataStream()) {
+                        mod.loadTextureLibrary(ds);
+                    }
+                }
+                Collection<INode> nodes = mod.fromData(ms, false);
                 if (nodeList != null) {
                     nodeList.clear();
                     nodeList.addAll(nodes);
                 }
-                return mod;
             }
         }
-        return null;
     }
     
     RwArchiveEntry getEntry(int index) {
@@ -188,12 +191,13 @@ class ResourceModel extends AbstractTableModel {
     }
     
     RwArchiveEntry findEntry(String name) {
-        for (RwArchiveEntry e : entries)
+        for (RwArchiveEntry e : entries) {
             if (e.getName().equalsIgnoreCase(name))
                 return e;
+        }
         return null;
     }
-    
+        
     @Override
     public int getRowCount() {
         return entries.size();
