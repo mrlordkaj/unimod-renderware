@@ -30,7 +30,7 @@ import java.nio.file.Files;
  */
 public final class RwArchive extends IArchive<RwArchiveEntry> {
     
-    private final int MAGIC_VER2 = StringHelper.makeFourCC('V','E','R','2');
+    private final int MAGIC_VER2 = StringHelper.makeFourCC("VER2");
     
     // only support v1 and v2 by now
     private int version;

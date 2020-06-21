@@ -63,25 +63,21 @@ public class RwDff extends IWorld {
         fromData(ds, null, true);
     }
     
-    public void fromData(DataStream ds, DataStream txd) {
-        fromData(ds, txd, true);
-    }
-    
     public Collection<INode> fromData(DataStream dff, DataStream txd, boolean allClump) {
         HashMap<RpFrame, INode> frameMap = new HashMap<>();
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
         HashMap<String, IMaterial> matMap = new HashMap<>();
         HashMap<String, ITexture> texMap = new HashMap<>();
-        RpSection grand;
         // loading txd
         if (txd != null) {
-            grand = RpSection.fromData(txd, null);
+            RpSection grand = RpSection.fromData(txd, null);
             for (RpTextureNative texData : grand.getChildren(RpTextureNative.class)) {
                 texNavMap.put(texData.textureName.toLowerCase(), texData);
                 String texName = texData.getMapperName();
                 if (!texMap.containsKey(texName)) {
                     RwTexture rTex = new RwTexture(texName, texData);
                     texMap.put(texName, rTex);
+//                    System.out.println("Loading texture " + texName);
                 }
             }
             txd.close();
@@ -89,6 +85,7 @@ public class RwDff extends IWorld {
         // load dff
         if (dff != null) {
             int clumpId = 0;
+            RpSection grand;
             while (dff.hasRemaining() && (grand = RpSection.fromData(dff, null)) != null) {
                 if (grand instanceof RpClump) {
                     RpClump cluData = (RpClump) grand;
@@ -131,10 +128,7 @@ public class RwDff extends IWorld {
                     // resolve hierarchy by frame
                     for (HashMap.Entry<RpFrame, INode> e : frameMap.entrySet()) {
                         INode geo = frameMap.get(e.getKey().parent);
-                        if (geo != null)
-                            e.getValue().attach(geo);
-                        else
-                            e.getValue().attach(this);
+                        e.getValue().attach(geo == null ? this : geo);
                     }
                     if (!allClump)
                         break;

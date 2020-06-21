@@ -65,13 +65,13 @@ public class RpTextureNative extends RpSection {
     public static final byte COMPRESSION_PAL4 = 4;
     public static final byte COMPRESSION_PAL8 = 8;
     // platform
-    public static final int PLATFORM_GTA_XBOX   = 5;
-    public static final int PLATFORM_GTA3_PC    = 8;
-    public static final int PLATFORM_GTASA_PC   = 9;
-    public static final int PLATFORM_PS2        = StringHelper.makeFourCC('P','S','2','0');
+    public static final int PLATFORM_GTA_XBOX = 5;
+    public static final int PLATFORM_GTA3_PC  = 8;
+    public static final int PLATFORM_GTASA_PC = 9;
+    public static final int PLATFORM_PS2      = StringHelper.makeFourCC("PS20");
     
     // TextureFormat; 72 bytes in total
-//    private final int platformId;
+    private final int platformId;
     public final byte filterMode;
     private final byte uWrap;
     private final byte vWrap;
@@ -94,7 +94,7 @@ public class RpTextureNative extends RpSection {
         super(RpType.TextureNative, size, libId, parent, ds);
         ByteBuffer bb = getStruct();
         // texture format
-        int platformId = bb.getInt();
+        platformId = bb.getInt();
         filterMode = bb.get();
         byte addressing = bb.get();
         uWrap = (byte)((addressing & 0xf0) >> 4);
@@ -223,33 +223,6 @@ public class RpTextureNative extends RpSection {
                 
             default:
                 return GL20.GL_CLAMP_TO_EDGE;
-        }
-    }
-    
-    
-    @Deprecated
-    public String getCompressionName() {
-        switch (compression) {
-            case COMPRESSION_NONE:
-                return "None";
-                
-            case COMPRESSION_DXT1:
-                return "DXT1";
-            
-            case COMPRESSION_DXT3:
-                return "DXT3";
-                
-            case COMPRESSION_DXT5:
-                return "DXT5";
-                
-            case COMPRESSION_PAL4:
-                return "PAL4";
-                
-            case COMPRESSION_PAL8:
-                return "PAL8";
-                
-            default:
-                return "Unknow";
         }
     }
 }

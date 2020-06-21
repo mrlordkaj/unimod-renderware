@@ -69,8 +69,9 @@ public class CARSEntry {
         type = args[i++];
         handlingId = args[i++];
         gameName = args[i++];
-        if (!GameConfig.ALIAS_III.equals(gameAlias))
+        if (!GameConfig.ALIAS_III.equals(gameAlias)) {
             anims = args[i++];
+        }
         clazz = args[i++];
         frq = Integer.parseInt(args[i++]);
         lvl = Integer.parseInt(args[i++]);

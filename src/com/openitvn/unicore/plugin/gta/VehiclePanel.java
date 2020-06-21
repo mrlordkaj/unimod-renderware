@@ -58,8 +58,8 @@ public final class VehiclePanel extends PanelViewer {
     }
     
     @Override
-    public void workspaceChanged(Workspace w) {
-        GameConfig.setWorkspace(w);
+    public void workspaceChanged(Workspace workspace) {
+        GameConfig.setWorkspace(workspace);
         vehicleModel.bind(ResourceModel.getInstance());
         wheelMap = GameConfig.getWheelNameMap();
     }
@@ -102,43 +102,39 @@ public final class VehiclePanel extends PanelViewer {
         });
     }
     
-    private void createWheels(CARSEntry e) {
+    private void createWheels(CARSEntry car) {
         ArrayList<INode> wheelNodes = new ArrayList<>();
-        String name;
         switch (GameConfig.getAlias()) {
             case GameConfig.ALIAS_III:
             case GameConfig.ALIAS_VC:
                 // find wheel by id
-                String wheelName = wheelMap.get(e.wheelModelId);
-                float s = e.wheelScale;
+                String wheelName = wheelMap.get(car.wheelModelId)+"_l0";
+                float scl = car.wheelScale;
                 for (INode node : nodes) {
-                    name = node.getName();
+                    String name = node.getName();
                     if (name.startsWith("wheel_")) {
-                        IGeometry in = new IGeometry(wheelName+"_l0");
-//                        IGeometry out = new IGeometry(wheelName+"_l1");
-                        in.transform.localMatrix.scale(s, s, s);
-//                        out.getLocalTransform().scale(s, s, s);
-                        in.attach(node);
-//                        out.attach(node);
-                        if (name.startsWith("wheel_l"))
-                            node.transform.localMatrix.rotate(Vector3.Z, 180);
-                        wheelNodes.add(in);
-//                        wheelNodes.add(out);
+                        IGeometry wheel = new IGeometry(wheelName);
+                        wheel.attach(node);
+                        if (name.startsWith("wheel_l")) {
+                            wheel.transform.localMatrix.rotate(Vector3.Z, 180);
+                        }
+                        node.transform.localMatrix.scale(scl, scl, scl);
+                        wheelNodes.add(wheel);
                     }
                 }
-
                 break;
 
             case GameConfig.ALIAS_SA:
                 for (INode node : nodes) {
-                    name = node.getName();
+                    String name = node.getName();
                     if (name.startsWith("wheel_") && !name.startsWith("wheel_rf")) {
-                        IGeometry w = new IGeometry("wheel");
-                        w.attach(node);
-                        wheelNodes.add(w);
+                        IGeometry wheel = new IGeometry("wheel");
+                        wheel.attach(node);
+                        wheelNodes.add(wheel);
                     }
-                    if (name.startsWith("wheel_l"))
+                    if (name.startsWith("wheel_l")) {
                         node.transform.localMatrix.rotate(Vector3.Z, 180);
+                    }
                 }
                 break;
         }
@@ -268,8 +264,8 @@ public final class VehiclePanel extends PanelViewer {
 
     private void txtSearchKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyReleased
         String regex = txtSearch.getSearchRegex();
-        ((TableRowSorter) tblCar.getRowSorter())
-                .setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
+        TableRowSorter sorter = (TableRowSorter)tblCar.getRowSorter();
+        sorter.setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
     }//GEN-LAST:event_txtSearchKeyReleased
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
