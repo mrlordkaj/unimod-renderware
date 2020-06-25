@@ -75,66 +75,64 @@ public class RwModel extends IWorld {
         HashMap<RpFrame, INode> frameMap = new HashMap<>();
         int clumpId = 0;
         RpSection grand;
-        while (dff.hasRemaining() && (grand = RpSection.fromData(dff, null)) != null) {
-            if (grand instanceof RpClump) {
-                // create nodes by frames
-                for (RpFrame frmData : ((RpClump)grand).frameList.frames) {
-                    boolean isGeometry = frmData.geometry != null;
-                    // crete node/geometry
-                    INode node = isGeometry ? new IGeometry() : new INode();
-                    node.setName(frmData.name);
-                    node.transform.localMatrix.set(frmData.combineMatrix4());
-                    if (allClump) {
-                        node.setLayerIndex(clumpId);
-                    }
-                    frameMap.put(frmData, node);
-                    // create model and materials
-                    if (isGeometry) {
-                        RpGeometry geoData = frmData.geometry;
-                        IModel mod = new IModel(frmData.name);
-                        // meshes = materials
-                        for (short i = 0; i < geoData.materials.size(); i++) {
-                            // material
-                            RpMaterial matData = geoData.materials.get(i);
-                            RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
-                            String matName;
-                            if (texData != null) {
-                                // create material name by add "m"
-                                matName = texData.getMapperName()+"m";
-                                // if have alpha channel, add "a"
-                                if (matData.isMasked() || matData.color.a < 255) {
-                                    matName += "a";
-                                }
-                            } else {
-                                // default if texture not found
-                                matName = frmData.name + "_untex" + i;
-                            }
-                            if (resource.findMaterial(matName) == null) {
-                                RwMaterial mat = new RwMaterial(matName, matData, texData);
-                                resource.register(mat);
-                            }
-                            // mesh
-                            IMesh mesh = new IMesh();
-                            mesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
-                            mesh.setIndices(geoData.indexMap.get(i));
-                            mesh.materialName = matName;
-                            mod.meshes.add(mesh);
-                        }
-                        resource.register(mod);
-                    }
-                }
-                // resolve hierarchy by frame
-                for (HashMap.Entry<RpFrame, INode> e : frameMap.entrySet()) {
-                    INode geo = frameMap.get(e.getKey().parent);
-                    e.getValue().attach(geo == null ? this : geo);
-                }
-                // add new layer for clump
+        while ((grand = RpSection.loadRoot(dff)) instanceof RpClump) {
+            // create nodes by frames
+            for (RpFrame frmData : ((RpClump)grand).frameList.frames) {
+                boolean isGeometry = frmData.geometry != null;
+                // crete node/geometry
+                INode node = isGeometry ? new IGeometry() : new INode();
+                node.setName(frmData.name);
+                node.transform.localMatrix.set(frmData.combineMatrix4());
                 if (allClump) {
-                    layers.add(new ILayer(clumpId, "Clump " + clumpId));
-                    clumpId++;
-                } else {
-                    break;
+                    node.setLayerIndex(clumpId);
                 }
+                frameMap.put(frmData, node);
+                // create model and materials
+                if (isGeometry) {
+                    RpGeometry geoData = frmData.geometry;
+                    IModel mod = new IModel(frmData.name);
+                    // meshes = materials
+                    for (short i = 0; i < geoData.materials.size(); i++) {
+                        // material
+                        RpMaterial matData = geoData.materials.get(i);
+                        RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
+                        String matName;
+                        if (texData != null) {
+                            // create material name by add "m"
+                            matName = texData.getMapperName()+"m";
+                            // if have alpha channel, add "a"
+                            if (matData.isMasked() || matData.color.a < 255) {
+                                matName += "a";
+                            }
+                        } else {
+                            // default if texture not found
+                            matName = frmData.name + "_untex" + i;
+                        }
+                        if (resource.findMaterial(matName) == null) {
+                            RwMaterial mat = new RwMaterial(matName, matData, texData);
+                            resource.register(mat);
+                        }
+                        // mesh
+                        IMesh mesh = new IMesh();
+                        mesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
+                        mesh.setIndices(geoData.indexMap.get(i));
+                        mesh.materialName = matName;
+                        mod.meshes.add(mesh);
+                    }
+                    resource.register(mod);
+                }
+            }
+            // resolve hierarchy by frame
+            for (HashMap.Entry<RpFrame, INode> e : frameMap.entrySet()) {
+                INode geo = frameMap.get(e.getKey().parent);
+                e.getValue().attach(geo == null ? this : geo);
+            }
+            // add new layer for clump
+            if (allClump) {
+                layers.add(new ILayer(clumpId, "Clump " + clumpId));
+                clumpId++;
+            } else {
+                break;
             }
         }
         return frameMap.values(); // return for vehicle management

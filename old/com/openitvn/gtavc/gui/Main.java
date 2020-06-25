@@ -16,8 +16,8 @@
  */
 package com.openitvn.gtavc.gui;
 
+import com.openitvn.control.UCFileChooser;
 import com.openitvn.gtavc.core.GtaAssetModel;
-import com.openitvn.control.JuniFileChooser;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.gtavc.core.item.CARSEntry;
@@ -29,6 +29,7 @@ import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.maintain.Logger;
 import com.openitvn.maintain.StateViewer;
+import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Canvas;
 import java.awt.Point;
@@ -52,6 +53,10 @@ import javax.swing.table.TableRowSorter;
  * @author Thinh Pham
  */
 public class Main extends javax.swing.JFrame {
+    
+    static {
+        Unicore.loadSystem();
+    }
     
     private final ScriptFileModel scriptGroupModel = new ScriptFileModel();
     private final GtaAssetModel assetModel = GtaAssetModel.getInstance();
@@ -936,7 +941,7 @@ public class Main extends javax.swing.JFrame {
 
     private void btnExportSceneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportSceneActionPerformed
         if (!checkBusy()) {
-            JuniFileChooser fcSave = new JuniFileChooser(currentFile);
+            UCFileChooser fcSave = new UCFileChooser(currentFile);
             fcSave.setAcceptAllFileFilterUsed(false);
             fcSave.addChoosableFileFilter(new FileNameExtensionFilter("Autodesk Filmbox (fbx)", "fbx"));
             if (fcSave.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -957,9 +962,9 @@ public class Main extends javax.swing.JFrame {
         int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (selId >= 0) {
             RwArchiveEntry entry = assetModel.getEntry(selId);
-            JuniFileChooser fcSave = new JuniFileChooser(currentFile);
+            UCFileChooser fcSave = new UCFileChooser(currentFile);
             fcSave.setSelectedFile(new File(entry.getName()));
-            if (fcSave.showSaveDialog(this) == JuniFileChooser.APPROVE_OPTION) {
+            if (fcSave.showSaveDialog(this) == UCFileChooser.APPROVE_OPTION) {
                 File out = fcSave.getSelectedFile();
                 try (FileOutputStream fos = new FileOutputStream(out)) {
                     byte[] bb = assetModel.getEntry(selId).getData();

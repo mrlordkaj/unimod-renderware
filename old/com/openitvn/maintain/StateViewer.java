@@ -16,7 +16,7 @@
  */
 package com.openitvn.maintain;
 
-import com.openitvn.control.JuniKeyboard;
+import com.openitvn.control.UCKeyboard;
 import java.awt.KeyEventDispatcher;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -54,7 +54,7 @@ public class StateViewer extends TimerTask implements KeyEventDispatcher {
     public void start() {
         timer = new Timer("MemViewer");
         timer.schedule(this, 0, 5000);
-        JuniKeyboard.addKeyEventDispatcher(this);
+        UCKeyboard.addKeyEventDispatcher(this);
     }
     
     public void stop() {
@@ -62,7 +62,7 @@ public class StateViewer extends TimerTask implements KeyEventDispatcher {
             timer.cancel();
             timer = null;
         }
-        JuniKeyboard.removeKeyEventDispatcher(this);
+        UCKeyboard.removeKeyEventDispatcher(this);
     }
 
     @Override

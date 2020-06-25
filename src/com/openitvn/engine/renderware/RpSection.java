@@ -52,6 +52,10 @@ public class RpSection implements TreeNode {
         return 0;
     }
     
+    public static RpSection loadRoot(DataStream ds) {
+        return fromData(ds, null);
+    }
+    
     public static RpSection fromData(DataStream ds, RpSection parent) {
         if (ds.remaining() < 12)
             return null; // section below 12 bytes makes no sense
@@ -136,7 +140,6 @@ public class RpSection implements TreeNode {
     /**
      * TODO: Adapt with previous application,
      * will be removed in futher release.
-     * @param ds 
      */
     @Deprecated
     protected void parseChildren(DataStream ds) {

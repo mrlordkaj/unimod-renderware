@@ -304,9 +304,7 @@ public class Startup extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(Startup.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         
-        java.awt.EventQueue.invokeLater(() -> {
-            new Startup().setVisible(true);
-        });
+        new Startup().setVisible(true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

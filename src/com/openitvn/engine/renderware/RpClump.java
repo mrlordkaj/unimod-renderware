@@ -37,8 +37,9 @@ public class RpClump extends RpSection {
         ArrayList<RpAtomic> atoms = getChildren(RpAtomic.class);
         if (!atoms.isEmpty()) {
             if (version < 0x30400) {
-                for (RpAtomic atom : atoms)
+                for (RpAtomic atom : atoms) {
                     geometries.add(atom.getFirstChild(RpGeometry.class));
+                }
             } else {
                 geometries = getFirstChild(RpType.GeometryList).getChildren(RpGeometry.class);
             }

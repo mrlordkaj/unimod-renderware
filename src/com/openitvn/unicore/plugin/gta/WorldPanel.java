@@ -258,8 +258,8 @@ public final class WorldPanel extends PanelViewer {
             regex = "^IPL$";
         else
             regex = "";
-        ((TableRowSorter) tblMap.getRowSorter())
-            .setRowFilter(RowFilter.regexFilter(regex, WorldScriptModel.COL_TYPE));
+        TableRowSorter sorter = (TableRowSorter) tblMap.getRowSorter();
+        sorter.setRowFilter(RowFilter.regexFilter(regex, WorldScriptModel.COL_TYPE));
     }//GEN-LAST:event_refineWorldTable
 
     private void btnExportPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportPathActionPerformed
@@ -303,9 +303,8 @@ public final class WorldPanel extends PanelViewer {
     
     private void addOBJS(OBJSEntry objs, GroupRegistry reg) {
         ResourceModel res = ResourceModel.getInstance();
-        RpSection grand;
         // load textures
-        grand = txdCache.get(objs.txdName);
+        RpSection grand = txdCache.get(objs.txdName);
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
         if (grand == null) {
             // load txd from resource
@@ -334,42 +333,37 @@ public final class WorldPanel extends PanelViewer {
         // load model
         try (RwArchiveEntry e = res.findEntry(objs.modName + ".dff");
                 BufferStream ds = e.toDataStream()) {
-            while ((grand = RpSection.fromData(ds, null)) != null) {
-                if (grand instanceof RpClump) {
-                    // only load root geometry as model
-                    RpGeometry geoData = ((RpClump)grand).getRootGeometry();
-                    if (geoData != null) {
-                        IModel mod = new IModel(objs.modName);
-                        reg.modNames.add(objs.modName);
-                        // meshes = materials
-                        for (short i = 0; i < geoData.materials.size(); i++) {
-                            // material
-                            RpMaterial matData = geoData.materials.get(i);
-                            RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
-                            String matName = (texData == null) ?
-                                    objs.modName + "_untex" + i :
-                                    texData.getMapperName() + "m";
-                            // register new material when missing
-                            if (world.resource.findMaterial(matName) == null) {
-                                RwMaterial mat = new RwMaterial(matName, matData, texData);
-                                world.resource.register(mat);
-                                reg.matNames.add(matName);
-                            }
-                            // mesh
-                            IMesh mesh = new IMesh();
-                            mesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
-                            mesh.setIndices(geoData.indexMap.get(i));
-                            mesh.materialName = matName;
-                            mod.meshes.add(mesh);
+            while ((grand = RpSection.loadRoot(ds)) instanceof RpClump) {
+                // only load root geometry as model
+                RpGeometry geoData = ((RpClump)grand).getRootGeometry();
+                if (geoData != null) {
+                    IModel mod = new IModel(objs.modName);
+                    reg.modNames.add(objs.modName);
+                    // meshes = materials
+                    for (short i = 0; i < geoData.materials.size(); i++) {
+                        // material
+                        RpMaterial matData = geoData.materials.get(i);
+                        RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
+                        String matName = (texData == null) ?
+                                objs.modName + "_untex" + i :
+                                texData.getMapperName() + "m";
+                        // register new material when missing
+                        if (world.resource.findMaterial(matName) == null) {
+                            RwMaterial mat = new RwMaterial(matName, matData, texData);
+                            world.resource.register(mat);
+                            reg.matNames.add(matName);
                         }
-                        world.resource.register(mod);
-                        modelNameMap.put(objs.modId, objs.modName);
-                        break;
+                        // mesh
+                        IMesh mesh = new IMesh();
+                        mesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
+                        mesh.setIndices(geoData.indexMap.get(i));
+                        mesh.materialName = matName;
+                        mod.meshes.add(mesh);
                     }
-                }/* else {
-                    Logger.printWarning("Nothing found in DFF: %1$s", dff);
+                    world.resource.register(mod);
+                    modelNameMap.put(objs.modId, objs.modName);
                     break;
-                }*/
+                }
             }
         } catch (NullPointerException ex) {
             Logger.printWarning("DFF not found: " + objs.modName);
@@ -537,8 +531,9 @@ public final class WorldPanel extends PanelViewer {
         if (active) {
             INode group = new INode(groupName);
             String[] args;
-            while ((args = ScriptHelper.parseLineByComma(br)) != null)
+            while ((args = ScriptHelper.parseLineByComma(br)) != null) {
                 addINST(group, new INSTEntry(args));
+            }
             pendingNode = group;
         } else {
             world.deleteNode(groupName);
@@ -555,8 +550,9 @@ public final class WorldPanel extends PanelViewer {
             ds.position(4); // skip "bnry"
             int instCount = ds.getInt();
             ds.position(0x4c); // offset of INST, 0x4C by default
-            for (int j = 0; j < instCount; j++)
+            for (int j = 0; j < instCount; j++) {
                 addINST(group, new INSTEntry(ds));
+            }
             pendingNode = group;
         } else {
             world.deleteNode(groupName);
@@ -565,11 +561,11 @@ public final class WorldPanel extends PanelViewer {
     }
     
     private class GroupRegistry {
-        // quick delete resource from world
+        // registry for world resource
         private final ArrayList<String> modNames = new ArrayList<>();
         private final ArrayList<String> matNames = new ArrayList<>();
         private final ArrayList<String> texNames = new ArrayList<>();
-        // quick delete cache from collisionMap
+        // registry for collisionMap
         private final ArrayList<String> colNames = new ArrayList<>();
     }
     
@@ -584,7 +580,7 @@ public final class WorldPanel extends PanelViewer {
     
     void prepareDispatcher() {
         tblMap.setEnabled(false);
-        txdCache = new HashMap();
+        txdCache = new HashMap<>();
         pendingNode = null;
     }
     

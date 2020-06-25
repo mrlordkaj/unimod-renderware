@@ -77,8 +77,9 @@ public class RpGeometry extends RpSection {
         }
         // prepare vertices
         IVertex[] verts = new IVertex[numVerts];
-        for (int i = 0; i < numVerts; i++)
+        for (int i = 0; i < numVerts; i++) {
             verts[i] = new IVertex();
+        }
         HashMap<Short, ArrayList<Short>> idxMap = new HashMap<>();
         // vertices data
         if ((fmt & GEOMETRYNATIVE) == 0) {
@@ -92,11 +93,15 @@ public class RpGeometry extends RpSection {
             // texCoords
             if ((fmt & (GEOMETRYTEXTURED | GEOMETRYTEXTURED2)) != 0) {
                 int numTexCoords = (fmt & 0x00ff0000) >> 16;
-                if (numTexCoords == 0)
+                if (numTexCoords == 0) {
                     numTexCoords = ((fmt & GEOMETRYTEXTURED) != 0) ? 1 : 2;
+                }
                 for (int i = 0; i < numTexCoords; i++) {
-                    for (IVertex v : verts)
-                        v.addTexCoord(bb.getFloat(), bb.getFloat());
+                    for (IVertex vert : verts) {
+                        float u = bb.getFloat();
+                        float v = bb.getFloat();
+                        vert.addTexCoord(u, v);
+                    }
                 }
             }
             // indices and matId
@@ -106,8 +111,10 @@ public class RpGeometry extends RpSection {
                 short m = bb.getShort();
                 short c = bb.getShort();
                 ArrayList<Short> ids = idxMap.get(m);
-                if (ids == null)
-                    idxMap.put(m, (ids = new ArrayList<>()));
+                if (ids == null) {
+                    ids = new ArrayList<>();
+                    idxMap.put(m, ids);
+                }
                 ids.add(a);
                 ids.add(b);
                 ids.add(c);
@@ -118,12 +125,20 @@ public class RpGeometry extends RpSection {
         int hasVertex = bb.getInt();
         int hasNormal = bb.getInt();
         // position
-        for (IVertex v : verts)
-            v.set(bb.getFloat(), bb.getFloat(), bb.getFloat());
+        for (IVertex v : verts) {
+            float a = bb.getFloat();
+            float b = bb.getFloat();
+            float c = bb.getFloat();
+            v.set(a, b, c);
+        }
         // normal
         if ((fmt & GEOMETRYNORMALS) != 0) {
-            for (IVertex v : verts)
-                v.setNormal(bb.getFloat(), bb.getFloat(), bb.getFloat());
+            for (IVertex v : verts) {
+                float a = bb.getFloat();
+                float b = bb.getFloat();
+                float c = bb.getFloat();
+                v.setNormal(a, b, c);
+            }
         }
         if (bb.hasRemaining()) {
             Logger.printWarning("Remaining %1$d bytes (%2$d processed)", bb.remaining(), bb.position());
@@ -138,8 +153,9 @@ public class RpGeometry extends RpSection {
         for (short i = 0; i < materials.size(); i++) {
             ArrayList<Short> ids = idxMap.get(i);
             ShortBuffer sb = ShortBuffer.allocate(ids.size());
-            for (short id : ids)
+            for (short id : ids) {
                 sb.put(id);
+            }
             indexMap.add(sb);
         }
     }

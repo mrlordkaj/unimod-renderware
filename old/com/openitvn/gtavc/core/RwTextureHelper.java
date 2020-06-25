@@ -18,10 +18,10 @@
 package com.openitvn.gtavc.core;
 
 import com.openitvn.engine.renderware.RpTextureNative;
-import com.openitvn.unicore.raster.IPixelFormat;
-import com.openitvn.unicore.raster.IRaster;
-import com.openitvn.unicore.raster.RasterImage;
-import com.openitvn.unicore.raster.TextureHelper;
+import com.openitvn.unicore.world.resource.BufferedRaster;
+import com.openitvn.unicore.world.resource.IPixelFormat;
+import com.openitvn.unicore.world.resource.IRaster;
+import com.openitvn.unicore.world.resource.ITexture;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
@@ -34,8 +34,8 @@ import java.nio.ByteOrder;
 public abstract class RwTextureHelper {
     
     public static BufferedImage toBufferedImage(RpTextureNative texNav, int mip) {
-        Dimension imgSize = TextureHelper.calcMipMapSize(texNav.width, texNav.height, mip);
-        RasterImage img = new RasterImage(imgSize.width, imgSize.height);
+        Dimension imgSize = ITexture.computeMipMapSize(texNav.width, texNav.height, mip);
+        BufferedRaster img = new BufferedRaster(imgSize.width, imgSize.height);
         RwTextureHelper.decodeTexture(img, texNav, mip);
         return img;
     }
@@ -43,7 +43,7 @@ public abstract class RwTextureHelper {
     public static void decodeTexture(IRaster dst, RpTextureNative texNav, int mip) {
         ByteBuffer bb = (ByteBuffer) texNav.nativeData.rewind();
         IPixelFormat fmt = texNav.getPixelFormat();
-        Dimension mipSize = TextureHelper.calcMipMapSize(texNav.width, texNav.height, mip);
+        Dimension mipSize = ITexture.computeMipMapSize(texNav.width, texNav.height, mip);
         switch (fmt) {
             case D3DFMT_DXT1:
             case D3DFMT_DXT3:
@@ -51,7 +51,7 @@ public abstract class RwTextureHelper {
             case D3DFMT_L8:
             case D3DFMT_A8R8G8B8:
             case D3DFMT_X8R8G8B8:
-                TextureHelper.decodeImage(dst, mipSize, fmt, sliceMipBuffer(bb, mip));
+                fmt.decodeImage(dst, mipSize, sliceMipBuffer(bb, mip));
                 break;
                 
             case PALETTE4_RGBA8_OES:

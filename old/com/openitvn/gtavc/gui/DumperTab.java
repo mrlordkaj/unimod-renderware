@@ -17,7 +17,7 @@
 
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.control.JuniFileChooser;
+import com.openitvn.control.UCFileChooser;
 import com.openitvn.engine.renderware.RwSection;
 import com.openitvn.gtavc.core.RwLoader;
 import java.io.File;
@@ -111,7 +111,7 @@ public class DumperTab extends javax.swing.JPanel {
         if (!suggestName.substring(suggestName.length() - 4).equals(".dat"))
             suggestName += ".dat";
         
-        JuniFileChooser fcSave = new JuniFileChooser(fileUri);
+        UCFileChooser fcSave = new UCFileChooser(fileUri);
         fcSave.setSelectedFile(new File(suggestName));
         if (fcSave.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             try (FileOutputStream fos = new FileOutputStream(fcSave.getSelectedFile())) {

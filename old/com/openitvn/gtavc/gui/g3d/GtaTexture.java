@@ -22,8 +22,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.gtavc.core.RwTextureHelper;
-import com.openitvn.unicore.raster.RasterPixmap;
-import com.openitvn.unicore.raster.TextureHelper;
+import com.openitvn.unicore.world.resource.ITexture;
+import com.openitvn.unicore.world.resource.PixmapRaster;
 import java.awt.Dimension;
 import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
@@ -64,8 +64,8 @@ public class GtaTexture {
         if (rTex == null) {
             return new Texture(0, 0, Pixmap.Format.RGBA8888);
         } else {
-            Dimension size = TextureHelper.calcMipMapSize(rTex.width, rTex.height, mip);
-            RasterPixmap img = new RasterPixmap(size.width, size.height);
+            Dimension size = ITexture.computeMipMapSize(rTex.width, rTex.height, mip);
+            PixmapRaster img = new PixmapRaster(size.width, size.height);
             RwTextureHelper.decodeTexture(img, rTex, mip);
             Texture tex = new Texture(img, true);
             // set wrap

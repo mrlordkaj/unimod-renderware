@@ -87,9 +87,10 @@ class WorldScriptModel extends AbstractTableModel {
             // for SA only, IPLs may have extra streamed data inside archive
             String name = group.getName();
             String prefix = name.toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
+            ResourceModel res = ResourceModel.getInstance();
             RwArchiveEntry e;
             int i = 0;
-            while ((e = ResourceModel.getInstance().findEntry(prefix + i + ".ipl")) != null) {
+            while ((e = res.findEntry(prefix + i + ".ipl")) != null) {
                 try (EntryStream ds = new EntryStream(e)) {
                     app.executeINSTGroup(e.getName(), ds, active);
                 } catch (IOException ex) {
@@ -130,10 +131,10 @@ class WorldScriptModel extends AbstractTableModel {
                 Logger.printError("%1$s failed: %2$s [%3$s]", script.type, name, state);
                 return;
             }
+            Logger.printNotice("%1$s executed: %2$s [%3$s]", script.type, name, state);
             executeStreamScript(script, active);
             script.isActive = active;
             System.gc();
-            Logger.printNotice("%1$s executed: %2$s [%3$s]", script.type, name, state);
         }
     }
     //</editor-fold>
