@@ -17,7 +17,7 @@
 
 
 import com.openitvn.format.col.ColPack;
-import com.openitvn.format.dff.RwDff;
+import com.openitvn.format.dff.RwModel;
 import com.openitvn.format.img.RwArchive;
 import com.openitvn.format.txd.RwTexturePack;
 import com.openitvn.unicore.plugin.FileType;
@@ -37,7 +37,7 @@ public final class PackageManifest extends PluginManifest {
         // TODO: define your supported file extensions here
         putFileView("RenderWare Archive", FileType.Archive, RwArchive.class, "img");
         putFileView("RenderWare Texture", FileType.Texture, RwTexturePack.class, "txd");
-        putFileView("RenderWare Model", FileType.World, RwDff.class, "dff");
+        putFileView("RenderWare Model", FileType.World, RwModel.class, "dff");
         putFileView("GTA Collision", FileType.World, ColPack.class, "col");
         
         // TODO: define your custom control panel here

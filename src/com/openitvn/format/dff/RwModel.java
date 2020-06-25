@@ -40,13 +40,13 @@ import java.util.HashMap;
  *
  * @author Thinh Pham
  */
-public class RwDff extends IWorld {
+public class RwModel extends IWorld {
     
-    public RwDff() {
+    public RwModel() {
         this(null);
     }
     
-    public RwDff(String name) {
+    public RwModel(String name) {
         super(name);
         // TODO: some dff use X-up coordinate, (eg. love.dff from GTA3)
         setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
@@ -63,6 +63,15 @@ public class RwDff extends IWorld {
     }
     
     public Collection<INode> fromData(DataStream dff, boolean allClump) {
+        // prepare texture native cache from resource manager
+        HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
+        for (ITexture tex : resource.getTextures()) {
+            if (tex instanceof RwTexture) {
+                RpTextureNative texData = ((RwTexture)tex).getTextureData();
+                texNavMap.put(texData.textureName.toLowerCase(), texData);
+            }
+        }
+        
         HashMap<RpFrame, INode> frameMap = new HashMap<>();
         int clumpId = 0;
         RpSection grand;
@@ -87,31 +96,22 @@ public class RwDff extends IWorld {
                         for (short i = 0; i < geoData.materials.size(); i++) {
                             // material
                             RpMaterial matData = geoData.materials.get(i);
-                            String matName = null;
-                            for (ITexture tex : resource.getTextures()) {
-                                if (tex instanceof RwTexture) {
-                                    RpTextureNative texData = ((RwTexture)tex).getTextureData();
-                                    if (matData.getTextureName().equalsIgnoreCase(texData.textureName)) {
-                                        matName = texData.getMapperName()+"m";
-                                        if (matData.isMasked() || matData.color.a < 255) {
-                                            matName += "a";
-                                        }
-                                        if (resource.findMaterial(matName) == null) {
-                                            RwMaterial mat = new RwMaterial(matName, matData);
-                                            mat.bindTextureData(texData);
-                                            resource.register(mat);
-                                        }
-                                        break;
-                                    }
+                            RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
+                            String matName;
+                            if (texData != null) {
+                                // create material name by add "m"
+                                matName = texData.getMapperName()+"m";
+                                // if have alpha channel, add "a"
+                                if (matData.isMasked() || matData.color.a < 255) {
+                                    matName += "a";
                                 }
-                            }
-                            if (matName == null) {
+                            } else {
                                 // default if texture not found
                                 matName = frmData.name + "_untex" + i;
-                                if (resource.findMaterial(matName) == null) {
-                                    RwMaterial mat = new RwMaterial(matName, matData);
-                                    resource.register(mat);
-                                }
+                            }
+                            if (resource.findMaterial(matName) == null) {
+                                RwMaterial mat = new RwMaterial(matName, matData, texData);
+                                resource.register(mat);
                             }
                             // mesh
                             IMesh mesh = new IMesh();

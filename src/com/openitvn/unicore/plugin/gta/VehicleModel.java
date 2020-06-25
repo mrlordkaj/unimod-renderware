@@ -16,7 +16,7 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
-import com.openitvn.format.dff.RwDff;
+import com.openitvn.format.dff.RwModel;
 import com.openitvn.format.txd.RwTexturePack;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.FileStream;
@@ -54,7 +54,7 @@ public class VehicleModel extends AbstractTableModel {
         switch (GameConfig.getAlias()) {
             case GameConfig.ALIAS_III:
             case GameConfig.ALIAS_VC:
-                RwDff extraLib = new RwDff("wheels");
+                RwModel extraLib = new RwModel("wheels");
                 res.extractModel(extraLib);
                 comTexLib.addAll(extraLib.resource.getTextures());
                 comMatLib.addAll(extraLib.resource.getMaterials());

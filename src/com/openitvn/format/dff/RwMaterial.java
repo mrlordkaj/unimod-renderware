@@ -26,7 +26,7 @@ import com.openitvn.engine.renderware.RpTextureNative;
  */
 public class RwMaterial extends IMaterial {
     
-    public RwMaterial(String matName, RpMaterial matData) {
+    public RwMaterial(String matName, RpMaterial matData, RpTextureNative texData) {
         super(matName);
         // precomputed alpha
         color.a = matData.color.a / 255f;
@@ -35,6 +35,9 @@ public class RwMaterial extends IMaterial {
             alphaBlend = true;
             cullFace = false;
             alphaTest = color.a - 0.01f;
+        } else if (texData != null && texData.hasAlpha) {
+            alphaBlend = true;
+            cullFace = false;
         }
         // shadingn factors
         ambientFactor = matData.ambient;
@@ -45,14 +48,8 @@ public class RwMaterial extends IMaterial {
             color.b = matData.color.b / 255f;
             color.g = matData.color.g / 255f;
             color.r = matData.color.r / 255f;
+        } else if (texData != null) {
+            diffuseTexture = texData.getMapperName();
         }
-    }
-    
-    public void bindTextureData(RpTextureNative texData) {
-        if (texData.hasAlpha) {
-            alphaBlend = true;
-            cullFace = false;
-        }
-        diffuseTexture = texData.getMapperName();
     }
 }

@@ -16,7 +16,7 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
-import com.openitvn.format.dff.RwDff;
+import com.openitvn.format.dff.RwModel;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.format.img.RwArchive;
 import com.openitvn.format.img.RwArchiveEntry;
@@ -161,11 +161,11 @@ class ResourceModel extends AbstractTableModel {
         }
     }
     
-    void extractModel(RwDff mod) {
+    void extractModel(RwModel mod) {
         extractModel(mod, null);
     }
     
-    void extractModel(RwDff mod, ArrayList<INode> nodeList) {
+    void extractModel(RwModel mod, ArrayList<INode> nodeList) {
         String modName = mod.getName();
         RwArchiveEntry me = findEntry(modName + ".dff");
         if (me != null) {

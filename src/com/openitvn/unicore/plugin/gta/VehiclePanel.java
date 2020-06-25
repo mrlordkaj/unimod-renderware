@@ -17,12 +17,9 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.format.dff.RwDff;
-import com.openitvn.format.img.RwArchiveEntry;
+import com.openitvn.format.dff.RwModel;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
-import com.openitvn.unicore.data.BufferStream;
-import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.plugin.PanelViewer;
 import com.openitvn.unicore.plugin.gta.item.CARSEntry;
 import com.openitvn.unicore.world.IGeometry;
@@ -41,7 +38,7 @@ import javax.swing.table.TableRowSorter;
  */
 public final class VehiclePanel extends PanelViewer {
 
-    private RwDff vehicleWorld;
+    private RwModel vehicleWorld;
     private final VehicleModel vehicleModel = new VehicleModel();
     
     private final ArrayList<INode> nodes = new ArrayList<>(); // for easy control
@@ -85,7 +82,7 @@ public final class VehiclePanel extends PanelViewer {
                     // create new world and pre-register libraries
                     int id = tblCar.convertRowIndexToModel(row);
                     CARSEntry e = vehicleModel.entries.get(id);
-                    vehicleWorld = new RwDff(e.modName);
+                    vehicleWorld = new RwModel(e.modName);
                     vehicleWorld.resource.register(vehicleModel.comTexLib);
                     vehicleWorld.resource.register(vehicleModel.comMatLib);
                     vehicleWorld.resource.register(vehicleModel.comModLib);
@@ -103,7 +100,7 @@ public final class VehiclePanel extends PanelViewer {
                     // update world
                     vehicleWorld.construct(vehicleWorld.resource);
                     WorldFactory.focusTo(vehicleWorld);
-                    update();
+                    updateVisibility();
                 }
             }
         });
@@ -164,34 +161,36 @@ public final class VehiclePanel extends PanelViewer {
             changed = viewMode != ViewMode.Distance;
             viewMode = ViewMode.Distance;
         }
-        if (changed) update();
+        if (changed) {
+            updateVisibility();
+        }
     }
     
-    private void update() {
+    private void updateVisibility() {
         for (INode node : nodes) {
-            String n = node.getName();
-            if (n == null) {
+            String name = node.getName();
+            if (name == null) {
                 node.setVisible(false);
                 continue;
             }
-            boolean v = false;
-            if (!n.startsWith("extra")) {
+            boolean visible = false;
+            if (!name.startsWith("extra")) {
                 switch (viewMode) {
                     case Normal:
-                        v = !n.contains("_vlo") && !n.contains("_lo") && !n.contains("_dam");
+                        visible = !name.contains("_vlo") && !name.contains("_lo") && !name.contains("_dam");
                         break;
-
                     case Damaged:
-                        v = !n.contains("_vlo") && !n.contains("_lo") && !n.contains("_ok");
+                        visible = !name.contains("_vlo") && !name.contains("_lo") && !name.contains("_ok");
                         break;
-
                     case Distance:
-                        v = n.contains("_vlo") || n.contains("_lo");
+                        visible = name.contains("_vlo") || name.contains("_lo");
                         break;
                 }
             }
-            if (!v) v = n.endsWith("_dummy");
-            node.setVisible(v);
+            if (!visible) {
+                visible = name.endsWith("_dummy");
+            }
+            node.setVisible(visible);
         }
     }
     

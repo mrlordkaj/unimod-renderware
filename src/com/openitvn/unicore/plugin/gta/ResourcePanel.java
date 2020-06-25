@@ -16,7 +16,7 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
-import com.openitvn.format.dff.RwDff;
+import com.openitvn.format.dff.RwModel;
 import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
@@ -35,7 +35,7 @@ import javax.swing.table.TableRowSorter;
 public final class ResourcePanel extends PanelViewer {
     
     private RwArchiveEntry sel;
-    private RwDff viewer;
+    private RwModel viewer;
     private final ResourceModel resModel = ResourceModel.getInstance();
     
     public ResourcePanel() {
@@ -79,7 +79,7 @@ public final class ResourcePanel extends PanelViewer {
                         String txdName = res.dffTxdMap.get(modName);
                         lblInfo.setText(String.format("%1$s < %2$s", modName, txdName));
                         WorldFactory.unregister(viewer);
-                        viewer = new RwDff(modName);
+                        viewer = new RwModel(modName);
                         res.extractModel(viewer);
                         viewer.construct(viewer.resource);
                         WorldFactory.register(viewer);
