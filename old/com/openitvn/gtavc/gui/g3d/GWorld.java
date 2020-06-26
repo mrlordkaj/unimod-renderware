@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.openitvn.engine.renderware.RpMaterial;
-import com.openitvn.engine.renderware.RwGeometry;
+import com.openitvn.engine.renderware.RpGeometry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -69,7 +69,7 @@ public abstract class GWorld {
             ArrayList<String> nameMap = new ArrayList<>();
             for (GtaInstance gInst : instances) {
                 String texDic = gInst.gModel.txdName;
-                for (RwGeometry rGeo : gInst.gModel.getGeometries()) {
+                for (RpGeometry rGeo : gInst.gModel.getGeometries()) {
                     for (RpMaterial rMat : rGeo.materials) {
                         if (rMat.textured) {
                             String name = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());

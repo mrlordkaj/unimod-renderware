@@ -27,9 +27,9 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.openitvn.engine.renderware.struct.RpFrame;
-import com.openitvn.engine.renderware.RwGeometry;
+import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
-import com.openitvn.engine.renderware.RwClump;
+import com.openitvn.engine.renderware.RpClump;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
@@ -46,7 +46,6 @@ import com.openitvn.gtavc.core.item.NULLEntry;
 import com.openitvn.gtavc.gui.Main;
 import com.openitvn.gtavc.gui.VehicleTableModel;
 import com.openitvn.gtavc.plugin.export.fbx.Fbx6100;
-import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Canvas;
 import java.io.File;
@@ -334,7 +333,7 @@ public class ViewportApp implements ApplicationListener {
                         if (skipUnusedImg) {
                             ArrayList<String> mappedNames = new ArrayList<>();
                             String texDic = gtaModel.txdName;
-                            for (RwGeometry rGeo : gtaModel.getGeometries()) {
+                            for (RpGeometry rGeo : gtaModel.getGeometries()) {
                                 for (RpMaterial rMat : rGeo.materials) {
                                     if (rMat.textured) {
                                         String nameMap = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());
@@ -357,7 +356,7 @@ public class ViewportApp implements ApplicationListener {
                         ArrayList<String> mappedNames = new ArrayList<>();
                         String texDic = gtaVehicleModel.txdName;
                         if (gtaVehicleModel != null) {
-                            for (RwGeometry rGeo : gtaVehicleModel.getGeometries()) {
+                            for (RpGeometry rGeo : gtaVehicleModel.getGeometries()) {
                                 for (RpMaterial rMat : rGeo.materials) {
                                     if (rMat.textured) {
                                         String nameMap = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());
@@ -368,7 +367,7 @@ public class ViewportApp implements ApplicationListener {
                             }
                         }
                         if (mode != ViewportMode.VehicleDistance && gtaWheelModel != null) {
-                            for (RwGeometry rGeo : gtaWheelModel.getGeometries()) {
+                            for (RpGeometry rGeo : gtaWheelModel.getGeometries()) {
                                 for (RpMaterial rMat : rGeo.materials) {
                                     if (rMat.textured) {
                                         String nameMap = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());
@@ -428,9 +427,9 @@ public class ViewportApp implements ApplicationListener {
                 
             case SingleModel:
                 if (gtaModel != null) {
-                    RwClump rClump = gtaModel.rClump;
-                    ArrayList<RwGeometry> rGeos = rClump.geometries;
-                    for (RwGeometry rGeo : rGeos) {
+                    RpClump rClump = gtaModel.rClump;
+                    ArrayList<RpGeometry> rGeos = rClump.geometries;
+                    for (RpGeometry rGeo : rGeos) {
                         RpFrame frame = rGeo.frame;
                         RpFrame[] frmSeq = rClump.frameList.getFrameSequence(frame);
                         Matrix4 trn = GtaModel.createTransform(frmSeq);
@@ -444,8 +443,8 @@ public class ViewportApp implements ApplicationListener {
             case VehicleDamaged:
                 // export wheels model
                 if (gtaVehicleModel != null && gtaWheelModel != null) {
-                    RwClump rClump = gtaVehicleModel.rClump;
-                    for (RwGeometry rGeo : gtaWheelModel.getGeometries()) {
+                    RpClump rClump = gtaVehicleModel.rClump;
+                    for (RpGeometry rGeo : gtaWheelModel.getGeometries()) {
                         RpFrame frame = rGeo.frame;
                         RpFrame[] frmSeq = rClump.frameList.getFrameSequence(frame);
                         Matrix4 trn = GtaModel.createTransform(frmSeq);
@@ -460,8 +459,8 @@ public class ViewportApp implements ApplicationListener {
             case VehicleDistance:
                 //export vehicle main model
                 if (gtaVehicleModel != null) {
-                    RwClump rClump = gtaVehicleModel.rClump;
-                    for (RwGeometry rGeo : gtaVehicleModel.getGeometries()) {
+                    RpClump rClump = gtaVehicleModel.rClump;
+                    for (RpGeometry rGeo : gtaVehicleModel.getGeometries()) {
                         RpFrame frame = rGeo.frame;
                         RpFrame[] frmSeq = rClump.frameList.getFrameSequence(frame);
                         Matrix4 trn = GtaModel.createTransform(frmSeq);

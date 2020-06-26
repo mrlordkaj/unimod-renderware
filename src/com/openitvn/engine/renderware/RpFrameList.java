@@ -79,11 +79,6 @@ public class RpFrameList extends RpSection {
     }
     
     @Deprecated
-    public RpFrame getFrame(int frameIndex) {
-        return frames[frameIndex];
-    }
-    
-    @Deprecated
     public RpFrame getFrame(String frameName) {
         for (RpFrame frame : frames) {
             if (frame.name.equals(frameName))

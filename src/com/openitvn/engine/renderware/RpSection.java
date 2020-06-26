@@ -17,6 +17,7 @@
 package com.openitvn.engine.renderware;
 
 import com.openitvn.unicore.data.DataStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -32,11 +33,12 @@ import javax.swing.tree.TreeNode;
 public class RpSection implements TreeNode {
     
     private static int libraryIDPack(int ver, int build) {
-        if (ver <= 0x31000)
+        if (ver <= 0x31000) {
             return ver >> 8;
+        }
         return ((ver - 0x30000 & 0x3ff00) << 14) |
                ((ver           & 0x0003f) << 16) |
-                (build         & 0x0ffff);
+               ((build         & 0x0ffff));
     }
     
     private static int libraryIDUnpackVersion(int libId) {
@@ -146,8 +148,9 @@ public class RpSection implements TreeNode {
         if (type.isContainer) {
             // parse children
             long endPos = ds.position() + size;
-            while (ds.position() < endPos)
+            while (ds.position() < endPos) {
                 children.add(fromData(ds, RpSection.this));
+            }
         } else {
             // get data
             data = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
@@ -239,5 +242,16 @@ public class RpSection implements TreeNode {
     @Override
     public Enumeration children() {
         return Collections.enumeration(children);
+    }
+    
+    @Deprecated
+    public byte[] toData() throws IOException {
+        ByteBuffer bb = ByteBuffer.allocate(12 + size);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+        bb.putInt(type.id);
+        bb.putInt(size);
+        bb.putInt(libraryIDPack(version, build));
+        bb.put(data.array());
+        return bb.array();
     }
 }

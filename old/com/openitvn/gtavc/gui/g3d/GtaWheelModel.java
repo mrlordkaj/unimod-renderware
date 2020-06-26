@@ -19,7 +19,7 @@ package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.engine.renderware.struct.RpFrame;
-import com.openitvn.engine.renderware.RwGeometry;
+import com.openitvn.engine.renderware.RpGeometry;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -29,7 +29,7 @@ import java.util.ArrayList;
  */
 public class GtaWheelModel extends GtaModel {
     
-    private final ArrayList<RwGeometry> rwGeometries = new ArrayList<>();
+    private final ArrayList<RpGeometry> rwGeometries = new ArrayList<>();
     private Vector3 scale;
 
     public GtaWheelModel() throws IOException {
@@ -40,13 +40,13 @@ public class GtaWheelModel extends GtaModel {
         rwGeometries.clear();
         wheelName = wheelName + "_l0";
         scale = vehicleModel.getWheelScale();
-        for (RwGeometry geo : rClump.geometries) {
+        for (RpGeometry geo : rClump.geometries) {
             if (geo.frame.name.equals(wheelName)) {
                 // if found matched wheel
                 for (RpFrame wheelDummy : vehicleModel.rClump.frameList.frames) {
                     if (wheelDummy.name.startsWith("wheel_")) {
                         try {
-                            RwGeometry newWheel = (RwGeometry)geo.clone();
+                            RpGeometry newWheel = (RpGeometry)geo.clone();
                             newWheel.frame = wheelDummy;
                             rwGeometries.add(newWheel);
                         } catch (CloneNotSupportedException ex) { }
@@ -63,7 +63,7 @@ public class GtaWheelModel extends GtaModel {
     }
     
     @Override
-    public ArrayList<RwGeometry> getGeometries() {
+    public ArrayList<RpGeometry> getGeometries() {
         return rwGeometries;
     }
 }

@@ -24,7 +24,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.engine.renderware.struct.RpTriangle;
-import com.openitvn.engine.renderware.RwGeometry;
+import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
@@ -41,7 +41,7 @@ public class FbxInstance {
     
     public final String modName;
     public final String txdName;
-    public final RwGeometry rGeo;
+    public final RpGeometry rGeo;
     
     public final Vector3 rPos;
     public final Vector3 rRot;
@@ -53,7 +53,7 @@ public class FbxInstance {
     
     final ArrayList<FbxMaterial> materials = new ArrayList<>();
     
-    public FbxInstance(String modName, String txdName, ModelInstance modInst, RwGeometry rGeo, Vector3 pos, Vector3 rot, Vector3 scl) {
+    public FbxInstance(String modName, String txdName, ModelInstance modInst, RpGeometry rGeo, Vector3 pos, Vector3 rot, Vector3 scl) {
         this.modName = modName;
         this.txdName = txdName;
         this.rGeo = rGeo;

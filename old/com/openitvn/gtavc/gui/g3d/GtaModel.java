@@ -33,9 +33,9 @@ import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.engine.renderware.struct.RpFrame;
 import com.openitvn.engine.renderware.RpType;
 import com.openitvn.gtavc.core.RwLoader;
-import com.openitvn.engine.renderware.RwGeometry;
+import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
-import com.openitvn.engine.renderware.RwClump;
+import com.openitvn.engine.renderware.RpClump;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -61,7 +61,7 @@ public class GtaModel {
     final MeshType meshType;
     final String modName, txdName;
     float drawDistance;
-    RwClump rClump;
+    RpClump rClump;
     Model model;
     public GtaCollision gCol;
     
@@ -75,7 +75,7 @@ public class GtaModel {
         this.modName = modName;
         this.txdName = txdName;
         byte[] data = GtaAssetModel.getInstance().extract(modName + ".dff");
-        rClump = (RwClump) RwLoader.loadFromBuffer(data);
+        rClump = (RpClump) RwLoader.loadFromBuffer(data);
     }
     
     public Model getModel() {
@@ -86,15 +86,15 @@ public class GtaModel {
         return model;
     }
     
-    public ArrayList<RwGeometry> getGeometries() {
-        ArrayList<RwGeometry> ret = new ArrayList<>();
+    public ArrayList<RpGeometry> getGeometries() {
+        ArrayList<RpGeometry> ret = new ArrayList<>();
         if (rClump != null) {
             switch (meshType) {
                 case AllMesh:
                     return rClump.geometries;
                     
                 case OneMesh:
-                    RwGeometry root = rClump.getRootGeometry();
+                    RpGeometry root = rClump.getRootGeometry();
                     if (root != null)
                         ret.add(root);
                     break;
@@ -107,7 +107,7 @@ public class GtaModel {
         if (model != null)
             model.dispose();
         // cleanup unused textures
-        for (RwGeometry rGeo : getGeometries()) {
+        for (RpGeometry rGeo : getGeometries()) {
             for (RpMaterial rMat : rGeo.getFirstChild(RpType.MaterialList).getChildren(RpMaterial.class)) {
                 if (rMat.textured) {
                     String texName = rMat.getTextureName();
@@ -123,7 +123,7 @@ public class GtaModel {
     public static Model createModel(GtaModel gMod, boolean applyLocalTransform, Vector3 scale) {
         ModelBuilder mb = new ModelBuilder();
         mb.begin();
-        for (RwGeometry rGeo : gMod.getGeometries()) {
+        for (RpGeometry rGeo : gMod.getGeometries()) {
             // vertexFormat and vertexData are common data
             VertexAttribute[] verFmt = createVertexFormat(rGeo);
             float[] vertData = wrapVertexData(rGeo);
@@ -200,7 +200,7 @@ public class GtaModel {
         return trn;
     }
     
-    private static VertexAttribute[] createVertexFormat(RwGeometry rGeo) {
+    private static VertexAttribute[] createVertexFormat(RpGeometry rGeo) {
         ArrayList<VertexAttribute> attrs = new ArrayList<>();
         attrs.add(VertexAttribute.Position());
         if (rGeo.hasNormal())
@@ -210,7 +210,7 @@ public class GtaModel {
         return attrs.toArray(new VertexAttribute[attrs.size()]);
     }
     
-    private static float[] wrapVertexData(RwGeometry rGeo) {
+    private static float[] wrapVertexData(RpGeometry rGeo) {
         boolean hasNormal = rGeo.hasNormal();
         Vector3[] normals = rGeo.getNormals();
         

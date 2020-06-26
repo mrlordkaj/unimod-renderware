@@ -747,11 +747,6 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="jLabel1">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Memory: "/>
-          </Properties>
-        </Component>
         <Component class="javax.swing.JLabel" name="lblMem">
           <Properties>
             <Property name="text" type="java.lang.String" value="&lt;memory&gt;"/>

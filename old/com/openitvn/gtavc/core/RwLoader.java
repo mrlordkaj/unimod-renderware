@@ -18,7 +18,6 @@
 package com.openitvn.gtavc.core;
 
 import com.openitvn.engine.renderware.RpSection;
-import com.openitvn.engine.renderware.RwSection;
 import com.openitvn.unicore.data.BufferStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class RwLoader {
             BufferStream bb = new BufferStream(data);
 //            ByteBuffer bb = ByteBuffer.wrap(data);
             bb.order(ByteOrder.LITTLE_ENDIAN);
-            return RwSection.fromData(bb, null);
+            return RpSection.fromData(bb, null);
         }
         return null;
     }

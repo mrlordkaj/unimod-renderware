@@ -47,7 +47,7 @@ public class RpClump extends RpSection {
             for (RpAtomic atom : atoms) {
                 RpGeometry geo = geometries.get(atom.geometryIndex);
                 RpFrame frm = frameList.frames[atom.frameIndex];
-//                geo.frame = frm; // TODO: no longer neccessary
+                geo.frame = frm; // Deprecated: no longer neccessary
                 frm.geometry = geo;
             }
         }

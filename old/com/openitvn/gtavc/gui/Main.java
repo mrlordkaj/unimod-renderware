@@ -29,7 +29,6 @@ import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.maintain.Logger;
 import com.openitvn.maintain.StateViewer;
-import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Canvas;
 import java.awt.Point;
@@ -366,7 +365,6 @@ public class Main extends javax.swing.JFrame {
         tblVehicle = new javax.swing.JTable();
         viewpotArea = new javax.swing.JPanel();
         statusBar = new javax.swing.JToolBar();
-        jLabel1 = new javax.swing.JLabel();
         lblMem = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         lblInfo = new javax.swing.JLabel();
@@ -793,9 +791,6 @@ public class Main extends javax.swing.JFrame {
     statusBar.setFloatable(false);
     statusBar.setRollover(true);
 
-    jLabel1.setText("Memory: ");
-    statusBar.add(jLabel1);
-
     lblMem.setText("<memory>");
     lblMem.setMaximumSize(new java.awt.Dimension(100, 14));
     lblMem.setMinimumSize(new java.awt.Dimension(100, 14));
@@ -1024,7 +1019,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JToggleButton btnVehicleDetail;
     private javax.swing.JComboBox<String> cboMapTime;
     private javax.swing.JComboBox<ViewportMode> cboViewMode;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel5;

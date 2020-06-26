@@ -18,7 +18,7 @@
 package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.engine.renderware.RwGeometry;
+import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,9 +53,9 @@ public class GtaVehicleModel extends GtaModel {
     }
     
     @Override
-    public ArrayList<RwGeometry> getGeometries() {
-        ArrayList<RwGeometry> rs = new ArrayList<>();
-        for (RwGeometry geo : rClump.geometries) {
+    public ArrayList<RpGeometry> getGeometries() {
+        ArrayList<RpGeometry> rs = new ArrayList<>();
+        for (RpGeometry geo : rClump.geometries) {
             String geoName = geo.frame.name;
             switch (mode) {
                 case VehicleNormal:

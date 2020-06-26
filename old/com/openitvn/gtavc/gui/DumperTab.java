@@ -18,7 +18,7 @@
 package com.openitvn.gtavc.gui;
 
 import com.openitvn.control.UCFileChooser;
-import com.openitvn.engine.renderware.RwSection;
+import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.gtavc.core.RwLoader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -106,7 +106,7 @@ public class DumperTab extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void mnuExtractActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuExtractActionPerformed
-        RwSection sec = (RwSection)treeSection.getSelectionPath().getLastPathComponent();
+        RpSection sec = (RpSection)treeSection.getSelectionPath().getLastPathComponent();
         String suggestName = entryName;
         if (!suggestName.substring(suggestName.length() - 4).equals(".dat"))
             suggestName += ".dat";

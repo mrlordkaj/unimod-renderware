@@ -17,10 +17,13 @@
 package com.openitvn.engine.renderware;
 
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.IVertex;
 import com.openitvn.engine.renderware.struct.RpSphere;
 import com.openitvn.engine.renderware.struct.RpColor;
+import com.openitvn.engine.renderware.struct.RpFrame;
 import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.maintain.Logger;
 import java.nio.ByteBuffer;
@@ -77,7 +80,7 @@ public class RpGeometry extends RpSection {
             }
         }
         // prepare vertices
-        IVertex[] verts = new IVertex[numVerts];
+        IVertex[] verts = vertices = new IVertex[numVerts];
         for (int i = 0; i < numVerts; i++) {
             verts[i] = new IVertex();
         }
@@ -85,9 +88,11 @@ public class RpGeometry extends RpSection {
         // vertices data
         if ((fmt & GEOMETRYNATIVE) == 0) {
             // prelit
+            prelit = new RpColor[numVerts];
             if ((fmt & GEOMETRYPRELIT) != 0) {
+                int i = 0;
                 for (IVertex v : verts) {
-                    RpColor c = new RpColor(bb);
+                    RpColor c = prelit[i++] = new RpColor(bb);
                     v.setColor(c.r, c.g, c.b, c.a);
                 }
             }
@@ -97,15 +102,19 @@ public class RpGeometry extends RpSection {
                 if (numTexCoords == 0) {
                     numTexCoords = ((fmt & GEOMETRYTEXTURED) != 0) ? 1 : 2;
                 }
+                texCoords = new Vector2[numTexCoords][numVerts];
                 for (int i = 0; i < numTexCoords; i++) {
+                    int j = 0;
                     for (IVertex vert : verts) {
                         float u = bb.getFloat();
                         float v = bb.getFloat();
                         vert.addTexCoord(u, v);
+                        texCoords[i][j++] = new Vector2(u, v);
                     }
                 }
             }
             // indices and matId
+            triangles = new RpTriangle[numFaces];
             for (int i = 0; i < numFaces; i++) {
                 RpTriangle face = new RpTriangle(bb);
                 ArrayList<Short> ids = idxMap.get(face.materialIndex);
@@ -116,13 +125,14 @@ public class RpGeometry extends RpSection {
                 ids.add(face.v1);
                 ids.add(face.v2);
                 ids.add(face.v3);
+                triangles[i] = face;
             }
         }
         // repeat by morphTargetCount (always 1 in GTA series)
         RpSphere bounding = new RpSphere(bb); // boundingSphere
         int hasVertex = bb.getInt();
         int hasNormal = bb.getInt();
-        // position
+        // vertex position
         for (IVertex v : verts) {
             float a = bb.getFloat();
             float b = bb.getFloat();
@@ -131,11 +141,14 @@ public class RpGeometry extends RpSection {
         }
         // normal
         if ((fmt & GEOMETRYNORMALS) != 0) {
+            normals = new Vector3[numVerts];
+            int i = 0;
             for (IVertex v : verts) {
                 float a = bb.getFloat();
                 float b = bb.getFloat();
                 float c = bb.getFloat();
                 v.setNormal(a, b, c);
+                normals[i++] = new Vector3(a, b, c);
             }
         }
         if (bb.hasRemaining()) {
@@ -247,4 +260,71 @@ public class RpGeometry extends RpSection {
 //        }
 //        return rs.toArray(new RwTriangle[rs.size()]);
 //    }
+    
+    
+    //<editor-fold defaultstate="collapsed" desc="Deprecated">
+    @Deprecated public RpColor[] prelit;
+    @Deprecated private Vector2[][] texCoords;
+    @Deprecated private RpTriangle[] triangles;
+    @Deprecated private IVertex[] vertices;
+    @Deprecated private Vector3[] normals;
+    @Deprecated public RpFrame frame;
+    
+    @Deprecated
+    @Override
+    public Object clone() throws CloneNotSupportedException{  
+        return super.clone();  
+    }
+    
+    @Deprecated
+    public int getTexCoordCount() {
+        return (texCoords == null) ? 0 : texCoords.length;
+    }
+    
+    @Deprecated
+    public Vector2[][] getTexCoords() {
+        return texCoords;
+    }
+    
+    @Deprecated
+    public Vector2[] getTexCoord(int setId) {
+        return (setId < texCoords.length) ? texCoords[setId] : null;
+    }
+    
+    @Deprecated
+    public int getVertexCount() {
+        return vertices.length;
+    }
+    
+    @Deprecated
+    public Vector3[] getVertices() {
+        return vertices;
+    }
+    
+    @Deprecated
+    public boolean hasNormal() {
+        return normals != null;
+    }
+    
+    @Deprecated
+    public Vector3[] getNormals() {
+        return normals;
+    }
+    
+    @Deprecated
+    public RpTriangle[] getTriangles() {
+        return triangles;
+    }
+    
+    @Deprecated
+    public RpTriangle[] getTriangles(int matId) {
+        ArrayList<RpTriangle> rs = new ArrayList<>();
+        for (RpTriangle face : triangles) {
+            if (face.materialIndex == matId) {
+                rs.add(face);
+            }
+        }
+        return rs.toArray(new RpTriangle[rs.size()]);
+    }
+    //</editor-fold>
 }

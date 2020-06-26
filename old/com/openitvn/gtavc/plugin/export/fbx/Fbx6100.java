@@ -21,7 +21,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
-import com.openitvn.engine.renderware.RwGeometry;
+import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.struct.RpColor;
 import com.openitvn.gtavc.core.GtaCollision;
 import com.openitvn.gtavc.gui.g3d.GtaInstance;
@@ -51,7 +51,7 @@ public class Fbx6100 implements Disposable {
     private final HashMap<String, Integer> instNameCounter = new HashMap<>();
     private final ArrayList<FbxCollision> collisions = new ArrayList<>();
     
-    public void addGeometry(String modName, String txdName, RwGeometry rGeo, Vector3 pos, Vector3 rot, Vector3 scl) {
+    public void addGeometry(String modName, String txdName, RpGeometry rGeo, Vector3 pos, Vector3 rot, Vector3 scl) {
         int sameCount = 0;
         String uniqueName = modName;
         if (instNameCounter.containsKey(modName)) {
