@@ -23,7 +23,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.engine.renderware.struct.RwTriangle;
+import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.engine.renderware.RwGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
 import com.openitvn.engine.renderware.RpTextureDictionary;
@@ -160,10 +160,10 @@ public class FbxInstance {
                 }
             }
         } else if (rGeo != null) {
-            for (RwTriangle tri : rGeo.getTriangles()) {
-                sb.append(tri.vertex1).append(",")
-                        .append(tri.vertex2).append(",")
-                        .append(~tri.vertex3).append(",");
+            for (RpTriangle face : rGeo.getTriangles()) {
+                sb.append(face.v1).append(",")
+                        .append(face.v2).append(",")
+                        .append(~face.v3).append(",");
             }
         }
         return sb.deleteCharAt(sb.length()-1).toString();
@@ -171,10 +171,10 @@ public class FbxInstance {
     
     public String getStringUVIndices() {
         StringBuilder sb = new StringBuilder();
-        for (RwTriangle tri : rGeo.getTriangles()) {
-            sb.append(tri.vertex1).append(",")
-                    .append(tri.vertex2).append(",")
-                    .append(tri.vertex3).append(",");
+        for (RpTriangle face : rGeo.getTriangles()) {
+            sb.append(face.v1).append(",")
+                    .append(face.v2).append(",")
+                    .append(face.v3).append(",");
         }
         return sb.deleteCharAt(sb.length()-1).toString();
     }
@@ -207,10 +207,10 @@ public class FbxInstance {
     }
     
     public String getStringMaterials() {
-        RwTriangle[] faces = rGeo.getTriangles();
+        RpTriangle[] faces = rGeo.getTriangles();
         String[] matIds = new String[faces.length];
         for (int i = 0; i < faces.length; i++)
-            matIds[i] = faces[i].materialId + "";
+            matIds[i] = faces[i].materialIndex + "";
         return String.join(",", matIds);
     }
     

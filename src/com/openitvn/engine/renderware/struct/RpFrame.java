@@ -40,10 +40,12 @@ public class RpFrame {
     
     public RpFrame(String name, ByteBuffer bb) {
         this.name = name;
-        for (int i = 0; i < 9; i++)
+        for (int i = 0; i < 9; i++) {
             rotation[i] = bb.getFloat();
-        for (int i = 0; i < 3; i++)
+        }
+        for (int i = 0; i < 3; i++) {
             position[i] = bb.getFloat();
+        }
         parentIndex = bb.getInt();
         matrixFlags = bb.getInt();
     }

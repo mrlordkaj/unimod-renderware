@@ -29,7 +29,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.openitvn.engine.renderware.struct.RwTriangle;
+import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.engine.renderware.struct.RpFrame;
 import com.openitvn.engine.renderware.RpType;
 import com.openitvn.gtavc.core.RwLoader;
@@ -248,13 +248,13 @@ public class GtaModel {
         return vertData;
     }
     
-    private static short[] wrapIndexData(RwTriangle[] faces) {
+    private static short[] wrapIndexData(RpTriangle[] faces) {
         short[] data = new short[faces.length * 3];
         int i = 0;
-        for (RwTriangle face : faces) {
-            data[i] = face.vertex1; i++;
-            data[i] = face.vertex2; i++;
-            data[i] = face.vertex3; i++;
+        for (RpTriangle face : faces) {
+            data[i] = face.v1; i++;
+            data[i] = face.v2; i++;
+            data[i] = face.v3; i++;
         }
         return data;
     }

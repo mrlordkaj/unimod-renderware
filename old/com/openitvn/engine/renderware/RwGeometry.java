@@ -21,7 +21,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.openitvn.engine.renderware.struct.RpSphere;
 import com.openitvn.engine.renderware.struct.RpColor;
 import com.openitvn.engine.renderware.struct.RpFrame;
-import com.openitvn.engine.renderware.struct.RwTriangle;
+import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.unicore.data.DataStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class RwGeometry extends RwSection implements Cloneable {
     // data
     public RpColor[] prelit;
     private Vector2[][] texCoords;
-    private RwTriangle[] triangles;
+    private RpTriangle[] triangles;
     private Vector3[] vertices;
     private Vector3[] normals;
     
@@ -93,9 +93,10 @@ public class RwGeometry extends RwSection implements Cloneable {
                 }
             }
             // indicies and matId
-            triangles = new RwTriangle[numFaces];
-            for (int i = 0; i < numFaces; i++)
-                triangles[i] = RwTriangle.read(bb);
+            triangles = new RpTriangle[numFaces];
+            for (int i = 0; i < numFaces; i++) {
+                triangles[i] = new RpTriangle(bb);
+            }
         }
         // bounding
         RpSphere bounding = new RpSphere(bb);
@@ -220,11 +221,11 @@ public class RwGeometry extends RwSection implements Cloneable {
     
     public short[] getIndices(int matId) {
         ArrayList<Short> ids = new ArrayList<>();
-        for (RwTriangle tri : triangles) {
-            if (tri.materialId == matId) {
-                ids.add(tri.vertex1);
-                ids.add(tri.vertex2);
-                ids.add(tri.vertex3);
+        for (RpTriangle tri : triangles) {
+            if (tri.materialIndex == matId) {
+                ids.add(tri.v1);
+                ids.add(tri.v2);
+                ids.add(tri.v3);
             }
         }
         short[] rs = new short[ids.size()];
@@ -233,17 +234,17 @@ public class RwGeometry extends RwSection implements Cloneable {
         return rs;
     }
     
-    public RwTriangle[] getTriangles() {
+    public RpTriangle[] getTriangles() {
         return triangles;
     }
     
-    public RwTriangle[] getTriangles(int matId) {
-        ArrayList<RwTriangle> rs = new ArrayList<>();
-        for (RwTriangle tri : triangles) {
-            if (tri.materialId == matId)
+    public RpTriangle[] getTriangles(int matId) {
+        ArrayList<RpTriangle> rs = new ArrayList<>();
+        for (RpTriangle tri : triangles) {
+            if (tri.materialIndex == matId)
                 rs.add(tri);
         }
-        return rs.toArray(new RwTriangle[rs.size()]);
+        return rs.toArray(new RpTriangle[rs.size()]);
     }
     //</editor-fold>
 }

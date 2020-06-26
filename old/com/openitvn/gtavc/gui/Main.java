@@ -54,10 +54,6 @@ import javax.swing.table.TableRowSorter;
  */
 public class Main extends javax.swing.JFrame {
     
-    static {
-        Unicore.loadSystem();
-    }
-    
     private final ScriptFileModel scriptGroupModel = new ScriptFileModel();
     private final GtaAssetModel assetModel = GtaAssetModel.getInstance();
     private final ViewportApp gdxApp = ViewportApp.getInstance();

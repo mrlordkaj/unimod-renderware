@@ -123,7 +123,7 @@ public final class WorldPanel extends PanelViewer {
         collisionMap.clear();
         modelLayerMap.clear();
         groupRegistryMap.clear();
-        pendingNode = null;
+        pendingNodes = null;
         txdCache = null;
         WorldFactory.unregister(world);
         return true;
@@ -534,7 +534,7 @@ public final class WorldPanel extends PanelViewer {
             while ((args = ScriptHelper.parseLineByComma(br)) != null) {
                 addINST(group, new INSTEntry(args));
             }
-            pendingNode = group;
+            pendingNodes.add(group);
         } else {
             world.deleteNode(groupName);
             WorldFactory.focusTo(world);
@@ -553,7 +553,7 @@ public final class WorldPanel extends PanelViewer {
             for (int j = 0; j < instCount; j++) {
                 addINST(group, new INSTEntry(ds));
             }
-            pendingNode = group;
+            pendingNodes.add(group);
         } else {
             world.deleteNode(groupName);
             WorldFactory.focusTo(world);
@@ -572,7 +572,7 @@ public final class WorldPanel extends PanelViewer {
     // world dispatcher for schedule push world data
     // when asynchronous loading thread done
     private HashMap<String, RpSection> txdCache;
-    private INode pendingNode;
+    private ArrayList<INode> pendingNodes;
     
     // store all resource names used by groups,
     // for quickly delete when deactive a group
@@ -581,20 +581,20 @@ public final class WorldPanel extends PanelViewer {
     void prepareDispatcher() {
         tblMap.setEnabled(false);
         txdCache = new HashMap<>();
-        pendingNode = null;
+        pendingNodes = new ArrayList<>();
     }
     
     void executeDispatcher() {
-        if (pendingNode != null) {
-            pendingNode.attach(world);
-            pendingNode.construct(world.resource);
-            pendingNode.update(true);
-            for (PathSegment seg : pendingNode.getChildrenByClass(PathSegment.class)) {
+        for (INode node : pendingNodes) {
+            node.attach(world);
+            node.construct(world.resource);
+            node.update(true);
+            for (PathSegment seg : node.getChildrenByClass(PathSegment.class)) {
                 seg.compileData();
                 seg.rebuildModel();
             }
-            pendingNode = null;
         }
+        pendingNodes = null;
         txdCache = null;
         tblMap.setEnabled(true);
         System.gc();

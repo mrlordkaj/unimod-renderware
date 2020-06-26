@@ -46,6 +46,7 @@ import com.openitvn.gtavc.core.item.NULLEntry;
 import com.openitvn.gtavc.gui.Main;
 import com.openitvn.gtavc.gui.VehicleTableModel;
 import com.openitvn.gtavc.plugin.export.fbx.Fbx6100;
+import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Canvas;
 import java.io.File;

@@ -26,10 +26,12 @@ import javax.swing.JFileChooser;
  * @author Thinh Pham
  */
 public class Startup extends javax.swing.JFrame {
-
-    /**
-     * Creates new form Setup
-     */
+    
+    static {
+        System.loadLibrary("lwjgl64");
+        System.loadLibrary("gdx64");
+    }
+    
     public Startup() {
         initComponents();
         

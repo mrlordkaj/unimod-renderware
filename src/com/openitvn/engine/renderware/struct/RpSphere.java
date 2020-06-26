@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
  */
 public class RpSphere {
     
-    public float x, y, z, radius;
+    public float x, y, z, radius; // float
     
     public RpSphere(ByteBuffer bb) {
         x = bb.getFloat();

@@ -23,16 +23,15 @@ import java.nio.ByteBuffer;
  *
  * @author Thinh Pham
  */
-public class RwTriangle {
-    //uint16 vertex2, vertex1, materialId, vertex3
-    public short vertex2, vertex1, materialId, vertex3;
+public class RpTriangle {
     
-    public static RwTriangle read(ByteBuffer bb) {
-        RwTriangle triangle = new RwTriangle();
-        triangle.vertex2 = (short)bb.getChar();
-        triangle.vertex1 = (short)bb.getChar();
-        triangle.materialId = (short)bb.getChar();
-        triangle.vertex3 = (short)bb.getChar();
-        return triangle;
+    public final short v1, v2, v3; // int16
+    public final short materialIndex; // int16
+    
+    public RpTriangle(ByteBuffer bb) {
+        v2 = bb.getShort();
+        v1 = bb.getShort();
+        materialIndex = bb.getShort();
+        v3 = bb.getShort();
     }
 }

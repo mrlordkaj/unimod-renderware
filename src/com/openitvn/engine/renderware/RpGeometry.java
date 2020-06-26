@@ -21,6 +21,7 @@ import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.IVertex;
 import com.openitvn.engine.renderware.struct.RpSphere;
 import com.openitvn.engine.renderware.struct.RpColor;
+import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.maintain.Logger;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -106,18 +107,15 @@ public class RpGeometry extends RpSection {
             }
             // indices and matId
             for (int i = 0; i < numFaces; i++) {
-                short b = bb.getShort();
-                short a = bb.getShort();
-                short m = bb.getShort();
-                short c = bb.getShort();
-                ArrayList<Short> ids = idxMap.get(m);
+                RpTriangle face = new RpTriangle(bb);
+                ArrayList<Short> ids = idxMap.get(face.materialIndex);
                 if (ids == null) {
                     ids = new ArrayList<>();
-                    idxMap.put(m, ids);
+                    idxMap.put(face.materialIndex, ids);
                 }
-                ids.add(a);
-                ids.add(b);
-                ids.add(c);
+                ids.add(face.v1);
+                ids.add(face.v2);
+                ids.add(face.v3);
             }
         }
         // repeat by morphTargetCount (always 1 in GTA series)
