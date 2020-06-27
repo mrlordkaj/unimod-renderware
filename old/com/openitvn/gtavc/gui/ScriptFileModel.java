@@ -18,7 +18,6 @@
 package com.openitvn.gtavc.gui;
 
 import com.openitvn.gtavc.core.GtaAssetModel;
-import com.openitvn.gtavc.core.GtaCollision;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import com.openitvn.gtavc.core.item.INSTEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
@@ -26,21 +25,17 @@ import com.openitvn.gtavc.core.item.NULLEntry;
 import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.maintain.Logger;
-import com.openitvn.unicore.data.BufferStream;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
 import com.openitvn.unicore.plugin.gta.WorldScriptType;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import javax.swing.table.AbstractTableModel;
 
 /**
@@ -56,7 +51,6 @@ public class ScriptFileModel extends AbstractTableModel {
     
     private final ScriptItemModel scriptItemModel = new ScriptItemModel();
     private final ArrayList<WorldScriptEntry> entries = new ArrayList<>();
-    private final HashMap<String, GtaCollision> colFileMap = new HashMap<>();
     
     //<editor-fold defaultstate="collapsed" desc="JTable Model">
     
@@ -133,7 +127,6 @@ public class ScriptFileModel extends AbstractTableModel {
         // reset data
         scriptItemModel.unbind();
         entries.clear();
-        colFileMap.clear();
         // bind data from script file
         for (String loader : GameConfig.getLoaders()) {
             Logger.printNotice("Executing loader: %1$s", loader);
@@ -165,34 +158,6 @@ public class ScriptFileModel extends AbstractTableModel {
                             String path = args[0].equals("COLFILE") ? args[2] : args[1];
 //                            AssetModel.getInstance().addFile(path);
                             GtaAssetModel.getInstance().addArchive(path);
-                            break;
-                            
-                        case "COLFILE":
-                            File colFile = new File(GameConfig.getDirectory()+"/"+args[2]);
-                            try (FileInputStream fis = new FileInputStream(colFile)) {
-                                while (fis.available() > 0) {
-                                    int offset = (int)fis.getChannel().position() + 8;
-                                    ByteBuffer bb = ByteBuffer.allocate(30).order(ByteOrder.LITTLE_ENDIAN);
-                                    fis.read(bb.array());
-                                    int fourCC = bb.getInt();
-                                    int size = bb.getInt();
-                                    String name = readName(bb, 22);
-                                    fis.skip(size - 22);
-                                    if (fourCC == 0)
-                                        break;
-                                    colFileMap.put(name, new GtaCollision(fourCC, colFile, offset, size));
-                                }
-                            } catch (IOException ex) {
-                                ex.printStackTrace(System.err);
-                            }
-                            
-//                            for (Entry<String, GtaCollision> e : colFileMap.entrySet()) {
-//                                String name = e.getKey();
-//                                GtaCollision col = e.getValue();
-//                                col.decode();
-//                                System.out.println(name + " / " + col.vertices.length + " / " + col.faces.length);
-//
-//                            }
                             break;
                             
                         default:
@@ -304,8 +269,7 @@ public class ScriptFileModel extends AbstractTableModel {
                         case OBJS:
                         case TOBJ:
                             OBJSEntry objs = (OBJSEntry) e;
-                            GtaCollision col = colFileMap.get(objs.modName);
-                            app.addOBJS(objs, col);
+                            app.addOBJS(objs);
                             break;
 
                         case CARS:

@@ -82,7 +82,10 @@ public class ColFile {
         int numVerts = ds.getInt();
         IVertex[] vertices = new IVertex[numVerts];
         for (int i = 0; i < numVerts; i++) {
-            vertices[i] = new IVertex(ds.getFloat(), ds.getFloat(), ds.getFloat());
+            float x = ds.getFloat();
+            float y = ds.getFloat();
+            float z = ds.getFloat();
+            vertices[i] = new IVertex(x, y, z);
         }
         
         // read faces
@@ -93,9 +96,9 @@ public class ColFile {
                 int i3 = ds.getInt();
                 int i2 = ds.getInt();
                 int i1 = ds.getInt();
-                indices.put((short) i1);
-                indices.put((short) i2);
-                indices.put((short) i3);
+                indices.put((short)i1);
+                indices.put((short)i2);
+                indices.put((short)i3);
                 ds.getInt(); // surface
             }
             IMesh mesh = new IMesh();

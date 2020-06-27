@@ -29,7 +29,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
-import com.openitvn.gtavc.core.GtaCollision;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import com.openitvn.gtavc.core.item.INSTEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
@@ -169,7 +168,6 @@ public class ViewportApp implements ApplicationListener {
         switch (mode) {
             case MapNormal:
             case MapDistance:
-            case MapCollision:
                 mapView.draw(mb, env);
                 break;
                 
@@ -250,7 +248,6 @@ public class ViewportApp implements ApplicationListener {
         switch (mode) {
             case MapNormal:
             case MapDistance:
-            case MapCollision:
                 Gdx.input.setInputProcessor(mapView.camCtrl);
                 mapView.setViewportMode(mode);
                 break;
@@ -269,13 +266,13 @@ public class ViewportApp implements ApplicationListener {
         }
     }
     
-    public void addOBJS(OBJSEntry objs, GtaCollision col) throws Exception {
+    public void addOBJS(OBJSEntry objs) throws Exception {
         int modId = objs.modelId;
         if (GameConfig.getWheelIds().contains(modId)) {
             //TODO: just a temporary method, need a better solution to determine wheel entries
             wheelLib.put(modId, objs.modName);
         } else {
-            mapView.addOBJS(objs, col);
+            mapView.addOBJS(objs);
         }
     }
     

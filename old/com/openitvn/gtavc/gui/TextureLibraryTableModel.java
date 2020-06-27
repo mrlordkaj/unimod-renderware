@@ -89,7 +89,7 @@ public class TextureLibraryTableModel extends AbstractTableModel {
                 return row;
                 
             case COL_NAME:
-                return entries.get(row).getTextureName();
+                return entries.get(row).getTextureData().textureName;
         }
         
         return null;

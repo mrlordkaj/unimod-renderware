@@ -17,6 +17,7 @@
 package com.openitvn.gtavc.gui;
 
 import com.openitvn.engine.renderware.RpTextureDictionary;
+import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.txd.RwTexture;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
@@ -35,7 +36,7 @@ public class TextureDialog extends javax.swing.JDialog {
     private static TextureDialog instance;
     public static TextureDialog getInstance() {
         if (instance == null) {
-            instance = new TextureDialog(Main.getInstance());
+            instance = new TextureDialog();
             instance.resetForm();
         }
         return instance;
@@ -47,8 +48,8 @@ public class TextureDialog extends javax.swing.JDialog {
     
     private String fileName;
     
-    private TextureDialog(Main main) {
-        super(main);
+    private TextureDialog() {
+        super(Main.getInstance());
         initComponents();
         initTableTextureLibrary();
     }
@@ -109,12 +110,13 @@ public class TextureDialog extends javax.swing.JDialog {
     private void selectTexture(int rowId) {
         if (rowId != selectedTexId) {
             RwTexture tex = texLibModel.getEntry(rowId);
-            lblTextureName.setText(tex.getTextureName());
+            RpTextureNative texData = tex.getTextureData();
+            lblTextureName.setText(texData.textureName);
             lblSize.setText(tex.getWidth() + " x " + tex.getHeight());
-            lblBitDepth.setText(tex.getColorDepth());
-            lblHasAlpha.setText(tex.hasAlpha());
+            lblBitDepth.setText(texData.colorDepth + " bpp");
+            lblHasAlpha.setText(Boolean.toString(texData.hasAlpha));
             lblMipmap.setText(Integer.toString(tex.getMipCount()));
-            lblCompression.setText(tex.getCompression());
+            lblCompression.setText(texData.getCompressionName());
             createMipmapSelector(tex);
             selectedTexId = rowId;
         }

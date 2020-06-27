@@ -44,7 +44,6 @@ import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.engine.renderware.struct.RpColor;
 import com.openitvn.gtavc.core.GtaAssetModel;
-import com.openitvn.gtavc.core.GtaCollision;
 import com.openitvn.gtavc.core.item.OBJSEntry;
 import com.openitvn.unicore.data.DataStream;
 import java.io.IOException;
@@ -64,7 +63,6 @@ public class GtaModel {
     float drawDistance;
     RpClump rClump;
     Model model;
-    public GtaCollision gCol;
     
     public GtaModel(OBJSEntry objs) throws IOException {
         this(objs.modName, objs.txdName, MeshType.OneMesh);

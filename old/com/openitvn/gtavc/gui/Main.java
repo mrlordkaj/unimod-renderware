@@ -488,8 +488,7 @@ public class Main extends javax.swing.JFrame {
 
         cboViewMode.setModel(new DefaultComboBoxModel(new ViewportMode[] {
             ViewportMode.MapNormal,
-            ViewportMode.MapDistance,
-            ViewportMode.MapCollision
+            ViewportMode.MapDistance
         })
     );
     cboViewMode.addItemListener(new java.awt.event.ItemListener() {

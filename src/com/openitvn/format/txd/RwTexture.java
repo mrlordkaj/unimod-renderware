@@ -101,7 +101,8 @@ public class RwTexture extends ITexture {
         return 1;
     }
     
-    @Override public int getMipCount() {
+    @Override
+    public int getMipCount() {
         return texture.mipCount;
     }
     
@@ -128,31 +129,6 @@ public class RwTexture extends ITexture {
     @Override
     public boolean isMipMapUsed() {
         return true;
-    }
-    
-    @Deprecated
-    public String getTextureName() {
-        return texture.textureName;
-    }
-    
-    @Deprecated
-    public String getMaskName() {
-        return texture.maskName;
-    }
-    
-    @Deprecated
-    public String getColorDepth() {
-        return texture.colorDepth + " bit";
-    }
-    
-    @Deprecated
-    public String hasAlpha() {
-        return texture.hasAlpha ? "Yes" : "No";
-    }
-    
-    @Deprecated
-    public String getCompression() {
-        return texture.getCompressionName();
     }
     
     @Deprecated

@@ -24,7 +24,6 @@ public enum ViewportMode {
     
     MapNormal ("Normal Map"),
     MapDistance ("Distance Map"),
-    MapCollision ("Collision Map"),
     SingleModel ("Single Model"),
     VehicleNormal ("Normal Vehicle"),
     VehicleDamaged ("Damaged Vehicle"),

@@ -17,7 +17,6 @@
 package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.gtavc.core.GtaCollision;
 import com.openitvn.gtavc.core.item.INSTEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
 import com.openitvn.gtavc.core.item.TOBJEntry;
@@ -31,8 +30,7 @@ public class GWorldMap extends GWorld {
     
     private final ArrayList<GtaInstance>
             norIns = new ArrayList<>(),
-            lodIns = new ArrayList<>(),
-            colIns = new ArrayList<>();
+            lodIns = new ArrayList<>();
     
     private static GWorldMap instance;
     
@@ -61,14 +59,10 @@ public class GWorldMap extends GWorld {
             case MapDistance:
                 instances = lodIns;
                 break;
-                
-            case MapCollision:
-                instances = colIns;
-                break;
         }
     }
     
-    void addOBJS(OBJSEntry objs, GtaCollision col) throws Exception {
+    void addOBJS(OBJSEntry objs) throws Exception {
         if (objs instanceof TOBJEntry) {
             int sceneTime = 12;
             TOBJEntry tobj = (TOBJEntry) objs;
@@ -84,11 +78,6 @@ public class GWorldMap extends GWorld {
         // add models
         GtaModel mod = new GtaModel(objs);
         models.put(objs.modelId, mod);
-        // add collisions
-        if (col != null) {
-            col.decode();
-            mod.gCol = col;
-        }
     }
     
     void removeOBJS(OBJSEntry e) {
