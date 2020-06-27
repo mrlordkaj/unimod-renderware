@@ -17,9 +17,9 @@
 
 package com.openitvn.unicore.plugin.gta;
 
-import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.BackgroundTask;
+import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -88,9 +88,9 @@ class WorldScriptModel extends AbstractTableModel {
             String name = group.getName();
             String prefix = name.toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
             ResourceModel res = ResourceModel.getInstance();
-            RwArchiveEntry e;
+            IArchiveEntry e;
             int i = 0;
-            while ((e = res.findEntry(prefix + i + ".ipl")) != null) {
+            while ((e = res.findEntry(prefix + i, "ipl")) != null) {
                 try (EntryStream ds = new EntryStream(e)) {
                     app.executeINSTGroup(e.getName(), ds, active);
                 } catch (IOException ex) {

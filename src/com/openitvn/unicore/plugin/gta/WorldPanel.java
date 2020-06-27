@@ -22,17 +22,18 @@ import com.openitvn.engine.renderware.RpClump;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
 import com.openitvn.engine.renderware.RpSection;
+import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.col.ColFile;
 import com.openitvn.format.dff.RwMaterial;
-import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
-import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.DataStream;
+import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.PanelViewer;
 import com.openitvn.unicore.plugin.gta.item.INSTEntry;
 import com.openitvn.unicore.plugin.gta.item.OBJSEntry;
@@ -301,14 +302,14 @@ public final class WorldPanel extends PanelViewer {
     private void addOBJS(OBJSEntry objs, GroupRegistry reg) {
         ResourceModel res = ResourceModel.getInstance();
         // load textures
-        RpSection grand = txdCache.get(objs.txdName);
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
-        if (grand == null) {
+        RpTextureDictionary texDic = txdCache.get(objs.txdName);
+        if (texDic == null) {
             // load txd from resource
-            try (RwArchiveEntry e = res.findEntry(objs.txdName + ".txd");
-                    BufferStream bs = e.toDataStream()) {
-                grand = RpSection.loadSection(bs, null);
-                for (RpTextureNative texData : grand.getChildren(RpTextureNative.class)) {
+            try (IArchiveEntry te = res.findEntry(objs.txdName, "txd");
+                    EntryStream ts = new EntryStream(te)) {
+                texDic = RpSection.loadRoot(ts, RpTextureDictionary.class);
+                for (RpTextureNative texData : texDic.textures) {
                     texNavMap.put(texData.textureName.toLowerCase(), texData);
                     String texName = texData.getMapperName();
                     // register new texture when missing
@@ -318,20 +319,21 @@ public final class WorldPanel extends PanelViewer {
                         reg.texNames.add(texName);
                     }
                 }
-                txdCache.put(objs.txdName, grand);
-            } catch (NullPointerException ex) {
+                txdCache.put(objs.txdName, texDic);
+            } catch (IOException ex) {
                 Logger.printWarning("TXD not found: " + objs.txdName);
             }
         } else {
             // load txd from cache
-            for (RpTextureNative texData : grand.getChildren(RpTextureNative.class))
+            for (RpTextureNative texData : texDic.textures) {
                 texNavMap.put(texData.textureName.toLowerCase(), texData);
+            }
         }
         // load model
-        try (RwArchiveEntry e = res.findEntry(objs.modName + ".dff");
-                BufferStream ds = e.toDataStream()) {
+        try (IArchiveEntry me = res.findEntry(objs.modName, "dff");
+                EntryStream ms = new EntryStream(me)) {
             RpClump clump;
-            while ((clump = RpSection.loadRoot(ds, RpClump.class)) != null) {
+            while ((clump = RpSection.loadRoot(ms, RpClump.class)) != null) {
                 // only load root geometry as model
                 RpGeometry geoData = clump.getRootGeometry();
                 if (geoData != null) {
@@ -363,7 +365,7 @@ public final class WorldPanel extends PanelViewer {
                     break;
                 }
             }
-        } catch (NullPointerException ex) {
+        } catch (IOException ex) {
             Logger.printWarning("DFF not found: " + objs.modName);
         }
     }
@@ -442,13 +444,13 @@ public final class WorldPanel extends PanelViewer {
             // parse collision list
             // TODO: current support collsion mesh only,
             // need implement primitive collision in future
-            String colFile = groupName.substring(0, groupName.length() - 3)+"col";
-            RwArchiveEntry colEntry = ResourceModel.getInstance().findEntry(colFile);
-            if (colEntry != null) {
-                BufferStream ds = colEntry.toDataStream();
+            ResourceModel res = ResourceModel.getInstance();
+            String colFile = groupName.substring(0, groupName.length() - 4);
+            try (IArchiveEntry ce = res.findEntry(colFile, "col");
+                    EntryStream cs = new EntryStream(ce)) {
                 int fourCC;
-                while (ds.remaining() > 4 && (fourCC = ds.getInt()) != 0) {
-                    ColFile col = new ColFile(fourCC, ds);
+                while (cs.remaining() > 4 && (fourCC = cs.getInt()) != 0) {
+                    ColFile col = new ColFile(fourCC, cs);
                     if (col.model != null) {
                         world.resource.register(col.model);
                         reg.modNames.add(col.model.getName());
@@ -456,7 +458,7 @@ public final class WorldPanel extends PanelViewer {
                         reg.colNames.add(col.objsName);
                     }
                 }
-            }
+            } catch (IOException ex) { }
             
             // parse objs list
             String[] args;
@@ -571,7 +573,7 @@ public final class WorldPanel extends PanelViewer {
     
     // world dispatcher for schedule push world data
     // when asynchronous loading thread done
-    private HashMap<String, RpSection> txdCache;
+    private HashMap<String, RpTextureDictionary> txdCache;
     private ArrayList<INode> pendingNodes;
     
     // store all resource names used by groups,

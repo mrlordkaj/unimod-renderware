@@ -20,6 +20,7 @@ import com.openitvn.unicore.archive.IArchive;
 import com.openitvn.unicore.archive.ICompression;
 import com.openitvn.unicore.data.FileStream;
 import com.openitvn.helper.StringHelper;
+import com.openitvn.unicore.archive.IArchiveEntry;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +29,7 @@ import java.nio.file.Files;
  *
  * @author Thinh Pham
  */
-public final class RwArchive extends IArchive<RwArchiveEntry> {
+public final class RwArchive extends IArchive<IArchiveEntry> {
     
     private final int MAGIC_VER2 = StringHelper.makeFourCC("VER2");
     
@@ -57,7 +58,8 @@ public final class RwArchive extends IArchive<RwArchiveEntry> {
                         int size = (fs.getUShort()) * 2048;
                         int packed = fs.getShort(); // always 0
                         String name = fs.readFixedString(24);
-                        entries.add(new RwArchiveEntry(this, name, offset, size));
+                        IArchiveEntry entry = new IArchiveEntry(this, name, size, offset, size);
+                        entries.add(entry);
                     }
                     version = 2;
                     return;
@@ -73,7 +75,8 @@ public final class RwArchive extends IArchive<RwArchiveEntry> {
                         int offset = fs.getInt() * 2048;
                         int size = fs.getInt() * 2048;
                         String name = fs.readFixedString(24);
-                        entries.add(new RwArchiveEntry(this, name, offset, size));
+                        IArchiveEntry entry = new IArchiveEntry(this, name, size, offset, size);
+                        entries.add(entry);
                     }
                 }
                 version = 1;
@@ -81,7 +84,10 @@ public final class RwArchive extends IArchive<RwArchiveEntry> {
             }
         }
         // other files is abstract archive with itself as only entry
-        entries.add(new RwArchiveEntry(this, in.getName(), 0, (int)in.length()));
+        String name = in.getName();
+        int size = (int) in.length();
+        IArchiveEntry entry = new IArchiveEntry(this, name, size, 0, size);
+        entries.add(entry);
     }
     
     @Override

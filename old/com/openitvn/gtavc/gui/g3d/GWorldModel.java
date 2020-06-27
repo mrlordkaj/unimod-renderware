@@ -37,8 +37,9 @@ public class GWorldModel extends GWorld {
     
     public void setModel(String modName, String txdName) throws IOException {
         // clean current stuff
-        for (GtaModel mod : models.values())
+        for (GtaModel mod : models.values()) {
             mod.dispose();
+        }
         models.clear();
         instances.clear();
         // set new model

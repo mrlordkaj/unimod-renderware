@@ -37,8 +37,9 @@ public class RpTextureDictionary extends RpSection {
     public RpTextureNative findTexture(String name) {
         name = name.toLowerCase();
         for (RpTextureNative tex : textures) {
-            if (name.equals(tex.textureName.toLowerCase()))
+            if (name.equals(tex.textureName.toLowerCase())) {
                 return tex;
+            }
         }
         return null;
     }

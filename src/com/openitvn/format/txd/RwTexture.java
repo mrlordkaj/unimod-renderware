@@ -131,20 +131,6 @@ public class RwTexture extends ITexture {
     }
     
     @Deprecated
-    private int index;
-    
-    @Deprecated
-    public RwTexture(int index, RpTextureNative texture) {
-        this(texture.textureName, texture);
-        this.index = index;
-    }
-    
-    @Deprecated
-    public int getIndex() {
-        return index;
-    }
-    
-    @Deprecated
     public String getTextureName() {
         return texture.textureName;
     }
@@ -152,11 +138,6 @@ public class RwTexture extends ITexture {
     @Deprecated
     public String getMaskName() {
         return texture.maskName;
-    }
-    
-    @Deprecated
-    public String getSize() {
-        return texture.width + " x " + texture.height;
     }
     
     @Deprecated

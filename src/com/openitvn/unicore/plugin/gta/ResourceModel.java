@@ -19,10 +19,9 @@ package com.openitvn.unicore.plugin.gta;
 import com.openitvn.format.dff.RwModel;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.format.img.RwArchive;
-import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.maintain.Logger;
-import com.openitvn.unicore.data.BufferStream;
-import com.openitvn.unicore.data.DataStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.world.INode;
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,7 +45,7 @@ class ResourceModel extends AbstractTableModel {
     static final int COL_NAME = 1;
     static final int COL_SIZE = 2;
     
-    final ArrayList<RwArchiveEntry> entries;
+    final ArrayList<IArchiveEntry> entries;
     final ArrayList<WorldScriptEntry> scripts;
     final HashMap<String, String> dffTxdMap;
     
@@ -60,7 +59,7 @@ class ResourceModel extends AbstractTableModel {
         entries.clear();
         scripts.clear();
         dffTxdMap.clear();
-        LinkedHashMap<String, RwArchiveEntry> entryMap = new LinkedHashMap<>();
+        LinkedHashMap<String, IArchiveEntry> entryMap = new LinkedHashMap<>();
         // load resources from main archive
         for (String arc : GameConfig.getMainArchives()) {
             loadImg(arc, entryMap);
@@ -149,12 +148,13 @@ class ResourceModel extends AbstractTableModel {
         } catch (IOException ex) { }
     }
     
-    private boolean loadImg(String revPath, LinkedHashMap<String, RwArchiveEntry> entryMap) {
+    private boolean loadImg(String revPath, LinkedHashMap<String, IArchiveEntry> entryMap) {
         try {
             RwArchive arc = new RwArchive();
             arc.open(GameConfig.getDirectory() + "/" + revPath);
-            for (RwArchiveEntry e : arc.entries)
+            for (IArchiveEntry e : arc.entries) {
                 entryMap.put(e.getName().toLowerCase(), e);
+            }
             return true;
         } catch (IOException ex) {
             Logger.printError("IMG not found: " + revPath);
@@ -168,35 +168,42 @@ class ResourceModel extends AbstractTableModel {
     
     void extractModel(RwModel mod, ArrayList<INode> nodeList) {
         String modName = mod.getName();
-        RwArchiveEntry me = findEntry(modName + ".dff");
-        if (me != null) {
-            try (BufferStream ms = me.toDataStream()) {
-                String txdName = dffTxdMap.get(modName.toLowerCase());
-                RwArchiveEntry txdEntry = findEntry((txdName == null ? modName : txdName) + ".txd");
-                if (txdEntry != null) {
-                    try (DataStream ds = txdEntry.toDataStream()) {
-                        mod.loadTextureLibrary(ds);
-                    }
-                }
-                Collection<INode> nodes = mod.fromData(ms, false);
-                if (nodeList != null) {
-                    nodeList.clear();
-                    nodeList.addAll(nodes);
-                }
+        try (IArchiveEntry me = findEntry(modName, "dff");
+                EntryStream ms = new EntryStream(me)) {
+            String txdName = dffTxdMap.get(modName.toLowerCase());
+            if (txdName == null) {
+                txdName = modName;
             }
+            try (IArchiveEntry te = findEntry(txdName, "txd");
+                    EntryStream ts = new EntryStream(te)) {
+                mod.loadTextureLibrary(ts);
+            }
+            Collection<INode> nodes = mod.fromData(ms, false);
+            // node list use in vehicle
+            if (nodeList != null) {
+                nodeList.clear();
+                nodeList.addAll(nodes);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
         }
     }
     
-    RwArchiveEntry getEntry(int index) {
+    IArchiveEntry getEntry(int index) {
         return entries.get(index);
     }
     
-    RwArchiveEntry findEntry(String name) {
-        for (RwArchiveEntry e : entries) {
-            if (e.getName().equalsIgnoreCase(name))
+    IArchiveEntry findEntry(String fullName) {
+        for (IArchiveEntry e : entries) {
+            if (e.getName().equalsIgnoreCase(fullName)) {
                 return e;
+            }
         }
         return null;
+    }
+    
+    IArchiveEntry findEntry(String name, String ext) {
+        return findEntry(name+"."+ext);
     }
     
     String findTexDicByModel(String modName) {
@@ -240,7 +247,7 @@ class ResourceModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        RwArchiveEntry e = entries.get(row);
+        IArchiveEntry e = entries.get(row);
         switch (col) {
             case COL_INDEX:
                 return row;

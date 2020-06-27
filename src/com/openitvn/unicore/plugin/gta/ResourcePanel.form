@@ -107,7 +107,7 @@
             <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="resTableMouseReleased"/>
           </Events>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable() {&#xa;    public String getToolTipText(MouseEvent evt) {&#xa;        int row = resTable.rowAtPoint(evt.getPoint());&#xa;        if (row &gt;= 0) {&#xa;            row = resTable.convertRowIndexToModel(row);&#xa;            com.openitvn.format.img.RwArchiveEntry e = ResourceModel.getInstance().getEntry(row);&#xa;            return e.getArchive().getFile().toString();&#xa;        }&#xa;        return null;&#xa;    }&#xa;}"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable() {&#xa;    public String getToolTipText(MouseEvent evt) {&#xa;        int row = resTable.rowAtPoint(evt.getPoint());&#xa;        if (row &gt;= 0) {&#xa;            row = resTable.convertRowIndexToModel(row);&#xa;            IArchiveEntry e = ResourceModel.getInstance().getEntry(row);&#xa;            return e.getArchive().getFile().toString();&#xa;        }&#xa;        return null;&#xa;    }&#xa;}"/>
           </AuxValues>
         </Component>
       </SubComponents>

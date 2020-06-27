@@ -27,6 +27,7 @@ import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
 import com.openitvn.unicore.plugin.gta.WorldScriptType;
@@ -266,7 +267,7 @@ public class ScriptFileModel extends AbstractTableModel {
                     String name = group.getName();
                     String prefix = name.substring(0, name.length() - 4).concat("_stream");
                     int streamId = 0;
-                    BufferStream bs;
+                    DataStream bs;
                     while ((bs = assetModel.extract(prefix + streamId + ".ipl")) != null) {
                         bs.position(4); //skips "bnry"
                         int instCount = bs.getInt();

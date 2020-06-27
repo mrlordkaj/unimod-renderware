@@ -226,8 +226,9 @@ public class RpSection implements TreeNode {
     @Override
     public int getIndex(TreeNode node) {
         for (int i = 0; i < children.size(); i++) {
-            if (children.get(i).equals(node))
+            if (children.get(i).equals(node)) {
                 return i;
+            }
         }
         return -1;
     }

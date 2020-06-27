@@ -20,10 +20,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
-import com.openitvn.engine.renderware.RpMaterial;
-import com.openitvn.engine.renderware.RpGeometry;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -33,10 +30,10 @@ import java.util.HashMap;
 public abstract class GWorld {
     
     final HashMap<Integer, GtaModel> models = new HashMap<>();
-    PerspectiveCamera cam;
-    CameraInputController camCtrl;
-    
     ArrayList<GtaInstance> instances = new ArrayList<>();
+    
+    CameraInputController camCtrl;
+    PerspectiveCamera cam;
     
     void init() {
         cam = new PerspectiveCamera();
@@ -59,29 +56,9 @@ public abstract class GWorld {
         cam.update();
         camCtrl.update();
         mb.begin(cam);
-        for (GtaInstance ginst : instances)
-            mb.render(ginst.inst, env);
-        mb.end();
-    }
-    
-    Collection<GtaTexture> exportTextures(boolean skipUnused) {
-        if (skipUnused) {
-            ArrayList<String> nameMap = new ArrayList<>();
-            for (GtaInstance gInst : instances) {
-                String texDic = gInst.gModel.txdName;
-                for (RpGeometry rGeo : gInst.gModel.getGeometries()) {
-                    for (RpMaterial rMat : rGeo.materials) {
-                        if (rMat.textured) {
-                            String name = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());
-                            if (!nameMap.contains(name))
-                                nameMap.add(name);
-                        }
-                    }
-                }
-            }
-            return GtaTextureManager.getTexturesByMapperNames(nameMap);
-        } else {
-            return GtaTextureManager.getAllTextures();
+        for (GtaInstance inst : instances) {
+            mb.render(inst.inst, env);
         }
+        mb.end();
     }
 }

@@ -58,8 +58,9 @@ public class RpTexture extends RpSection {
     private static String bufferToString(ByteBuffer bb) {
         StringBuilder sb = new StringBuilder();
         byte c;
-        while (bb.hasRemaining() && (c = bb.get()) != 0)
-            sb.append((char) c);
+        while (bb.hasRemaining() && (c = bb.get()) != 0) {
+            sb.append((char)c);
+        }
         return sb.toString();
     }
 }

@@ -36,12 +36,14 @@ public class ColPack extends IWorld {
     public void fromData(DataStream ds) {
         while (ds.hasRemaining()) {
             int fourCC = ds.getInt();
-            if (fourCC == 0)
+            if (fourCC != 0) {
+                ColFile col = new ColFile(fourCC, ds);
+                if (col.model != null) {
+                    resource.register(col.model);
+                    new IGeometry(col.objsName).attach(this);
+                }
+            } else {
                 break;
-            ColFile col = new ColFile(fourCC, ds);
-            if (col.model != null) {
-                resource.register(col.model);
-                new IGeometry(col.objsName).attach(this);
             }
         }
     }

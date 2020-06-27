@@ -17,8 +17,9 @@
 package com.openitvn.gtavc.core;
 
 import com.openitvn.format.img.RwArchive;
-import com.openitvn.format.img.RwArchiveEntry;
-import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.DataStream;
+import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -44,7 +45,7 @@ public class GtaAssetModel extends AbstractTableModel {
         return instance;
     }
     
-    final LinkedHashMap<String, RwArchiveEntry> assetMap = new LinkedHashMap<>();
+    final LinkedHashMap<String, IArchiveEntry> assetMap = new LinkedHashMap<>();
     
     private GtaAssetModel() { }
     
@@ -97,14 +98,14 @@ public class GtaAssetModel extends AbstractTableModel {
         return null;
     }
     
-    public RwArchiveEntry getEntry(int i) {
+    public IArchiveEntry getEntry(int i) {
         return assetMap.values().stream().skip(i).findFirst().get();
     }
     
-    public BufferStream extract(String name) throws IOException {
-        RwArchiveEntry entry = assetMap.get(name.toLowerCase());
-        if (entry != null) {
-            return entry.toDataStream();
+    public DataStream extract(String name) throws IOException {
+        IArchiveEntry e = assetMap.get(name.toLowerCase());
+        if (e != null) {
+            return new EntryStream(e);
         }
         return null;
     }
@@ -113,8 +114,9 @@ public class GtaAssetModel extends AbstractTableModel {
         try {
             RwArchive arc = new RwArchive();
             arc.open(GameConfig.getDirectory()+"/"+imgName);
-            for (RwArchiveEntry e : arc.entries)
+            for (IArchiveEntry e : arc.entries) {
                 assetMap.put(e.getName().toLowerCase(), e);
+            }
             fireTableDataChanged();
         } catch (IOException ex) {
             ex.printStackTrace(System.err);

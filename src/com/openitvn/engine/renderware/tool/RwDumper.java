@@ -16,14 +16,11 @@
  */
 package com.openitvn.engine.renderware.tool;
 
-import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.unicore.Unicore;
+import com.openitvn.unicore.archive.IArchiveEntry;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -48,6 +45,7 @@ public class RwDumper extends javax.swing.JDialog {
     private RwDumper() {
         super(Unicore.getMainFrame(), false);
         initComponents();
+        onSwitchTab(null);
     }
     
     @Override
@@ -57,7 +55,7 @@ public class RwDumper extends javax.swing.JDialog {
         instance = null;
     }
     
-    public void openEntry(RwArchiveEntry entry) {
+    public void openEntry(IArchiveEntry entry) {
         if (!trySwitchTab(entry)) {
             RwDumperTab tab = new RwDumperTab(entry);
             tabbedDumper.addTab(entry.getName(), tab);
@@ -109,7 +107,6 @@ public class RwDumper extends javax.swing.JDialog {
         popOpen.add(mnuCloseAll);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("RenderWare Dumper");
         setLocationByPlatform(true);
         setMinimumSize(new java.awt.Dimension(320, 240));
         setSize(new java.awt.Dimension(0, 0));
@@ -171,7 +168,7 @@ public class RwDumper extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void onSwitchTab(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_onSwitchTab
-        StringBuilder sb = new StringBuilder("RenderWare Dumper");
+        StringBuilder sb = new StringBuilder("Renderware Dumper");
         if (tabbedDumper.getTabCount() > 0) {
             RwDumperTab tab = (RwDumperTab) tabbedDumper.getSelectedComponent();
             sb.append(" - ").append(tab.getName());
@@ -200,14 +197,10 @@ public class RwDumper extends javax.swing.JDialog {
             currentFile = fc.getSelectedFile();
             String fileName = currentFile.toString();
             if (!trySwitchTab(fileName)) {
-                try {
-                    RwDumperTab tab = new RwDumperTab(fileName);
-                    tabbedDumper.addTab(new File(fileName).getName(), tab);
-                    tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
-                    entryMap.put(fileName, tab);
-                } catch (IOException ex) {
-                    Logger.getLogger(RwDumper.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                RwDumperTab tab = new RwDumperTab(fileName);
+                tabbedDumper.addTab(new File(fileName).getName(), tab);
+                tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
+                entryMap.put(fileName, tab);
             }
         }
     }//GEN-LAST:event_mnuOpenActionPerformed

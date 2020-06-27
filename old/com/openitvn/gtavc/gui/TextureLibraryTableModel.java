@@ -21,7 +21,6 @@ import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.txd.RwTexture;
-import com.openitvn.unicore.data.BufferStream;
 import com.openitvn.unicore.data.DataStream;
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
@@ -45,7 +44,7 @@ public class TextureLibraryTableModel extends AbstractTableModel {
     public void bind(RpTextureDictionary texDic) {
         entries.clear();
         for (RpTextureNative texData : texDic.textures) {
-            RwTexture tex = new RwTexture(entries.size(), texData);
+            RwTexture tex = new RwTexture(texData.textureName, texData);
             entries.add(tex);
         }
         fireTableDataChanged();
@@ -85,9 +84,9 @@ public class TextureLibraryTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        switch(col) {
+        switch (col) {
             case COL_INDEX:
-                return entries.get(row).getIndex();
+                return row;
                 
             case COL_NAME:
                 return entries.get(row).getTextureName();

@@ -17,9 +17,9 @@
 package com.openitvn.gtavc.gui;
 
 import com.openitvn.engine.renderware.RpTextureDictionary;
-import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.format.txd.RwTexture;
-import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,26 +65,26 @@ public class TextureDialog extends javax.swing.JDialog {
         instance = null;
     }
     
-    public void openFile(RwArchiveEntry entry) throws IOException {
+    public void openFile(IArchiveEntry entry) {
         fileName = entry.getName();
         resetForm();
-        
-        try (BufferStream bs = entry.toDataStream()) {
+        try (EntryStream es = new EntryStream(entry)) {
             lblFileName.setText(fileName);
-            texLibModel.bind(bs);
+            texLibModel.bind(es);
             if (texLibModel.getEntryCount() > 0) {
                 tableTexLib.setRowSelectionInterval(0, 0);
                 selectTexture(0);
             }
-        } catch (NullPointerException ex) { }
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
+        }
     }
     
-    public void openFile(String fileName, RpTextureDictionary rwTexDic) {
+    public void openFile(String fileName, RpTextureDictionary txd) {
         this.fileName = fileName;
         resetForm();
-        
         lblFileName.setText(fileName);
-        texLibModel.bind(rwTexDic);
+        texLibModel.bind(txd);
         if (texLibModel.getEntryCount() > 0) {
             tableTexLib.setRowSelectionInterval(0, 0);
             selectTexture(0);
@@ -110,7 +110,7 @@ public class TextureDialog extends javax.swing.JDialog {
         if (rowId != selectedTexId) {
             RwTexture tex = texLibModel.getEntry(rowId);
             lblTextureName.setText(tex.getTextureName());
-            lblSize.setText(tex.getSize());
+            lblSize.setText(tex.getWidth() + " x " + tex.getHeight());
             lblBitDepth.setText(tex.getColorDepth());
             lblHasAlpha.setText(tex.hasAlpha());
             lblMipmap.setText(Integer.toString(tex.getMipCount()));

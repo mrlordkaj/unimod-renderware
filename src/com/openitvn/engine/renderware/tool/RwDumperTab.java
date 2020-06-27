@@ -18,8 +18,8 @@
 package com.openitvn.engine.renderware.tool;
 
 import com.openitvn.engine.renderware.RpSection;
-import com.openitvn.format.img.RwArchiveEntry;
-import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.data.FileStream;
 import java.io.IOException;
 import javax.swing.tree.DefaultTreeModel;
@@ -30,27 +30,31 @@ import javax.swing.tree.DefaultTreeModel;
  */
 public class RwDumperTab extends javax.swing.JPanel {
 	
-	public RwDumperTab() {
-		initComponents();
-	}
-    
-    public RwDumperTab(RwArchiveEntry entry) {
+    public RwDumperTab() {
         initComponents();
-        super.setName(entry.getPath());
-        try (BufferStream bs = entry.toDataStream()) {
-            RpSection root = RpSection.loadRoot(bs);
+    }
+    
+    public RwDumperTab(IArchiveEntry entry) {
+        initComponents();
+        try (EntryStream ds = new EntryStream(entry)) {
+            RpSection root = RpSection.loadRoot(ds);
             DefaultTreeModel model = new DefaultTreeModel(root);
             treeSection.setModel(model);
+            super.setName(ds.getFullPath());
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
         }
     }
     
-    public RwDumperTab(String fileName) throws IOException {
+    public RwDumperTab(String fileName) {
         initComponents();
-        super.setName(fileName);
         try (FileStream fs = new FileStream(fileName)) {
             RpSection root = RpSection.loadRoot(fs);
             DefaultTreeModel model = new DefaultTreeModel(root);
             treeSection.setModel(model);
+            super.setName(fileName);
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
         }
     }
     

@@ -22,7 +22,7 @@ import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.gtavc.core.GtaAssetModel;
-import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.data.DataStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -105,8 +105,8 @@ public class GtaTextureManager {
     public static RpTextureDictionary getTexDic(String txdName) {
         RpTextureDictionary txd = TEXDIC_MAP.get(txdName);
         if (txd == null) {
-            try (BufferStream bs = GtaAssetModel.getInstance().extract(txdName + ".txd")) {
-                txd = RpSection.loadRoot(bs, RpTextureDictionary.class);
+            try (DataStream ds = GtaAssetModel.getInstance().extract(txdName + ".txd")) {
+                txd = RpSection.loadRoot(ds, RpTextureDictionary.class);
                 TEXDIC_MAP.put(txdName, txd);
             } catch (IOException ex) {
                 ex.printStackTrace(System.err);

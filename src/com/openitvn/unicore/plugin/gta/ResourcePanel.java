@@ -18,11 +18,14 @@ package com.openitvn.unicore.plugin.gta;
 
 import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.format.dff.RwModel;
-import com.openitvn.format.img.RwArchiveEntry;
+import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.PanelViewer;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -36,7 +39,7 @@ import javax.swing.table.TableRowSorter;
 public final class ResourcePanel extends PanelViewer {
     
     private final ResourceModel resModel = ResourceModel.getInstance();
-    private RwArchiveEntry selected;
+    private IArchiveEntry selected;
     private RwModel viewer;
     
     public ResourcePanel() {
@@ -101,7 +104,7 @@ public final class ResourcePanel extends PanelViewer {
                 int row = resTable.rowAtPoint(evt.getPoint());
                 if (row >= 0) {
                     row = resTable.convertRowIndexToModel(row);
-                    com.openitvn.format.img.RwArchiveEntry e = ResourceModel.getInstance().getEntry(row);
+                    IArchiveEntry e = ResourceModel.getInstance().getEntry(row);
                     return e.getArchive().getFile().toString();
                 }
                 return null;
@@ -213,8 +216,14 @@ public final class ResourcePanel extends PanelViewer {
                     break;
                     
                 case "txd":
-                    
+                    try (EntryStream es = new EntryStream(selected)) {
+                        Unicore app = Unicore.getMainFrame();
+                        app.openByDefault(es);
+                    } catch (IOException ex) {
+                        ex.printStackTrace(System.err);
+                    }
                     break;
+
             }
         }
     }//GEN-LAST:event_mnuOpenActionPerformed

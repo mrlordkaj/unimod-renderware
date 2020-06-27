@@ -19,7 +19,6 @@ package com.openitvn.gtavc.gui;
 import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.gtavc.core.GtaAssetModel;
 import com.openitvn.engine.renderware.RpTextureDictionary;
-import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
 import com.openitvn.gtavc.core.item.NULLEntry;
@@ -28,6 +27,7 @@ import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.maintain.Logger;
+import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Canvas;
 import java.awt.Point;
@@ -192,7 +192,7 @@ public class Main extends javax.swing.JFrame {
     private void openRwDump() {
         int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (selId >= 0) {
-            RwArchiveEntry e = assetModel.getEntry(selId);
+            IArchiveEntry e = assetModel.getEntry(selId);
             String type = e.getExt().toLowerCase();
             if (type.equals("txd") || type.equals("dff")) {
                 RwDumper dlg = RwDumper.getInstance();
@@ -203,18 +203,14 @@ public class Main extends javax.swing.JFrame {
     }
     
     private void openRwTexture() {
-        try {
-            int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
-            if (selId >= 0) {
-                RwArchiveEntry e = assetModel.getEntry(selId);
-                if (e.getExt().equalsIgnoreCase("txd")) {
-                    TextureDialog dlg = TextureDialog.getInstance();
-                    dlg.setVisible(true);
-                    dlg.openFile(e);
-                }
+        int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+        if (selId >= 0) {
+            IArchiveEntry e = assetModel.getEntry(selId);
+            if (e.getExt().equalsIgnoreCase("txd")) {
+                TextureDialog dlg = TextureDialog.getInstance();
+                dlg.setVisible(true);
+                dlg.openFile(e);
             }
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
         }
     }
     
@@ -222,7 +218,7 @@ public class Main extends javax.swing.JFrame {
         try {
             int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
             if (selId >= 0) {
-                RwArchiveEntry e = assetModel.getEntry(selId);
+                IArchiveEntry e = assetModel.getEntry(selId);
                 if (e.getExt().equalsIgnoreCase("dff")) {
                     String fileName = e.getName();
                     currentModelFile = fileName;
@@ -728,8 +724,8 @@ public class Main extends javax.swing.JFrame {
         }
         int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (evt.isPopupTrigger() && selId > -1) {
-            RwArchiveEntry entry = assetModel.getEntry(selId);
-            switch (entry.getExt().toLowerCase()) {
+            IArchiveEntry e = assetModel.getEntry(selId);
+            switch (e.getExt().toLowerCase()) {
                 case "txd":
                     mnuTxd.show(evt.getComponent(), x, y);
                     break;

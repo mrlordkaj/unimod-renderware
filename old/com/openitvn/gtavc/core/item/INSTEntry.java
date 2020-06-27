@@ -19,8 +19,7 @@ package com.openitvn.gtavc.core.item;
 
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.unicore.data.BufferStream;
-import java.nio.ByteBuffer;
+import com.openitvn.unicore.data.DataStream;
 
 /**
  *
@@ -85,7 +84,7 @@ public class INSTEntry extends NULLEntry {
     }
     
     // binary format, only SA
-    public INSTEntry(BufferStream bs, int groupId) {
+    public INSTEntry(DataStream bs, int groupId) {
         super(groupId);
         pos = new Vector3( bs.getFloat(), bs.getFloat(), bs.getFloat() );
         scl = new Vector3 ( 1, 1, 1 );

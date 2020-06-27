@@ -36,7 +36,6 @@ public class RpFrame {
     public final String name;
     public RpFrame parent;
     public RpGeometry geometry;
-//    @Deprecated public int index;
     
     public RpFrame(String name, ByteBuffer bb) {
         this.name = name;
@@ -60,13 +59,6 @@ public class RpFrame {
             t[0], t[1], t[2], 1
         };
     }
-    
-//    public int getLevel() {
-//        int lvl = 0;
-//        for (RpFrame p = this; p != null; p = p.parent)
-//            lvl++;
-//        return lvl;
-//    }
     
     @Deprecated
     public boolean hasParent() {
