@@ -16,14 +16,14 @@
  */
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.gtavc.core.item.CARSEntry;
-import com.openitvn.gtavc.core.item.INSTEntry;
-import com.openitvn.gtavc.core.item.OBJSEntry;
-import com.openitvn.gtavc.core.item.TOBJEntry;
-import com.openitvn.gtavc.core.item.NULLEntry;
-import com.openitvn.gtavc.core.item.ItemType;
+import com.openitvn.gtavc.core.item.ItemINST;
+import com.openitvn.gtavc.core.item.ItemOBJS;
+import com.openitvn.gtavc.core.item.ItemTOBJ;
+import com.openitvn.unicore.plugin.gta.item.ItemNULL;
+import com.openitvn.unicore.plugin.gta.item.ItemType;
 import com.openitvn.unicore.plugin.gta.ScriptHelper;
 import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class ScriptItemModel extends AbstractTableModel {
     public static final int COL_FILE = 2;
     
 
-    private final ArrayList<NULLEntry> entries = new ArrayList<>();
+    private final ArrayList<ItemNULL> entries = new ArrayList<>();
 
     @Override
     public String getColumnName(int col) {
@@ -81,7 +81,7 @@ public class ScriptItemModel extends AbstractTableModel {
                 return entries.get(row).getType();
                 
             case COL_FILE:
-                return entries.get(row).groupId;
+                return entries.get(row).getGroupIndex();
         }
 
         return null;
@@ -105,7 +105,7 @@ public class ScriptItemModel extends AbstractTableModel {
         fireTableDataChanged();
     }
     
-    public void addEntry(NULLEntry newEntry) {
+    public void addEntry(ItemNULL newEntry) {
         entries.add(newEntry);
     }
     
@@ -133,7 +133,7 @@ public class ScriptItemModel extends AbstractTableModel {
                             if (line.length() == 0) continue; //skip blank lines
                             if (line.charAt(0) == '#') continue; //skip comment lines
                             //read other data by line
-                            NULLEntry newItem = createItemEntry(line, curType, fileId);
+                            ItemNULL newItem = createItemEntry(line, curType, fileId);
                             entries.add(newItem);
                             break;
                     }
@@ -144,40 +144,41 @@ public class ScriptItemModel extends AbstractTableModel {
         }
     }
     
-    public ArrayList<NULLEntry> getEntries() {
+    public ArrayList<ItemNULL> getEntries() {
         return entries;
     }
     
-    public ArrayList<NULLEntry> getEntriesByGroup(int groupId) {
-        ArrayList<NULLEntry> rs = new ArrayList<>();
-        for (NULLEntry e : entries) {
-            if (e.groupId == groupId)
+    public ArrayList<ItemNULL> getEntriesByGroup(int gid) {
+        ArrayList<ItemNULL> rs = new ArrayList<>();
+        for (ItemNULL e : entries) {
+            if (e.getGroupIndex() == gid) {
                 rs.add(e);
+            }
         }
         return rs;
     }
     
-    public NULLEntry getEntry(int id) {
+    public ItemNULL getEntry(int id) {
         return entries.get(id);
     }
     
-    private static NULLEntry createItemEntry(String line, ItemType itemType, int groupId) {
+    private static ItemNULL createItemEntry(String line, ItemType itemType, int groupId) {
         String[] args = ScriptHelper.parseLineByComma(line);
         switch (itemType) {
             case OBJS:
-                return new OBJSEntry(args, groupId);
+                return new ItemOBJS(args, groupId);
                 
             case TOBJ:
-                return new TOBJEntry(args, groupId);
+                return new ItemTOBJ(args, groupId);
                 
             case INST:
-                return new INSTEntry(args, groupId);
+                return new ItemINST(args, groupId);
                 
             case CARS:
-                return new CARSEntry(args, groupId);
+                return new ItemCARS(args, groupId);
                 
             default:
-                return new NULLEntry(groupId);
+                return new ItemNULL(groupId);
         }
     }
 }

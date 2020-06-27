@@ -19,9 +19,8 @@ package com.openitvn.gtavc.gui;
 import com.openitvn.engine.renderware.tool.RwTexer;
 import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.engine.renderware.RpTextureDictionary;
-import com.openitvn.gtavc.core.item.CARSEntry;
-import com.openitvn.gtavc.core.item.OBJSEntry;
-import com.openitvn.gtavc.core.item.NULLEntry;
+import com.openitvn.gtavc.core.item.ItemOBJS;
+import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.g3d.GtaTextureManager;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
@@ -29,6 +28,7 @@ import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
@@ -238,11 +238,11 @@ public class Main extends javax.swing.JFrame {
     }
     
     private String findTexDic(String modName) {
-        for (NULLEntry def : scriptGroupModel.getDefinitionItemModel().getEntries()) {
+        for (ItemNULL def : scriptGroupModel.getDefinitionItemModel().getEntries()) {
             switch (def.getType()){
                 case OBJS:
                 case TOBJ:
-                    OBJSEntry objs = (OBJSEntry)def;
+                    ItemOBJS objs = (ItemOBJS)def;
                     if (modName.equals(objs.modName)) {
                         return objs.txdName;
                     }
@@ -253,16 +253,22 @@ public class Main extends javax.swing.JFrame {
     
     private void showVehicle() {
         try {
-            ViewportMode viewMode = ViewportMode.VehicleNormal;
-            if(rdoVehicleDamaged.isSelected()) viewMode = ViewportMode.VehicleDamaged;
-            else if(rdoVehicleDistance.isSelected()) viewMode = ViewportMode.VehicleDistance;
-            
-            int selectedRow = tblVehicle.getSelectedRow();
-            if(selectedRow >= 0) {
-                int vehicleEntryId = tblVehicle.convertRowIndexToModel(selectedRow);
-                VehicleTableModel data = (VehicleTableModel)tblVehicle.getModel();
-                CARSEntry entry = data.get(vehicleEntryId);
-                if(entry != null) gdxApp.setVehicle(entry, viewMode);
+            ViewportMode viewMode;
+            if (rdoVehicleDamaged.isSelected()) {
+                viewMode = ViewportMode.VehicleDamaged;
+            } else if (rdoVehicleDistance.isSelected()) {
+                viewMode = ViewportMode.VehicleDistance;
+            } else {
+                viewMode = ViewportMode.VehicleNormal;
+            }
+            int row = tblVehicle.getSelectedRow();
+            if (row >= 0) {
+                int id = tblVehicle.convertRowIndexToModel(row);
+                VehicleTableModel data = (VehicleTableModel) tblVehicle.getModel();
+                ItemCARS entry = data.entries.get(id);
+                if (entry != null) {
+                    gdxApp.setVehicle(entry, viewMode);
+                }
             }
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
@@ -704,10 +710,10 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_refineDefinitionItemMouse
 
     private void txtFindResourceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFindResourceKeyTyped
-        String textSearch = txtFindResource.getText();
-        textSearch = String.format("(?i)(%1$s)", textSearch);
+        String regex = txtFindResource.getText();
+        regex = String.format("(?i)(%1$s)", regex);
         TableRowSorter<ScriptItemModel> sorter = (TableRowSorter) tblResource.getRowSorter();
-        sorter.setRowFilter(RowFilter.regexFilter(textSearch, ResourceModel.COL_NAME));
+        sorter.setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
     }//GEN-LAST:event_txtFindResourceKeyTyped
 
     private void onTableResourcePopupTrigger(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onTableResourcePopupTrigger
@@ -717,9 +723,9 @@ public class Main extends javax.swing.JFrame {
             int selRow = tblResource.rowAtPoint(new Point(x, y));
             tblResource.setRowSelectionInterval(selRow, selRow);
         }
-        int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
-        if (evt.isPopupTrigger() && selId > -1) {
-            IArchiveEntry e = resource.getEntry(selId);
+        int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+        if (evt.isPopupTrigger() && id > -1) {
+            IArchiveEntry e = resource.getEntry(id);
             switch (e.getExt().toLowerCase()) {
                 case "txd":
                     mnuTxd.show(evt.getComponent(), x, y);
@@ -755,7 +761,7 @@ public class Main extends javax.swing.JFrame {
 
     private void tblDefinitionItemMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblDefinitionItemMouseClicked
         int id = tblDefinitionItem.convertRowIndexToModel(tblDefinitionItem.getSelectedRow());
-        NULLEntry e = scriptGroupModel.getDefinitionItemModel().getEntry(id);
+        ItemNULL e = scriptGroupModel.getDefinitionItemModel().getEntry(id);
         switch (e.getType()) {
             case INST:
                 gdxApp.select(e);

@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.gtavc.core.item.INSTEntry;
+import com.openitvn.gtavc.core.item.ItemINST;
 
 /**
  *
@@ -30,13 +30,13 @@ import com.openitvn.gtavc.core.item.INSTEntry;
 public class GtaInstance {
     
     // gta data
-    public final INSTEntry define;
+    public final ItemINST define;
     public final GtaModel gModel;
     
     // libgdx data
     public final ModelInstance inst;
     
-    public GtaInstance(INSTEntry def, GtaModel mod) {
+    public GtaInstance(ItemINST def, GtaModel mod) {
         this.define = def;
         this.gModel = mod;
         this.inst = new ModelInstance(mod.getModel());

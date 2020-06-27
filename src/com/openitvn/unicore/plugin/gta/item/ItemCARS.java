@@ -23,7 +23,7 @@ import com.openitvn.unicore.plugin.gta.GameConfig;
  * @author Thinh Pham
  * https://gtamods.com/wiki/CARS_(IDE_Section)
  */
-public class CARSEntry {
+public class ItemCARS extends ItemNULL {
     
     public int id;              // Unique object ID.
     public String modName;      // Name of the .dff model file without extension.
@@ -46,8 +46,8 @@ public class CARSEntry {
     public float wheelScale;    // car - Scale of wheel and collision models, 1.0 for original size of wheel and collision models
     public float wheelScaleRear;// Scale of rear wheels and collision models for types car, trailer, quad, mtruck, bmx and bike
     public float wheelUpgradeClass; // The wheel set this vehicle relates to, the ids are equivalent to the ones defined in carmods.dat
-        
-    public CARSEntry(String[] args, String gameAlias) {
+    
+    public ItemCARS(String[] args, String gameAlias) {
         int i = 0;
         id = Integer.parseInt(args[i++]);
         modName = args[i++];
@@ -88,5 +88,12 @@ public class CARSEntry {
                     break;
             }
         } catch (ArrayIndexOutOfBoundsException ex) { }
+    }
+        
+    @Deprecated
+    public ItemCARS(String[] args, int groupIndex) {
+        this(args, GameConfig.getAlias());
+        this.groupIndex = groupIndex;
+        this.itemType = ItemType.CARS;
     }
 }

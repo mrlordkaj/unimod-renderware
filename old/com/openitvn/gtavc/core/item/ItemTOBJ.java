@@ -17,17 +17,19 @@
 
 package com.openitvn.gtavc.core.item;
 
+import com.openitvn.unicore.plugin.gta.item.ItemType;
+
 /**
  *
  * @author Thinh Pham
  * https://gtamods.com/wiki/TOBJ
  */
-public class TOBJEntry extends OBJSEntry {
+public class ItemTOBJ extends ItemOBJS {
     
     public int timeOn;
     public int timeOff;
     
-    public TOBJEntry(String[] args, int groupId) {
+    public ItemTOBJ(String[] args, int groupId) {
         super(args, groupId);
         switch (args.length) {
             case 8: // type1 (III/VC/SA)

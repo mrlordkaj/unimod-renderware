@@ -17,7 +17,7 @@
 
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.gtavc.core.item.CARSEntry;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 
@@ -31,9 +31,7 @@ public class VehicleTableModel extends AbstractTableModel {
     public static final int COL_NAME = 1;
     public static final int COL_TYPE = 2;
     
-    private final ArrayList<CARSEntry> entries = new ArrayList<>();
-    
-    //<editor-fold defaultstate="collapsed" desc="JTable Model">
+    public final ArrayList<ItemCARS> entries = new ArrayList<>();
     
     @Override
     public String getColumnName(int col) {
@@ -65,7 +63,7 @@ public class VehicleTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        CARSEntry e = entries.get(row);
+        ItemCARS e = entries.get(row);
         switch (col) {
             case COL_INDEX:
                 return e.id;
@@ -76,17 +74,6 @@ public class VehicleTableModel extends AbstractTableModel {
             case COL_TYPE:
                 return entries.get(row).type;
         }
-        
         return null;
-    }
-    
-    //</editor-fold>
-    
-    public void add(CARSEntry entry) {
-        entries.add(entry);
-    }
-    
-    public CARSEntry get(int entryId) {
-        return entries.get(entryId);
     }
 }

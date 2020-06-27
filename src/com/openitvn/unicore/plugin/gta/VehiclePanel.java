@@ -21,7 +21,7 @@ import com.openitvn.format.dff.RwModel;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.plugin.PanelViewer;
-import com.openitvn.unicore.plugin.gta.item.CARSEntry;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.world.IGeometry;
 import com.openitvn.unicore.world.INode;
 import java.util.ArrayList;
@@ -81,7 +81,7 @@ public final class VehiclePanel extends PanelViewer {
                     WorldFactory.unregister(vehicleWorld);
                     // create new world and pre-register libraries
                     int id = tblCar.convertRowIndexToModel(row);
-                    CARSEntry e = vehicleModel.entries.get(id);
+                    ItemCARS e = vehicleModel.entries.get(id);
                     vehicleWorld = new RwModel(e.modName);
                     vehicleWorld.resource.register(vehicleModel.comTexLib);
                     vehicleWorld.resource.register(vehicleModel.comMatLib);
@@ -106,7 +106,7 @@ public final class VehiclePanel extends PanelViewer {
         });
     }
     
-    private void createWheels(CARSEntry car) {
+    private void createWheels(ItemCARS car) {
         ArrayList<INode> wheelNodes = new ArrayList<>();
         switch (GameConfig.getAlias()) {
             case GameConfig.ALIAS_III:

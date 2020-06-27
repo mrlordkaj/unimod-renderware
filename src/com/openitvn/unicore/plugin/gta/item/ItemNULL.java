@@ -15,26 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.openitvn.gtavc.core.item;
+package com.openitvn.unicore.plugin.gta.item;
 
 /**
  *
  * @author Thinh Pham
  */
-public class NULLEntry {
+@Deprecated
+public class ItemNULL {
     
-    public final int groupId;
+    protected int groupIndex;
+    protected ItemType itemType = ItemType.NULL;
     
-    public NULLEntry(int groupId) {
-        this.groupId = groupId;
+    public ItemNULL() {
+        this(0);
+    }
+    
+    public ItemNULL(int groupIndex) {
+        this.groupIndex = groupIndex;
+    }
+    
+    public int getGroupIndex() {
+        return groupIndex;
     }
     
     public ItemType getType() {
-        return ItemType.NULL;
+        return itemType;
     }
     
     @Override
     public String toString() { 
-        return "[Unsupported Type]";
+        return "[Unsupported Item]";
     }
 }

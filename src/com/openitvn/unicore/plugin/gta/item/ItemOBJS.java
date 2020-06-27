@@ -21,13 +21,13 @@ package com.openitvn.unicore.plugin.gta.item;
  * @author Thinh Pham
  * https://gtamods.com/wiki/OBJS
  */
-public class OBJSEntry {
+public class ItemOBJS {
     
     public int modId, meshCount = 1, flags;
     public float dd1, dd2, dd3;
     public String modName, txdName;
     
-    public OBJSEntry(String[] args) throws IllegalArgumentException {
+    public ItemOBJS(String[] args) throws IllegalArgumentException {
         modId = Integer.decode(args[0]);
         modName = args[1];
         txdName = args[2];

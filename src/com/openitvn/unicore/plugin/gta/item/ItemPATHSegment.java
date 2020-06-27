@@ -25,7 +25,7 @@ import java.util.ArrayList;
  *
  * @author Thinh Pham
  */
-public class PATHSegment {
+public class ItemPATHSegment {
     
     public static final int TYPE_PED = 0,
                             TYPE_CAR = 1;
@@ -35,15 +35,15 @@ public class PATHSegment {
     public int modId;       // Associated to existing model index defined in OBJS or TOBJ section
     public String modName;  // Associated to existing object model name defined in OBJS or TOBJ section
     
-    public final ArrayList<PATHNode> nodes = new ArrayList<>();
+    public final ArrayList<ItemPATHNode> nodes = new ArrayList<>();
     
-    public PATHSegment(int groupType, int modId, String modName, BufferedReader br) throws IOException {
+    public ItemPATHSegment(int groupType, int modId, String modName, BufferedReader br) throws IOException {
         this.type = groupType;
         this.modId = modId;
         this.modName = modName;
         for (int i = 0; i < 12; i++) {
             String[] args = ScriptHelper.parseLineByComma(br);
-            PATHNode node = new PATHNode(args);
+            ItemPATHNode node = new ItemPATHNode(args);
             if (node.type != 0)
                 nodes.add(node);
         }

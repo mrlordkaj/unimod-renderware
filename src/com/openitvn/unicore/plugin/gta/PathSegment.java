@@ -26,8 +26,8 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.unicore.plugin.gta.item.PATHSegment;
-import com.openitvn.unicore.plugin.gta.item.PATHNode;
+import com.openitvn.unicore.plugin.gta.item.ItemPATHSegment;
+import com.openitvn.unicore.plugin.gta.item.ItemPATHNode;
 import com.openitvn.unicore.world.IGeometry;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -52,10 +52,10 @@ class PathSegment extends IGeometry {
     private PathNode crossNode; // cached for crossing segment
     private ModelInstance modInst;
     
-    PathSegment(PATHSegment path) {
+    PathSegment(ItemPATHSegment path) {
         super("SEG_"+path.modName);
         // build node instances
-        for (PATHNode node : path.nodes) {
+        for (ItemPATHNode node : path.nodes) {
             nodes.add(new PathNode(this, node));
         }
         // link nodes

@@ -217,6 +217,11 @@ public class ResourceModel extends AbstractTableModel {
     }
     
     @Override
+    public int getColumnCount() {
+        return 3;
+    }
+    
+    @Override
     public String getColumnName(int col) {
         switch (col) {
             case COL_NAME:
@@ -227,12 +232,7 @@ public class ResourceModel extends AbstractTableModel {
         }
         return null;
     }
-
-    @Override
-    public int getColumnCount() {
-        return 3;
-    }
-
+    
     @Override
     public Class getColumnClass(int col) {
         switch (col) {

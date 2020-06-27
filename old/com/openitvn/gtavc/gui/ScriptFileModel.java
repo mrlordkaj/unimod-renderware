@@ -17,10 +17,9 @@
 
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.gtavc.core.item.CARSEntry;
-import com.openitvn.gtavc.core.item.INSTEntry;
-import com.openitvn.gtavc.core.item.OBJSEntry;
-import com.openitvn.gtavc.core.item.NULLEntry;
+import com.openitvn.gtavc.core.item.ItemINST;
+import com.openitvn.gtavc.core.item.ItemOBJS;
+import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.maintain.Logger;
@@ -30,6 +29,7 @@ import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
 import com.openitvn.unicore.plugin.gta.WorldScriptType;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -209,7 +209,7 @@ public class ScriptFileModel extends AbstractTableModel {
     private void parseInternalScript() {
         // for GTA SA only, read extra binary stream inside img file
         try {
-            ArrayList<NULLEntry> items = scriptItemModel.getEntries();
+            ArrayList<ItemNULL> items = scriptItemModel.getEntries();
             ResourceModel res = ResourceModel.getInstance();
             for (WorldScriptEntry group : entries) {
                 if (group.getName().toLowerCase().endsWith(".ipl")) {
@@ -223,7 +223,7 @@ public class ScriptFileModel extends AbstractTableModel {
                             int instCount = es.getInt();
                             es.position(0x4C); // offset of item instances, 0x4C by default
                             for (int i = 0; i < instCount; i++) {
-                                INSTEntry inst = new INSTEntry(es, group.getIndex());
+                                ItemINST inst = new ItemINST(es, group.getIndex());
                                 items.add(inst);
                             }
                         }
@@ -250,21 +250,21 @@ public class ScriptFileModel extends AbstractTableModel {
     private void activeGroup(WorldScriptEntry g) {
         if (g != null && !g.isActive()) {
             ViewportApp app = ViewportApp.getInstance();
-            for (NULLEntry e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
+            for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
                 try {
                     switch (e.getType()) {
                         case OBJS:
                         case TOBJ:
-                            OBJSEntry objs = (OBJSEntry) e;
+                            ItemOBJS objs = (ItemOBJS) e;
                             app.addOBJS(objs);
                             break;
 
                         case CARS:
-                            app.addCARS((CARSEntry)e);
+                            app.addCARS((ItemCARS)e);
                             break;
 
                         case INST:
-                            GWorldMap.getInstance().addINST((INSTEntry)e);
+                            GWorldMap.getInstance().addINST((ItemINST)e);
                             break;
                     }
                 } catch (Exception ex) {
@@ -291,16 +291,16 @@ public class ScriptFileModel extends AbstractTableModel {
     private void deactiveGroup(WorldScriptEntry g) {
         if (g != null && g.isActive()) {
             ViewportApp app = ViewportApp.getInstance();
-            for (NULLEntry e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
+            for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
                 try {
                     switch (e.getType()) {
                         case OBJS:
                         case TOBJ:
-                            app.removeOBJS((OBJSEntry)e);
+                            app.removeOBJS((ItemOBJS)e);
                             break;
 
                         case INST:
-                            GWorldMap.getInstance().removeINST((INSTEntry)e);
+                            GWorldMap.getInstance().removeINST((ItemINST)e);
                             break;
                     }
                 } catch (Exception ex) {

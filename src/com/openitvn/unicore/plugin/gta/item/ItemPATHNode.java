@@ -23,7 +23,7 @@ import com.badlogic.gdx.math.Vector3;
  * @author Thinh Pham
  * https://gtamods.com/wiki/PATH_(IDE_Section)
  */
-public class PATHNode {
+public class ItemPATHNode {
     
     public static final int TYPE_NULL = 0,
                             TYPE_PORT = 1,
@@ -40,7 +40,7 @@ public class PATHNode {
     public final int numLefts;      // Number of lanes left of the node (ignored for ped path nodes)
     public final int numRights;     // Number of lanes right of the node (ignored for ped path nodes)
     
-    public PATHNode(String[] args) {
+    public ItemPATHNode(String[] args) {
         type = Integer.parseInt(args[0]);
         nextId = Short.parseShort(args[1]);
         isCross = Integer.parseInt(args[2]) != 0;

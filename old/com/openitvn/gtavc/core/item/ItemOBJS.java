@@ -17,13 +17,16 @@
 
 package com.openitvn.gtavc.core.item;
 
+import com.openitvn.unicore.plugin.gta.item.ItemType;
+import com.openitvn.unicore.plugin.gta.item.ItemNULL;
+
 /**
  *
  * @author Thinh Pham
  * https://gtamods.com/wiki/OBJS
  */
 
-public class OBJSEntry extends NULLEntry {
+public class ItemOBJS extends ItemNULL {
     
     public static final int FLAG_WETEFFECT =           0b000000000001; //Wet effect (objects appear darker).
     public static final int FLAG_DONOTFADE =           0b000000000010; //Do not fade the object when it is being loaded into or out of view.
@@ -44,8 +47,8 @@ public class OBJSEntry extends NULLEntry {
     public float dd1, dd2, dd3; // draw distance
     public int flags;
     
-    public OBJSEntry(String[] args, int groupId) {
-        super(groupId);
+    public ItemOBJS(String[] args, int groupId) {
+        this.groupIndex = groupId;
         modelId = Integer.parseInt(args[0]);
         modName = args[1];
         txdName = args[2];

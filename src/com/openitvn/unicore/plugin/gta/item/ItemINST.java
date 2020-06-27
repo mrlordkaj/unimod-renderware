@@ -23,7 +23,7 @@ import com.openitvn.unicore.data.DataStream;
  * @author Thinh Pham
  * https://gtamods.com/wiki/INST
  */
-public class INSTEntry {
+public class ItemINST {
     
     public int modId;
     public String modName;
@@ -31,7 +31,7 @@ public class INSTEntry {
 //    public float sclX = 1, sclY = 1, sclZ = 1;
     public int lodId;
     
-    public INSTEntry(String[] args) throws IllegalArgumentException {
+    public ItemINST(String[] args) throws IllegalArgumentException {
         modId = Integer.decode(args[0]);
         modName = args[1];
         switch (args.length) {
@@ -84,7 +84,7 @@ public class INSTEntry {
         }
     }
     
-    public INSTEntry(DataStream ds) {
+    public ItemINST(DataStream ds) {
         posX = ds.getFloat();
         posY = ds.getFloat();
         posZ = ds.getFloat();

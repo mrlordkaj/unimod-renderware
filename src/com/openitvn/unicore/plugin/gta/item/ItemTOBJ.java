@@ -21,12 +21,12 @@ package com.openitvn.unicore.plugin.gta.item;
  * @author Thinh 
  * https://gtamods.com/wiki/TOBJ
  */
-public class TOBJEntry extends OBJSEntry {
+public class ItemTOBJ extends ItemOBJS {
     
     public int timeOn;
     public int timeOff;
 
-    public TOBJEntry(String[] args) throws IllegalArgumentException {
+    public ItemTOBJ(String[] args) throws IllegalArgumentException {
         super(extractOBJS(args));
         int length = args.length;
         timeOff = Integer.parseInt(args[length - 1]);

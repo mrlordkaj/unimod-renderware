@@ -17,9 +17,9 @@
 package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.gtavc.core.item.INSTEntry;
-import com.openitvn.gtavc.core.item.OBJSEntry;
-import com.openitvn.gtavc.core.item.TOBJEntry;
+import com.openitvn.gtavc.core.item.ItemINST;
+import com.openitvn.gtavc.core.item.ItemOBJS;
+import com.openitvn.gtavc.core.item.ItemTOBJ;
 import java.util.ArrayList;
 
 /**
@@ -62,10 +62,10 @@ public class GWorldMap extends GWorld {
         }
     }
     
-    void addOBJS(OBJSEntry objs) throws Exception {
-        if (objs instanceof TOBJEntry) {
+    void addOBJS(ItemOBJS objs) throws Exception {
+        if (objs instanceof ItemTOBJ) {
             int sceneTime = 12;
-            TOBJEntry tobj = (TOBJEntry) objs;
+            ItemTOBJ tobj = (ItemTOBJ) objs;
             if (tobj.timeOn < tobj.timeOff) { // same day
                 if (tobj.timeOn > sceneTime) return;
             } else { // next day
@@ -80,7 +80,7 @@ public class GWorldMap extends GWorld {
         models.put(objs.modelId, mod);
     }
     
-    void removeOBJS(OBJSEntry e) {
+    void removeOBJS(ItemOBJS e) {
         int modId = e.modelId;
         if (models.containsKey(modId)) {
             models.get(modId).dispose();
@@ -88,7 +88,7 @@ public class GWorldMap extends GWorld {
         }
     }
     
-    public void addINST(INSTEntry e) {
+    public void addINST(ItemINST e) {
         int objId = e.modId;
         if (models.containsKey(objId)) {
             GtaModel mod = models.get(objId);
@@ -101,7 +101,7 @@ public class GWorldMap extends GWorld {
         }
     }
     
-    public void removeINST(INSTEntry e) {
+    public void removeINST(ItemINST e) {
         for (GtaInstance inst : norIns) {
             if (inst.define.equals(e)) {
                 norIns.remove(inst);

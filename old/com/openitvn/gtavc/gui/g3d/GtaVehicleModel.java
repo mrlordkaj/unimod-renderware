@@ -19,7 +19,7 @@ package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.engine.renderware.RpGeometry;
-import com.openitvn.gtavc.core.item.CARSEntry;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ public class GtaVehicleModel extends GtaModel {
     private ViewportMode mode;
     private final Vector3 wheelScale;
     
-    public GtaVehicleModel(CARSEntry e, ViewportMode mod) throws IOException {
+    public GtaVehicleModel(ItemCARS e, ViewportMode mod) throws IOException {
         super(e.modName, e.txdName, MeshType.AllMesh);
         this.mode = mod;
         float scale = e.wheelScale;

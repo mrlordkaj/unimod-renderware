@@ -35,9 +35,9 @@ import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.PanelViewer;
-import com.openitvn.unicore.plugin.gta.item.INSTEntry;
-import com.openitvn.unicore.plugin.gta.item.OBJSEntry;
-import com.openitvn.unicore.plugin.gta.item.PATHSegment;
+import com.openitvn.unicore.plugin.gta.item.ItemINST;
+import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
+import com.openitvn.unicore.plugin.gta.item.ItemPATHSegment;
 import com.openitvn.unicore.world.IGeometry;
 import com.openitvn.unicore.world.ILayer;
 import com.openitvn.unicore.world.IMesh;
@@ -72,7 +72,7 @@ public final class WorldPanel extends PanelViewer {
     
     private final HashMap<Integer, String> modelNameMap = new HashMap<>(); // inst find
     private final HashMap<String, ColFile> collisionMap = new HashMap<>(); // inst find
-    private final HashMap<String, PATHSegment> pathMap = new HashMap<>(); // inst find
+    private final HashMap<String, ItemPATHSegment> pathMap = new HashMap<>(); // inst find
     private final HashMap<Integer, Integer> modelLayerMap = new HashMap<>(); // layer find - objs.id, layer.id
     private final WorldScriptModel scriptModel = new WorldScriptModel();
     
@@ -299,7 +299,7 @@ public final class WorldPanel extends PanelViewer {
     private javax.swing.JTable tblMap;
     // End of variables declaration//GEN-END:variables
     
-    private void addOBJS(OBJSEntry objs, GroupRegistry reg) {
+    private void addOBJS(ItemOBJS objs, GroupRegistry reg) {
         ResourceModel res = ResourceModel.getInstance();
         // load textures
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
@@ -370,7 +370,7 @@ public final class WorldPanel extends PanelViewer {
         }
     }
     
-    private void addINST(INode group, INSTEntry inst) {
+    private void addINST(INode group, ItemINST inst) {
         Matrix4 transform = new Matrix4().translate(inst.posX, inst.posY, inst.posZ)
                     .rotateRad(inst.rotX, inst.rotY, inst.rotZ, -2*(float)Math.acos(inst.rotW))
                     /*.scale(inst.sclX, inst.sclY, inst.sclZ)*/;
@@ -423,7 +423,7 @@ public final class WorldPanel extends PanelViewer {
         }
         
         // add paths (only GTA III for now)
-        PATHSegment path = pathMap.get(inst.modName);
+        ItemPATHSegment path = pathMap.get(inst.modName);
         if (path != null) {
             PathSegment seg = new PathSegment(path);
             seg.transform.localMatrix.set(transform);
@@ -464,7 +464,7 @@ public final class WorldPanel extends PanelViewer {
             String[] args;
             while ((args = ScriptHelper.parseLineByComma(br)) != null) {
                 try {
-                    OBJSEntry objs = new OBJSEntry(args);
+                    ItemOBJS objs = new ItemOBJS(args);
                     // cancel special objects
                     switch (GameConfig.getAlias()) {
                         case GameConfig.ALIAS_III:
@@ -508,11 +508,11 @@ public final class WorldPanel extends PanelViewer {
         if (active) {
             String[] args;
             while ((args = ScriptHelper.parseLineByComma(br)) != null) {
-                int segmentType = args[0].equals("car") ? PATHSegment.TYPE_CAR : PATHSegment.TYPE_PED;
+                int segmentType = args[0].equals("car") ? ItemPATHSegment.TYPE_CAR : ItemPATHSegment.TYPE_PED;
                 int modId = Integer.parseInt(args[1]);
                 String modName = args[2];
-                if (segmentType == PATHSegment.TYPE_CAR) {
-                    PATHSegment entry = new PATHSegment(segmentType, modId, modName, br);
+                if (segmentType == ItemPATHSegment.TYPE_CAR) {
+                    ItemPATHSegment entry = new ItemPATHSegment(segmentType, modId, modName, br);
                     pathMap.put(modName, entry);
                 } else {
                     // skip ped
@@ -534,7 +534,7 @@ public final class WorldPanel extends PanelViewer {
             INode group = new INode(groupName);
             String[] args;
             while ((args = ScriptHelper.parseLineByComma(br)) != null) {
-                addINST(group, new INSTEntry(args));
+                addINST(group, new ItemINST(args));
             }
             pendingNodes.add(group);
         } else {
@@ -553,7 +553,7 @@ public final class WorldPanel extends PanelViewer {
             int instCount = ds.getInt();
             ds.position(0x4c); // offset of INST, 0x4C by default
             for (int j = 0; j < instCount; j++) {
-                addINST(group, new INSTEntry(ds));
+                addINST(group, new ItemINST(ds));
             }
             pendingNodes.add(group);
         } else {

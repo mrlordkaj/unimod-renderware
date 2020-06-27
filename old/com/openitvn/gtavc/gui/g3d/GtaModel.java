@@ -43,7 +43,7 @@ import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.engine.renderware.struct.RpColor;
-import com.openitvn.gtavc.core.item.OBJSEntry;
+import com.openitvn.gtavc.core.item.ItemOBJS;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
@@ -65,7 +65,7 @@ public class GtaModel {
     RpClump rClump;
     Model model;
     
-    public GtaModel(OBJSEntry objs) {
+    public GtaModel(ItemOBJS objs) {
         this(objs.modName, objs.txdName, MeshType.OneMesh);
         drawDistance = objs.dd1;
     }

@@ -29,12 +29,12 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
-import com.openitvn.gtavc.core.item.CARSEntry;
-import com.openitvn.gtavc.core.item.INSTEntry;
-import com.openitvn.gtavc.core.item.OBJSEntry;
-import com.openitvn.gtavc.core.item.NULLEntry;
+import com.openitvn.gtavc.core.item.ItemINST;
+import com.openitvn.gtavc.core.item.ItemOBJS;
+import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.VehicleTableModel;
 import com.openitvn.unicore.plugin.gta.GameConfig;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import java.awt.Canvas;
 import java.io.IOException;
 import java.util.HashMap;
@@ -216,7 +216,7 @@ public class ViewportApp implements ApplicationListener {
         modInst = new ModelInstance(gtaModel.getModel());
     }
     
-    public void setVehicle(CARSEntry e, ViewportMode viewMode) throws IOException {
+    public void setVehicle(ItemCARS e, ViewportMode viewMode) throws IOException {
         if (gtaWheelModel == null)
             gtaWheelModel = new GtaWheelModel();
         if (gtaVehicleModel == null) {
@@ -266,7 +266,7 @@ public class ViewportApp implements ApplicationListener {
         }
     }
     
-    public void addOBJS(OBJSEntry objs) throws Exception {
+    public void addOBJS(ItemOBJS objs) throws Exception {
         int modId = objs.modelId;
         if (GameConfig.getWheelIds().contains(modId)) {
             //TODO: just a temporary method, need a better solution to determine wheel entries
@@ -276,18 +276,18 @@ public class ViewportApp implements ApplicationListener {
         }
     }
     
-    public void removeOBJS(OBJSEntry e) {
+    public void removeOBJS(ItemOBJS e) {
         mapView.removeOBJS(e);
     }
     
-    public void addCARS(CARSEntry e) {
-        vehicleModel.add(e);
+    public void addCARS(ItemCARS e) {
+        vehicleModel.entries.add(e);
     }
     
-    public void select(NULLEntry entry) {
+    public void select(ItemNULL entry) {
         switch (entry.getType()) {
             case INST:
-                INSTEntry inst = (INSTEntry)entry;
+                ItemINST inst = (ItemINST)entry;
                 mapView.moveCameraTo(inst.pos);
                 break;
         }

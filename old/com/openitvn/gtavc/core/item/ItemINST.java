@@ -17,6 +17,8 @@
 
 package com.openitvn.gtavc.core.item;
 
+import com.openitvn.unicore.plugin.gta.item.ItemType;
+import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.data.DataStream;
@@ -36,7 +38,7 @@ Id, ModelName, Interior, PosX, PosY, PosZ, ScaleX, ScaleY, ScaleZ, RotX, RotY, R
 Id, ModelName, Interior, PosX, PosY, PosZ, RotX, RotY, RotZ, RotW, LOD
 end
 */
-public class INSTEntry extends NULLEntry {
+public class ItemINST extends ItemNULL {
     
     public int modId;
     public String modelName;
@@ -46,8 +48,8 @@ public class INSTEntry extends NULLEntry {
     public Quaternion rot = new Quaternion();
     public int lodId;
     
-    public INSTEntry(String[] args, int groupId) {
-        super(groupId);
+    public ItemINST(String[] args, int groupId) {
+        this.groupIndex = groupId;
         modId = Integer.parseInt(args[0]);
         modelName = args[1];
         switch (args.length) {
@@ -84,8 +86,8 @@ public class INSTEntry extends NULLEntry {
     }
     
     // binary format, only SA
-    public INSTEntry(DataStream bs, int groupId) {
-        super(groupId);
+    public ItemINST(DataStream bs, int groupId) {
+        this.groupIndex = groupId;
         pos = new Vector3( bs.getFloat(), bs.getFloat(), bs.getFloat() );
         scl = new Vector3 ( 1, 1, 1 );
         rot.x = bs.getFloat();

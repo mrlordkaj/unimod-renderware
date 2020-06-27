@@ -20,7 +20,7 @@ import com.openitvn.format.dff.RwModel;
 import com.openitvn.format.txd.RwTexturePack;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.FileStream;
-import com.openitvn.unicore.plugin.gta.item.CARSEntry;
+import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.world.resource.IMaterial;
 import com.openitvn.unicore.world.resource.IModel;
 import com.openitvn.unicore.world.resource.ITexture;
@@ -36,12 +36,12 @@ import javax.swing.table.AbstractTableModel;
  * @author Thinh Pham
  */
 public class VehicleModel extends AbstractTableModel {
-    private static final String[] COLUMNS = {"", "Name", "Type"};
+    
     static final int COL_INDEX = 0;
     static final int COL_NAME = 1;
     static final int COL_TYPE = 2;
     
-    ArrayList<CARSEntry> entries = new ArrayList<>();
+    ArrayList<ItemCARS> entries = new ArrayList<>();
     ArrayList<ITexture> comTexLib;
     ArrayList<IMaterial> comMatLib;
     ArrayList<IModel> comModLib;
@@ -85,7 +85,7 @@ public class VehicleModel extends AbstractTableModel {
                     case "cars":
                         while ((args = ScriptHelper.parseLineByComma(br)) != null) {
                             if (args.length >= 10)
-                                entries.add(new CARSEntry(args, alias));
+                                entries.add(new ItemCARS(args, alias));
                         }
                         break;
                 }
@@ -96,18 +96,20 @@ public class VehicleModel extends AbstractTableModel {
     
     //<editor-fold defaultstate="collapsed" desc="JTable Model">
     @Override
-    public String getColumnName(int col) {
-        return COLUMNS[col];
-    }
-
-    @Override
-    public int getRowCount() {
-        return entries.size();
-    }
-
-    @Override
     public int getColumnCount() {
-        return COLUMNS.length;
+        return 3;
+    }
+    
+    @Override
+    public String getColumnName(int col) {
+        switch (col) {
+            case COL_NAME:
+                return "Name";
+                
+            case COL_TYPE:
+                return "Type";
+        }
+        return null;
     }
     
     @Override
@@ -124,8 +126,13 @@ public class VehicleModel extends AbstractTableModel {
     }
 
     @Override
+    public int getRowCount() {
+        return entries.size();
+    }
+    
+    @Override
     public Object getValueAt(int row, int col) {
-        CARSEntry e = entries.get(row);
+        ItemCARS e = entries.get(row);
         switch (col) {
             case COL_INDEX:
                 return e.id;

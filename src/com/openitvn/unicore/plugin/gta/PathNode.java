@@ -18,7 +18,7 @@ package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.unicore.plugin.gta.item.PATHNode;
+import com.openitvn.unicore.plugin.gta.item.ItemPATHNode;
 import java.util.ArrayList;
 
 /**
@@ -28,7 +28,7 @@ import java.util.ArrayList;
 class PathNode {
     
     PathSegment segment; // parent
-    final PATHNode data; // shared data layer
+    final ItemPATHNode data; // shared data layer
     final Vector3 position = new Vector3(); // absolute start
     final ArrayList<PathNode> links = new ArrayList();
     final ArrayList<PathLane> leftLanes = new ArrayList();
@@ -38,7 +38,7 @@ class PathNode {
     short /*index, */nextIndex = -1;
     ArrayList<PathNode> tmpLinks;
     
-    PathNode(PathSegment segment, PATHNode data) {
+    PathNode(PathSegment segment, ItemPATHNode data) {
         this.segment = segment;
         this.data = data;
         nextIndex = data.nextId;
@@ -53,7 +53,7 @@ class PathNode {
     }
     
     boolean computeLanes(int numLefts, int numRights) {
-        if (data.type == PATHNode.TYPE_PORT) { // external only
+        if (data.type == ItemPATHNode.TYPE_PORT) { // external only
             PathNode next = links.get(0);
             Vector3 head = next.position.cpy().sub(position).nor();
             Vector3 hand = head.cpy().crs(Vector3.Y);
