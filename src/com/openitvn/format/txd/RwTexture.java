@@ -20,9 +20,6 @@ import com.openitvn.unicore.world.resource.ICubeMap;
 import com.openitvn.unicore.world.resource.IPixelFormat;
 import com.openitvn.unicore.world.resource.ITexture;
 import com.openitvn.engine.renderware.RpTextureNative;
-import com.openitvn.unicore.world.resource.BufferedRaster;
-import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 /**
@@ -82,7 +79,7 @@ public class RwTexture extends ITexture {
     }
     
     @Override
-    public byte[] getImageBuffer(int faceId, int mipLevel) throws UnsupportedOperationException {
+    public byte[] getImageBuffer(int faceId, int mipLevel) {
         return imageBuffers[mipLevel];
     }
     
@@ -129,14 +126,5 @@ public class RwTexture extends ITexture {
     @Override
     public boolean isMipMapUsed() {
         return true;
-    }
-    
-    @Deprecated
-    public BufferedImage toBufferedImage(int mip) {
-        Dimension imgSize = ITexture.computeMipMapSize(texture.width, texture.height, mip);
-        BufferedRaster img = new BufferedRaster(imgSize.width, imgSize.height);
-        RwTexture tex = new RwTexture(texture.textureName, texture);
-        tex.decodeImage(img, 0, 0);
-        return img;
     }
 }

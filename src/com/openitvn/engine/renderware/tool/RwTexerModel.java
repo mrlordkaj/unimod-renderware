@@ -15,13 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.openitvn.gtavc.gui;
+package com.openitvn.engine.renderware.tool;
 
-import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.txd.RwTexture;
-import com.openitvn.unicore.data.DataStream;
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 
@@ -29,32 +27,25 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Thinh Pham
  */
-public class TextureLibraryTableModel extends AbstractTableModel {
-    private final String[] COLUMNS = {"ID", "Name"};
-    public static final int COL_INDEX = 0;
-    public static final int COL_NAME = 1;
+public class RwTexerModel extends AbstractTableModel {
+    final String[] COLUMNS = { "Name", "Mask", "A" };
+    static final int COL_NAME = 0;
+    static final int COL_MASK = 1;
+    static final int COL_ALPHA = 2;
     
-    private final ArrayList<RwTexture> entries = new ArrayList<>();
+    final ArrayList<RwTexture> entries = new ArrayList<>();
     
-    public void bind(DataStream ds) {
-        RpTextureDictionary txd = RpSection.loadRoot(ds, RpTextureDictionary.class);
-        bind(txd);
-    }
-    
-    public void bind(RpTextureDictionary texDic) {
+    void bindTexDic(RpTextureDictionary texDic) {
         entries.clear();
-        for (RpTextureNative texData : texDic.textures) {
-            RwTexture tex = new RwTexture(texData.textureName, texData);
-            entries.add(tex);
+        if (texDic != null) {
+            for (RpTextureNative texData : texDic.textures) {
+                RwTexture tex = new RwTexture(texData.textureName, texData);
+                entries.add(tex);
+            }
         }
         fireTableDataChanged();
     }
     
-    public void unbind() {
-        entries.clear();
-        fireTableDataChanged();
-    }
-
     @Override
     public int getRowCount() {
         return entries.size();
@@ -73,33 +64,25 @@ public class TextureLibraryTableModel extends AbstractTableModel {
     @Override
     public Class getColumnClass(int col) {
         switch (col) {
-            case COL_INDEX:
-                return Integer.class;
-
-            case COL_NAME:
-                return String.class;
+            case COL_ALPHA:
+                return Boolean.class;
         }
         return String.class;
     }
 
     @Override
     public Object getValueAt(int row, int col) {
+        RpTextureNative texData = entries.get(row).getTextureData();
         switch (col) {
-            case COL_INDEX:
-                return row;
-                
             case COL_NAME:
-                return entries.get(row).getTextureData().textureName;
+                return texData.textureName;
+                
+            case COL_MASK:
+                return texData.maskName;
+                
+            case COL_ALPHA:
+                return texData.hasAlpha;
         }
-        
         return null;
-    }
-    
-    public RwTexture getEntry(int index) {
-        return entries.get(index);
-    }
-    
-    public int getEntryCount() {
-        return entries.size();
     }
 }

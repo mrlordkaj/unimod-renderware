@@ -45,8 +45,9 @@ public class RpMaterial extends RpSection {
         color = new RpColor(bb);
         int unused = bb.getInt();
         textured = bb.getInt() != 0;
-        if (textured)
+        if (textured) {
             texture = getFirstChild(RpTexture.class);
+        }
         if (version > 0x30400) {
             ambient = bb.getFloat();
             specular = bb.getFloat();

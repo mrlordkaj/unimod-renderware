@@ -16,6 +16,7 @@
  */
 package com.openitvn.gtavc.gui;
 
+import com.openitvn.engine.renderware.tool.RwTexer;
 import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.gtavc.core.GtaAssetModel;
 import com.openitvn.engine.renderware.RpTextureDictionary;
@@ -190,9 +191,9 @@ public class Main extends javax.swing.JFrame {
     //<editor-fold defaultstate="collapsed" desc="RenderWare Tools">
     
     private void openRwDump() {
-        int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
-        if (selId >= 0) {
-            IArchiveEntry e = assetModel.getEntry(selId);
+        int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+        if (id >= 0) {
+            IArchiveEntry e = assetModel.getEntry(id);
             String type = e.getExt().toLowerCase();
             if (type.equals("txd") || type.equals("dff")) {
                 RwDumper dlg = RwDumper.getInstance();
@@ -203,22 +204,22 @@ public class Main extends javax.swing.JFrame {
     }
     
     private void openRwTexture() {
-        int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
-        if (selId >= 0) {
-            IArchiveEntry e = assetModel.getEntry(selId);
+        int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+        if (id >= 0) {
+            IArchiveEntry e = assetModel.getEntry(id);
             if (e.getExt().equalsIgnoreCase("txd")) {
-                TextureDialog dlg = TextureDialog.getInstance();
+                RwTexer dlg = RwTexer.getInstance();
                 dlg.setVisible(true);
-                dlg.openFile(e);
+                dlg.openEntry(e);
             }
         }
     }
     
     private void openRwModel() {
         try {
-            int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
-            if (selId >= 0) {
-                IArchiveEntry e = assetModel.getEntry(selId);
+            int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+            if (id >= 0) {
+                IArchiveEntry e = assetModel.getEntry(id);
                 if (e.getExt().equalsIgnoreCase("dff")) {
                     String fileName = e.getName();
                     currentModelFile = fileName;
@@ -228,8 +229,9 @@ public class Main extends javax.swing.JFrame {
                     RpTextureDictionary texDic = GtaTextureManager.getTexDic(txdName);
                     if (texDic != null) {
                         currentTexDicFile = txdName + ".txd";
-                        if (mnuTexture.isSelected())
-                            TextureDialog.getInstance().openFile(currentTexDicFile, texDic);
+                        if (mnuTexture.isSelected()) {
+                            RwTexer.getInstance().loadTexDic(currentTexDicFile, texDic);
+                        }
                     } else {
                         currentTexDicFile = null;
                     }
@@ -248,8 +250,9 @@ public class Main extends javax.swing.JFrame {
                 case OBJS:
                 case TOBJ:
                     OBJSEntry objs = (OBJSEntry)def;
-                    if (modName.equals(objs.modName))
+                    if (modName.equals(objs.modName)) {
                         return objs.txdName;
+                    }
             }
         }
         return modName;
@@ -817,7 +820,7 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_cboViewModeItemStateChanged
 
     private void mnuTextureItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_mnuTextureItemStateChanged
-        TextureDialog dialog = TextureDialog.getInstance();
+        RwTexer dialog = RwTexer.getInstance();
         if (evt.getStateChange() == ItemEvent.SELECTED) {
             dialog.setVisible(true);
             dialog.addWindowListener(new WindowAdapter() {

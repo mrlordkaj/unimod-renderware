@@ -190,9 +190,9 @@ public class RwDumper extends javax.swing.JDialog {
     private void mnuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuOpenActionPerformed
         JFileChooser fc = new JFileChooser(currentFile);
         fc.setAcceptAllFileFilterUsed(false);
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("RenderWare Supported Formats (dff, txd, dat)","dff","txd"));
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("RenderWare Model Files (dff)","dff"));
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("RenderWare Texture Archives (txd)","txd"));
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("Renderware Formats (dff, txd)","dff","txd"));
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("Renderware Models (dff)","dff"));
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("Renderware Textures (txd)","txd"));
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             currentFile = fc.getSelectedFile();
             String fileName = currentFile.toString();

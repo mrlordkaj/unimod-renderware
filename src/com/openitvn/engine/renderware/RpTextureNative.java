@@ -225,30 +225,4 @@ public class RpTextureNative extends RpSection {
                 return GL20.GL_CLAMP_TO_EDGE;
         }
     }
-    
-    @Deprecated
-    public String getCompressionName() {
-        switch (compression) {
-            case COMPRESSION_NONE:
-                return "None";
-                
-            case COMPRESSION_DXT1:
-                return "DXT1";
-            
-            case COMPRESSION_DXT3:
-                return "DXT3";
-                
-            case COMPRESSION_DXT5:
-                return "DXT5";
-                
-            case COMPRESSION_PAL4:
-                return "PAL4";
-                
-            case COMPRESSION_PAL8:
-                return "PAL8";
-                
-            default:
-                return "Unknow";
-        }
-    }
 }
