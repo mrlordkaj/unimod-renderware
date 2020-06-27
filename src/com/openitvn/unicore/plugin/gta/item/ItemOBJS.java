@@ -21,7 +21,7 @@ package com.openitvn.unicore.plugin.gta.item;
  * @author Thinh Pham
  * https://gtamods.com/wiki/OBJS
  */
-public class ItemOBJS {
+public class ItemOBJS extends ItemNULL {
     
     public int modId, meshCount = 1, flags;
     public float dd1, dd2, dd3;
@@ -65,5 +65,17 @@ public class ItemOBJS {
             default:
                 throw new IllegalArgumentException();
         }
+    }
+    
+    @Deprecated
+    public ItemOBJS(String[] args, int groupId) {
+        this(args);
+        this.groupIndex = groupId;
+        this.itemType = ItemType.OBJS;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("[%1$04d] %2$s", modId, modName);
     }
 }

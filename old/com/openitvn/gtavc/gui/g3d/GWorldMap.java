@@ -17,9 +17,9 @@
 package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.gtavc.core.item.ItemOBJS;
-import com.openitvn.gtavc.core.item.ItemTOBJ;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
+import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
+import com.openitvn.unicore.plugin.gta.item.ItemTOBJ;
 import java.util.ArrayList;
 
 /**
@@ -77,14 +77,13 @@ public class GWorldMap extends GWorld {
 
         // add models
         GtaModel mod = new GtaModel(objs);
-        models.put(objs.modelId, mod);
+        models.put(objs.modId, mod);
     }
     
     void removeOBJS(ItemOBJS e) {
-        int modId = e.modelId;
-        if (models.containsKey(modId)) {
-            models.get(modId).dispose();
-            models.remove(modId);
+        if (models.containsKey(e.modId)) {
+            models.get(e.modId).dispose();
+            models.remove(e.modId);
         }
     }
     

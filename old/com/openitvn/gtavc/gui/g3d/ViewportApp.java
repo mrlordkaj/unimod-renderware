@@ -30,12 +30,12 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.gtavc.core.item.ItemOBJS;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.VehicleTableModel;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
+import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.awt.Canvas;
 import java.io.IOException;
 import java.util.HashMap;
@@ -268,7 +268,7 @@ public class ViewportApp implements ApplicationListener {
     }
     
     public void addOBJS(ItemOBJS objs) throws Exception {
-        int modId = objs.modelId;
+        int modId = objs.modId;
         if (GameConfig.getWheelIds().contains(modId)) {
             //TODO: just a temporary method, need a better solution to determine wheel entries
             wheelLib.put(modId, objs.modName);

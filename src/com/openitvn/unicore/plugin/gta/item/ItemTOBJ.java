@@ -39,4 +39,11 @@ public class ItemTOBJ extends ItemOBJS {
         System.arraycopy(args, 0, rs, 0, length);
         return rs;
     }
+    
+    @Deprecated
+    public ItemTOBJ(String[] args, int groupId) {
+        this(args);
+        this.groupIndex = groupId;
+        this.itemType = ItemType.TOBJ;
+    }
 }

@@ -17,7 +17,6 @@
 
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.gtavc.core.item.ItemOBJS;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
@@ -30,6 +29,7 @@ import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
 import com.openitvn.unicore.plugin.gta.WorldScriptType;
 import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
+import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
