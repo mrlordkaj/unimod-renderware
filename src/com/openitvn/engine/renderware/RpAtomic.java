@@ -39,7 +39,7 @@ public class RpAtomic extends RpSection {
         // parse struct
         ByteBuffer bb = getStruct();
         frameIndex = bb.getInt();
-        geometryIndex = version < 0x30400 ? 0 : bb.getInt(); // see https://gtamods.com/wiki/RpClump
+        geometryIndex = (version < 0x30400) ? 0 : bb.getInt(); // see https://gtamods.com/wiki/RpClump
         int flags = bb.getInt();
         int unused = bb.getInt();
     }

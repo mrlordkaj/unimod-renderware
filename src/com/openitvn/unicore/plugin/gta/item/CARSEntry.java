@@ -48,20 +48,6 @@ public class CARSEntry {
     public float wheelUpgradeClass; // The wheel set this vehicle relates to, the ids are equivalent to the ones defined in carmods.dat
         
     public CARSEntry(String[] args, String gameAlias) {
-//        switch (gameAlias) {
-//            case GameConfig.ALIAS_III:
-//                parseIII(args);
-//                break;
-//                
-//            case GameConfig.ALIAS_VC:
-//                parseVC(args);
-//                break;
-//                
-//            case GameConfig.ALIAS_SA:
-//                parseSA(args);
-//                break;
-//        }
-        
         int i = 0;
         id = Integer.parseInt(args[i++]);
         modName = args[i++];
@@ -101,88 +87,6 @@ public class CARSEntry {
                     }
                     break;
             }
-        } catch (java.lang.ArrayIndexOutOfBoundsException ex) { }
+        } catch (ArrayIndexOutOfBoundsException ex) { }
     }
-    
-//    private void parseIII(String[] args) {
-//        id = Integer.parseInt(args[0]);
-//        modName = args[1];
-//        txdName = args[2];
-//        type = args[3];
-//        handlingId = args[4];
-//        gameName = args[5];
-//        clazz = args[6];
-//        frq = Integer.parseInt(args[7]);
-//        lvl = Integer.parseInt(args[8]);
-//        compRules = Integer.parseInt(args[9], 16);
-//        switch (type) {
-//            case "car":
-//                wheelModelId = Integer.parseInt(args[10]);
-//                wheelScale = Float.parseFloat(args[11]);
-//                break;
-//                
-//            case "plane":
-//                lodModel = Integer.parseInt(args[10]);
-//        }
-//    }
-//    
-//    private void parseVC(String[] args) {
-//        id = Integer.parseInt(args[0]);
-//        modName = args[1];
-//        txdName = args[2];
-//        type = args[3];
-//        handlingId = args[4];
-//        gameName = args[5];
-//        anims = args[6];
-//        clazz = args[7];
-//        frq = Integer.parseInt(args[8]);
-//        lvl = Integer.parseInt(args[9]);
-//        compRules = Integer.parseInt(args[10], 16);
-//        switch (type) {
-//            case "car":
-//                wheelModelId = Integer.parseInt(args[11]);
-//                wheelScale = Float.parseFloat(args[12]);
-//                break;
-//                
-//            case "bike":
-//                steeringAngle = Integer.parseInt(args[11]);
-//                wheelScale = Float.parseFloat(args[12]);
-//                break;
-//                
-//            case "plane":
-//                lodModel = Integer.parseInt(args[11]);
-//                break;
-//        }
-//    }
-//    
-//    private void parseSA(String[] args) {
-//        id = Integer.parseInt(args[0]);
-//        modName = args[1];
-//        txdName = args[2];
-//        type = args[3];
-//        handlingId = args[4];
-//        gameName = args[5];
-//        anims = args[6];
-//        clazz = args[7];
-//        frq = Integer.parseInt(args[8]);
-//        lvl = Integer.parseInt(args[9]);
-//        compRules = Integer.parseInt(args[10], 16);
-//        try {
-//            switch (type) {
-//                case "car":
-//                    wheelModelId = Integer.parseInt(args[11]);
-//                    wheelScale = Float.parseFloat(args[12]);
-//                    wheelScaleRear = Float.parseFloat(args[13]);
-//                    wheelUpgradeClass = Float.parseFloat(args[14]);
-//                    break;
-//
-//                case "plane":
-//                    lodModel = Integer.parseInt(args[11]);
-//                    break;
-//            }
-//        } catch (java.lang.ArrayIndexOutOfBoundsException ex) {
-//            System.out.println(modName);
-//        }
-//        
-//    }
 }

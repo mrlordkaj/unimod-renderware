@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Thinh Pham <mrlordkaj@gmail.com>
+ * Copyright (C) 2016 Thinh Pham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ package com.openitvn.gtavc.gui.g3d;
 
 /**
  *
- * @author thinh
+ * @author Thinh Pham
  */
 public enum ViewportMode {
     

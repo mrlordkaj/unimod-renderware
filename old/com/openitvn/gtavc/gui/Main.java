@@ -16,7 +16,7 @@
  */
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.control.UCFileChooser;
+import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.gtavc.core.GtaAssetModel;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.format.img.RwArchiveEntry;
@@ -28,22 +28,17 @@ import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.maintain.Logger;
-import com.openitvn.maintain.StateViewer;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 import javax.swing.RowFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -57,10 +52,7 @@ public class Main extends javax.swing.JFrame {
     private final GtaAssetModel assetModel = GtaAssetModel.getInstance();
     private final ViewportApp gdxApp = ViewportApp.getInstance();
     private String currentModelFile, currentTexDicFile;
-    private File currentFile; //for FileChooser
     
-    private StateViewer memView;
-
     private static Main instance;
     public static Main getInstance() {
         if (instance == null)
@@ -70,8 +62,6 @@ public class Main extends javax.swing.JFrame {
 
     private Main() {
         initComponents();
-        
-        progressBar.setVisible(false);
         recallWindowState();
         initViewpot();
         initAssetTable();
@@ -79,12 +69,11 @@ public class Main extends javax.swing.JFrame {
         initItemTable();
         
         //active default item groups
-        for (String ide : GameConfig.getDependencies())
+        for (String ide : GameConfig.getDependencies()) {
             scriptGroupModel.activeIPL(ide);
+        }
         
         initVehicleTable();
-        
-        initMemoryViewer();
     }
 
     //<editor-fold defaultstate="collapsed" desc="Initialize and Dispose">
@@ -105,13 +94,13 @@ public class Main extends javax.swing.JFrame {
 
     private void initAssetTable() {
         //setup the table
-        TableColumnModel tcm = tblResource.getColumnModel();
-        tcm.getColumn(GtaAssetModel.COL_INDEX).setMinWidth(40);
-        tcm.getColumn(GtaAssetModel.COL_INDEX).setMaxWidth(40);
-        tcm.getColumn(GtaAssetModel.COL_TYPE).setMinWidth(40);
-        tcm.getColumn(GtaAssetModel.COL_TYPE).setMaxWidth(40);
-        tcm.getColumn(GtaAssetModel.COL_SIZE).setMinWidth(60);
-        tcm.getColumn(GtaAssetModel.COL_SIZE).setMaxWidth(60);
+        TableColumnModel cm = tblResource.getColumnModel();
+        cm.getColumn(GtaAssetModel.COL_INDEX).setMinWidth(40);
+        cm.getColumn(GtaAssetModel.COL_INDEX).setMaxWidth(40);
+        cm.getColumn(GtaAssetModel.COL_TYPE).setMinWidth(40);
+        cm.getColumn(GtaAssetModel.COL_TYPE).setMaxWidth(40);
+        cm.getColumn(GtaAssetModel.COL_SIZE).setMinWidth(60);
+        cm.getColumn(GtaAssetModel.COL_SIZE).setMaxWidth(60);
         // bind data
         for (String img : GameConfig.getMainArchives()) {
             Logger.printNormal("Loading archive: " + img);
@@ -121,13 +110,13 @@ public class Main extends javax.swing.JFrame {
 
     private void initItemGroupTable() {
         //setup the table
-        TableColumnModel tcm = tblDefinitionGroup.getColumnModel();
-        tcm.getColumn(ScriptFileModel.COL_ACTIVE).setMinWidth(20);
-        tcm.getColumn(ScriptFileModel.COL_ACTIVE).setMaxWidth(20);
-        tcm.getColumn(ScriptFileModel.COL_INDEX).setMinWidth(30);
-        tcm.getColumn(ScriptFileModel.COL_INDEX).setMaxWidth(30);
-        tcm.getColumn(ScriptFileModel.COL_TYPE).setMinWidth(40);
-        tcm.getColumn(ScriptFileModel.COL_TYPE).setMaxWidth(40);
+        TableColumnModel cm = tblDefinitionGroup.getColumnModel();
+        cm.getColumn(ScriptFileModel.COL_ACTIVE).setMinWidth(20);
+        cm.getColumn(ScriptFileModel.COL_ACTIVE).setMaxWidth(20);
+        cm.getColumn(ScriptFileModel.COL_INDEX).setMinWidth(30);
+        cm.getColumn(ScriptFileModel.COL_INDEX).setMaxWidth(30);
+        cm.getColumn(ScriptFileModel.COL_TYPE).setMinWidth(40);
+        cm.getColumn(ScriptFileModel.COL_TYPE).setMaxWidth(40);
         //bind data
         try {
             scriptGroupModel.reload();
@@ -148,11 +137,11 @@ public class Main extends javax.swing.JFrame {
     }
 
     private void initItemTable() {
-        TableColumnModel tcm = tblDefinitionItem.getColumnModel();
-        tcm.getColumn(ScriptItemModel.COL_TYPE).setMinWidth(40);
-        tcm.getColumn(ScriptItemModel.COL_TYPE).setMaxWidth(40);
-        tcm.getColumn(ScriptItemModel.COL_FILE).setMinWidth(30);
-        tcm.getColumn(ScriptItemModel.COL_FILE).setMaxWidth(30);
+        TableColumnModel cm = tblDefinitionItem.getColumnModel();
+        cm.getColumn(ScriptItemModel.COL_TYPE).setMinWidth(40);
+        cm.getColumn(ScriptItemModel.COL_TYPE).setMaxWidth(40);
+        cm.getColumn(ScriptItemModel.COL_FILE).setMinWidth(30);
+        cm.getColumn(ScriptItemModel.COL_FILE).setMaxWidth(30);
         refineItemTable();
     }
 
@@ -161,10 +150,10 @@ public class Main extends javax.swing.JFrame {
 
         //rebuild regex of selected definition file
         String filterByFile = "(^-1$)";
-        int viewRow = tblDefinitionGroup.getSelectedRow();
-        if (viewRow >= 0) {
-            int modelRow = tblDefinitionGroup.convertRowIndexToModel(viewRow);
-            int fileId = scriptGroupModel.getEntries().get(modelRow).index;
+        int row = tblDefinitionGroup.getSelectedRow();
+        if (row >= 0) {
+            row = tblDefinitionGroup.convertRowIndexToModel(row);
+            int fileId = scriptGroupModel.getEntries().get(row).getIndex();
             filterByFile = "(^" + fileId + "$)";
         }
         filters.add(RowFilter.regexFilter(filterByFile, ScriptItemModel.COL_FILE));
@@ -178,30 +167,22 @@ public class Main extends javax.swing.JFrame {
     
     private void initVehicleTable() {
         tblVehicle.setModel(ViewportApp.getInstance().vehicleModel);
-        TableColumnModel tcm = tblVehicle.getColumnModel();
-        tcm.getColumn(VehicleTableModel.COL_INDEX).setMinWidth(40);
-        tcm.getColumn(VehicleTableModel.COL_INDEX).setMaxWidth(40);
-        tcm.getColumn(VehicleTableModel.COL_TYPE).setMinWidth(50);
-        tcm.getColumn(VehicleTableModel.COL_TYPE).setMaxWidth(50);
+        TableColumnModel cm = tblVehicle.getColumnModel();
+        cm.getColumn(VehicleTableModel.COL_INDEX).setMinWidth(40);
+        cm.getColumn(VehicleTableModel.COL_INDEX).setMaxWidth(40);
+        cm.getColumn(VehicleTableModel.COL_TYPE).setMinWidth(50);
+        cm.getColumn(VehicleTableModel.COL_TYPE).setMaxWidth(50);
     }
 
-    private void initMemoryViewer() {
-        memView = new StateViewer();
-        memView.setMemoryViewer(lblMem, null, null);
-        memView.start();
-    }
-    
     public int getDividerLocation() {
         return splMain.getDividerLocation();
     }
 
     @Override
     public void dispose() {
-        memView.stop();
         MainState.getInstance().saveWindowState(this);
         gdxApp.dispose();
         super.dispose();
-//        System.exit(0);
     }
 
     //</editor-fold>
@@ -212,17 +193,13 @@ public class Main extends javax.swing.JFrame {
         int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (selId >= 0) {
             RwArchiveEntry e = assetModel.getEntry(selId);
-            String type = e.getType();
-            if (type.equals("TXD") || type.equals("DFF")) {
-                DumperDialog dlg = DumperDialog.getInstance();
+            String type = e.getExt().toLowerCase();
+            if (type.equals("txd") || type.equals("dff")) {
+                RwDumper dlg = RwDumper.getInstance();
                 dlg.setVisible(true);
-                dlg.openFile(e.getName(), e.getData());
+                dlg.openEntry(e);
             }
         }
-    }
-    
-    public void setRwTextureVisible(boolean isVisible) {
-        btnRwTexture.setSelected(isVisible);
     }
     
     private void openRwTexture() {
@@ -230,7 +207,7 @@ public class Main extends javax.swing.JFrame {
             int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
             if (selId >= 0) {
                 RwArchiveEntry e = assetModel.getEntry(selId);
-                if (e.getType().equals("TXD")) {
+                if (e.getExt().equalsIgnoreCase("txd")) {
                     TextureDialog dlg = TextureDialog.getInstance();
                     dlg.setVisible(true);
                     dlg.openFile(e);
@@ -246,7 +223,7 @@ public class Main extends javax.swing.JFrame {
             int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
             if (selId >= 0) {
                 RwArchiveEntry e = assetModel.getEntry(selId);
-                if (e.getType().equals("DFF")) {
+                if (e.getExt().equalsIgnoreCase("dff")) {
                     String fileName = e.getName();
                     currentModelFile = fileName;
                     // find match name dff and txd for texture dictionary
@@ -255,7 +232,7 @@ public class Main extends javax.swing.JFrame {
                     RpTextureDictionary texDic = GtaTextureManager.getTexDic(txdName);
                     if (texDic != null) {
                         currentTexDicFile = txdName + ".txd";
-                        if (btnRwTexture.isSelected())
+                        if (mnuTexture.isSelected())
                             TextureDialog.getInstance().openFile(currentTexDicFile, texDic);
                     } else {
                         currentTexDicFile = null;
@@ -302,18 +279,6 @@ public class Main extends javax.swing.JFrame {
     
     //</editor-fold>
     
-    public JProgressBar getProgressBar() {
-        return progressBar;
-    }
-    
-    public boolean checkBusy() {
-        if (progressBar.isVisible()) {
-            JOptionPane.showMessageDialog(this, "I'm busy now, please be patient...", "In process...", JOptionPane.INFORMATION_MESSAGE);
-            return true;
-        }
-        return false;
-    }
-    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -322,21 +287,12 @@ public class Main extends javax.swing.JFrame {
         mnuTxdViewer = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         mnuTxdDumper = new javax.swing.JMenuItem();
-        mnuTxdExtractor = new javax.swing.JMenuItem();
         mnuDff = new javax.swing.JPopupMenu();
         mnuDffViewer = new javax.swing.JMenuItem();
         jSeparator3 = new javax.swing.JPopupMenu.Separator();
         mnuDffDumper = new javax.swing.JMenuItem();
-        mnuDffExtractor = new javax.swing.JMenuItem();
-        mnuFile = new javax.swing.JPopupMenu();
-        mnuFileExtractor = new javax.swing.JMenuItem();
         rdoMapDefinition = new javax.swing.ButtonGroup();
         rdoVehicleMode = new javax.swing.ButtonGroup();
-        toolBar = new javax.swing.JToolBar();
-        btnRwTexture = new javax.swing.JToggleButton();
-        btnVehicleDetail = new javax.swing.JToggleButton();
-        jSeparator5 = new javax.swing.JToolBar.Separator();
-        btnExportScene = new javax.swing.JButton();
         splMain = new javax.swing.JSplitPane();
         tabbedControlPanel = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
@@ -351,28 +307,23 @@ public class Main extends javax.swing.JFrame {
         tblDefinitionItem = new javax.swing.JTable();
         rdoIDE = new javax.swing.JRadioButton();
         rdoIPL = new javax.swing.JRadioButton();
-        jPanel5 = new javax.swing.JPanel();
-        jLabel3 = new javax.swing.JLabel();
-        cboMapTime = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
         cboViewMode = new javax.swing.JComboBox<>();
+        jLabel3 = new javax.swing.JLabel();
+        cboMapTime = new javax.swing.JComboBox<>();
         jPanel3 = new javax.swing.JPanel();
-        jPanel4 = new javax.swing.JPanel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        tblVehicle = new javax.swing.JTable();
         rdoVehicleNormal = new javax.swing.JRadioButton();
         rdoVehicleDamaged = new javax.swing.JRadioButton();
         rdoVehicleDistance = new javax.swing.JRadioButton();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        tblVehicle = new javax.swing.JTable();
         viewpotArea = new javax.swing.JPanel();
         statusBar = new javax.swing.JToolBar();
-        lblMem = new javax.swing.JLabel();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
         lblInfo = new javax.swing.JLabel();
-        jSeparator4 = new javax.swing.JToolBar.Separator();
-        progressBar = new javax.swing.JProgressBar();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
+        mnuTexture = new javax.swing.JCheckBoxMenuItem();
 
         mnuTxdViewer.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         mnuTxdViewer.setText("RW Texture Viewer...");
@@ -392,14 +343,6 @@ public class Main extends javax.swing.JFrame {
         });
         mnuTxd.add(mnuTxdDumper);
 
-        mnuTxdExtractor.setText("Resource Extractor...");
-        mnuTxdExtractor.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                onExtractResource(evt);
-            }
-        });
-        mnuTxd.add(mnuTxdExtractor);
-
         mnuDffViewer.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         mnuDffViewer.setText("RW Model Viewer...");
         mnuDffViewer.addActionListener(new java.awt.event.ActionListener() {
@@ -418,61 +361,9 @@ public class Main extends javax.swing.JFrame {
         });
         mnuDff.add(mnuDffDumper);
 
-        mnuDffExtractor.setText("Resource Extractor...");
-        mnuDffExtractor.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                onExtractResource(evt);
-            }
-        });
-        mnuDff.add(mnuDffExtractor);
-
-        mnuFileExtractor.setText("Resource Extractor...");
-        mnuFileExtractor.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                onExtractResource(evt);
-            }
-        });
-        mnuFile.add(mnuFileExtractor);
-
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("GTA Viewer");
         setMinimumSize(new java.awt.Dimension(960, 600));
-
-        toolBar.setFloatable(false);
-        toolBar.setRollover(true);
-
-        btnRwTexture.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon32/application_view_gallery.png"))); // NOI18N
-        btnRwTexture.setToolTipText("RenderWare Texture Viewer");
-        btnRwTexture.setFocusable(false);
-        btnRwTexture.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnRwTexture.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnRwTexture.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnRwTextureActionPerformed(evt);
-            }
-        });
-        toolBar.add(btnRwTexture);
-
-        btnVehicleDetail.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon32/lorry.png"))); // NOI18N
-        btnVehicleDetail.setToolTipText("Vehicle Details Viewer");
-        btnVehicleDetail.setFocusable(false);
-        btnVehicleDetail.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnVehicleDetail.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(btnVehicleDetail);
-        toolBar.add(jSeparator5);
-
-        btnExportScene.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon32/camera_go.png"))); // NOI18N
-        btnExportScene.setMnemonic('E');
-        btnExportScene.setToolTipText("Export Scene");
-        btnExportScene.setFocusable(false);
-        btnExportScene.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        btnExportScene.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        btnExportScene.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnExportSceneActionPerformed(evt);
-            }
-        });
-        toolBar.add(btnExportScene);
 
         splMain.setBorder(null);
 
@@ -538,7 +429,7 @@ public class Main extends javax.swing.JFrame {
                     .addComponent(txtFindResource, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 418, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 454, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -596,15 +487,6 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("View Mode"));
-
-        jLabel3.setLabelFor(cboMapTime);
-        jLabel3.setText("Time:");
-
-        cboMapTime.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00" }));
-        cboMapTime.setSelectedIndex(12);
-        cboMapTime.setEnabled(false);
-
         jLabel5.setLabelFor(cboViewMode);
         jLabel5.setText("Map Mode:");
 
@@ -620,32 +502,12 @@ public class Main extends javax.swing.JFrame {
         }
     });
 
-    javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-    jPanel5.setLayout(jPanel5Layout);
-    jPanel5Layout.setHorizontalGroup(
-        jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addGroup(jPanel5Layout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(jLabel5)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(cboViewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addGap(18, 18, 18)
-            .addComponent(jLabel3)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(cboMapTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-    );
-    jPanel5Layout.setVerticalGroup(
-        jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addGroup(jPanel5Layout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(jLabel3)
-                .addComponent(cboMapTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(jLabel5)
-                .addComponent(cboViewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-    );
+    jLabel3.setLabelFor(cboMapTime);
+    jLabel3.setText("Time:");
+
+    cboMapTime.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00" }));
+    cboMapTime.setSelectedIndex(12);
+    cboMapTime.setEnabled(false);
 
     javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
     jPanel2.setLayout(jPanel2Layout);
@@ -657,11 +519,20 @@ public class Main extends javax.swing.JFrame {
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createSequentialGroup()
-                    .addComponent(rdoIDE)
-                    .addGap(18, 18, 18)
-                    .addComponent(rdoIPL)
-                    .addGap(0, 0, Short.MAX_VALUE))
-                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addComponent(rdoIDE)
+                            .addGap(18, 18, 18)
+                            .addComponent(rdoIPL))
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addComponent(jLabel5)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(cboViewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(18, 18, 18)
+                            .addComponent(jLabel3)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(cboMapTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGap(0, 29, Short.MAX_VALUE)))
             .addContainerGap())
     );
     jPanel2Layout.setVerticalGroup(
@@ -674,64 +545,17 @@ public class Main extends javax.swing.JFrame {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(jLabel3)
+                .addComponent(cboMapTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabel5)
+                .addComponent(cboViewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addContainerGap())
     );
 
     tabbedControlPanel.addTab("Map", new javax.swing.ImageIcon(getClass().getResource("/icon16/map.png")), jPanel2); // NOI18N
-
-    jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("View Mode"));
-
-    rdoVehicleMode.add(rdoVehicleNormal);
-    rdoVehicleNormal.setSelected(true);
-    rdoVehicleNormal.setText("Normal");
-    rdoVehicleNormal.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-            onVehicleModeChanged(evt);
-        }
-    });
-
-    rdoVehicleMode.add(rdoVehicleDamaged);
-    rdoVehicleDamaged.setText("Damaged");
-    rdoVehicleDamaged.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-            onVehicleModeChanged(evt);
-        }
-    });
-
-    rdoVehicleMode.add(rdoVehicleDistance);
-    rdoVehicleDistance.setText("Distance");
-    rdoVehicleDistance.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-            onVehicleModeChanged(evt);
-        }
-    });
-
-    javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-    jPanel4.setLayout(jPanel4Layout);
-    jPanel4Layout.setHorizontalGroup(
-        jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addGroup(jPanel4Layout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(rdoVehicleNormal)
-            .addGap(18, 18, 18)
-            .addComponent(rdoVehicleDamaged)
-            .addGap(18, 18, 18)
-            .addComponent(rdoVehicleDistance)
-            .addContainerGap(44, Short.MAX_VALUE))
-    );
-    jPanel4Layout.setVerticalGroup(
-        jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addGroup(jPanel4Layout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(rdoVehicleNormal)
-                .addComponent(rdoVehicleDamaged)
-                .addComponent(rdoVehicleDistance))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-    );
 
     tblVehicle.setAutoCreateRowSorter(true);
     tblVehicle.setModel(new javax.swing.table.DefaultTableModel(
@@ -758,24 +582,58 @@ public class Main extends javax.swing.JFrame {
     });
     jScrollPane4.setViewportView(tblVehicle);
 
+    rdoVehicleMode.add(rdoVehicleNormal);
+    rdoVehicleNormal.setSelected(true);
+    rdoVehicleNormal.setText("Normal");
+    rdoVehicleNormal.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            onVehicleModeChanged(evt);
+        }
+    });
+
+    rdoVehicleMode.add(rdoVehicleDamaged);
+    rdoVehicleDamaged.setText("Damaged");
+    rdoVehicleDamaged.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            onVehicleModeChanged(evt);
+        }
+    });
+
+    rdoVehicleMode.add(rdoVehicleDistance);
+    rdoVehicleDistance.setText("Distance");
+    rdoVehicleDistance.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            onVehicleModeChanged(evt);
+        }
+    });
+
     javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
     jPanel3.setLayout(jPanel3Layout);
     jPanel3Layout.setHorizontalGroup(
         jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+        .addGroup(jPanel3Layout.createSequentialGroup()
             .addContainerGap()
-            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel3Layout.createSequentialGroup()
+                    .addComponent(rdoVehicleNormal)
+                    .addGap(18, 18, 18)
+                    .addComponent(rdoVehicleDamaged)
+                    .addGap(18, 18, 18)
+                    .addComponent(rdoVehicleDistance)
+                    .addGap(0, 62, Short.MAX_VALUE))
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
             .addContainerGap())
     );
     jPanel3Layout.setVerticalGroup(
         jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
         .addGroup(jPanel3Layout.createSequentialGroup()
             .addContainerGap()
-            .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 376, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 454, Short.MAX_VALUE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(rdoVehicleNormal)
+                .addComponent(rdoVehicleDamaged)
+                .addComponent(rdoVehicleDistance))
             .addContainerGap())
     );
 
@@ -791,28 +649,27 @@ public class Main extends javax.swing.JFrame {
     statusBar.setFloatable(false);
     statusBar.setRollover(true);
 
-    lblMem.setText("<memory>");
-    lblMem.setMaximumSize(new java.awt.Dimension(100, 14));
-    lblMem.setMinimumSize(new java.awt.Dimension(100, 14));
-    lblMem.setPreferredSize(new java.awt.Dimension(100, 14));
-    statusBar.add(lblMem);
-    statusBar.add(jSeparator1);
-
     lblInfo.setText("<none>");
     lblInfo.setMaximumSize(new java.awt.Dimension(360, 14));
     lblInfo.setMinimumSize(new java.awt.Dimension(360, 14));
     lblInfo.setPreferredSize(new java.awt.Dimension(360, 14));
     statusBar.add(lblInfo);
-    statusBar.add(jSeparator4);
-
-    progressBar.setString("<current process>");
-    progressBar.setStringPainted(true);
-    statusBar.add(progressBar);
 
     jMenu1.setText("File");
     jMenuBar1.add(jMenu1);
 
-    jMenu2.setText("Edit");
+    jMenu2.setText("Tools");
+
+    mnuTexture.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.CTRL_MASK));
+    mnuTexture.setText("Texture Viewer...");
+    mnuTexture.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon16/application_view_gallery.png"))); // NOI18N
+    mnuTexture.addItemListener(new java.awt.event.ItemListener() {
+        public void itemStateChanged(java.awt.event.ItemEvent evt) {
+            mnuTextureItemStateChanged(evt);
+        }
+    });
+    jMenu2.add(mnuTexture);
+
     jMenuBar1.add(jMenu2);
 
     setJMenuBar(jMenuBar1);
@@ -821,20 +678,17 @@ public class Main extends javax.swing.JFrame {
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addComponent(toolBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        .addGroup(layout.createSequentialGroup()
+        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
             .addContainerGap()
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                 .addComponent(splMain)
-                .addGroup(layout.createSequentialGroup()
-                    .addComponent(statusBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addContainerGap())))
+                .addComponent(statusBar, javax.swing.GroupLayout.DEFAULT_SIZE, 770, Short.MAX_VALUE))
+            .addContainerGap())
     );
     layout.setVerticalGroup(
         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
         .addGroup(layout.createSequentialGroup()
-            .addComponent(toolBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addContainerGap()
             .addComponent(splMain)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -846,7 +700,7 @@ public class Main extends javax.swing.JFrame {
     private void onResourceEntryClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onResourceEntryClicked
         if(evt.getButton() == MouseEvent.BUTTON3) return; //cancel right mouse for popup trigger
         boolean isDoubleClick = (evt.getClickCount() == 2);
-        if(btnRwTexture.isSelected() || isDoubleClick) openRwTexture();
+        if(mnuTexture.isSelected() || isDoubleClick) openRwTexture();
         if(gdxApp.getViewpotMode() == ViewportMode.SingleModel || isDoubleClick) openRwModel();
     }//GEN-LAST:event_onResourceEntryClicked
 
@@ -875,17 +729,13 @@ public class Main extends javax.swing.JFrame {
         int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (evt.isPopupTrigger() && selId > -1) {
             RwArchiveEntry entry = assetModel.getEntry(selId);
-            switch (entry.getType()) {
-                case "TXD":
+            switch (entry.getExt().toLowerCase()) {
+                case "txd":
                     mnuTxd.show(evt.getComponent(), x, y);
                     break;
                     
-                case "DFF":
+                case "dff":
                     mnuDff.show(evt.getComponent(), x, y);
-                    break;
-                    
-                default:
-                    mnuFile.show(evt.getComponent(), x, y);
                     break;
             }
         }
@@ -904,21 +754,13 @@ public class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuDffDumperActionPerformed
 
     private void tblResourceKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblResourceKeyReleased
-        if (btnRwTexture.isSelected()) openRwTexture();
+        if (mnuTexture.isSelected()) openRwTexture();
         if (gdxApp.getViewpotMode() == ViewportMode.SingleModel) openRwModel();
     }//GEN-LAST:event_tblResourceKeyReleased
 
     private void mnuDffViewerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuDffViewerActionPerformed
         openRwModel();
     }//GEN-LAST:event_mnuDffViewerActionPerformed
-
-    private void btnRwTextureActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRwTextureActionPerformed
-        if(btnRwTexture.isSelected()) {
-            TextureDialog.getInstance().setVisible(true);
-        } else {
-            TextureDialog.getInstance().dispose();
-        }
-    }//GEN-LAST:event_btnRwTextureActionPerformed
 
     private void tblDefinitionItemMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblDefinitionItemMouseClicked
         int id = tblDefinitionItem.convertRowIndexToModel(tblDefinitionItem.getSelectedRow());
@@ -930,43 +772,9 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tblDefinitionItemMouseClicked
 
-    private void btnExportSceneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportSceneActionPerformed
-        if (!checkBusy()) {
-            UCFileChooser fcSave = new UCFileChooser(currentFile);
-            fcSave.setAcceptAllFileFilterUsed(false);
-            fcSave.addChoosableFileFilter(new FileNameExtensionFilter("Autodesk Filmbox (fbx)", "fbx"));
-            if (fcSave.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                currentFile = fcSave.getSelectedFile();
-                String outFileUri = currentFile.getPath();
-                if (!outFileUri.toLowerCase().endsWith(".fbx"))
-                    currentFile = new File(outFileUri.concat(".fbx"));
-                new ExportDialog(currentFile).setVisible(true);
-            }
-        }
-    }//GEN-LAST:event_btnExportSceneActionPerformed
-
     private void onRefineDefinitionGroup(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onRefineDefinitionGroup
         refineItemGroupTable();
     }//GEN-LAST:event_onRefineDefinitionGroup
-
-    private void onExtractResource(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onExtractResource
-        int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
-        if (selId >= 0) {
-            RwArchiveEntry entry = assetModel.getEntry(selId);
-            UCFileChooser fcSave = new UCFileChooser(currentFile);
-            fcSave.setSelectedFile(new File(entry.getName()));
-            if (fcSave.showSaveDialog(this) == UCFileChooser.APPROVE_OPTION) {
-                File out = fcSave.getSelectedFile();
-                try (FileOutputStream fos = new FileOutputStream(out)) {
-                    byte[] bb = assetModel.getEntry(selId).getData();
-                    fos.write(bb);
-                    currentFile = out;
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(this, ex, "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }
-    }//GEN-LAST:event_onExtractResource
 
     private void setViewportMode(ViewportMode mode) {
         gdxApp.setViewpotMode(mode);
@@ -1013,10 +821,22 @@ public class Main extends javax.swing.JFrame {
             setViewportMode((ViewportMode)evt.getItem());
     }//GEN-LAST:event_cboViewModeItemStateChanged
 
+    private void mnuTextureItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_mnuTextureItemStateChanged
+        TextureDialog dialog = TextureDialog.getInstance();
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            dialog.setVisible(true);
+            dialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent evt) {
+                    mnuTexture.setSelected(false);
+                }
+            });
+        } else {
+            dialog.dispose();
+        }
+    }//GEN-LAST:event_mnuTextureItemStateChanged
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnExportScene;
-    private javax.swing.JToggleButton btnRwTexture;
-    private javax.swing.JToggleButton btnVehicleDetail;
     private javax.swing.JComboBox<String> cboMapTime;
     private javax.swing.JComboBox<ViewportMode> cboViewMode;
     private javax.swing.JLabel jLabel2;
@@ -1028,30 +848,20 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator3;
-    private javax.swing.JToolBar.Separator jSeparator4;
-    private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JLabel lblInfo;
-    private javax.swing.JLabel lblMem;
     private javax.swing.JPopupMenu mnuDff;
     private javax.swing.JMenuItem mnuDffDumper;
-    private javax.swing.JMenuItem mnuDffExtractor;
     private javax.swing.JMenuItem mnuDffViewer;
-    private javax.swing.JPopupMenu mnuFile;
-    private javax.swing.JMenuItem mnuFileExtractor;
+    private javax.swing.JCheckBoxMenuItem mnuTexture;
     private javax.swing.JPopupMenu mnuTxd;
     private javax.swing.JMenuItem mnuTxdDumper;
-    private javax.swing.JMenuItem mnuTxdExtractor;
     private javax.swing.JMenuItem mnuTxdViewer;
-    private javax.swing.JProgressBar progressBar;
     private javax.swing.JRadioButton rdoIDE;
     private javax.swing.JRadioButton rdoIPL;
     private javax.swing.ButtonGroup rdoMapDefinition;
@@ -1066,7 +876,6 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JTable tblDefinitionItem;
     private javax.swing.JTable tblResource;
     private javax.swing.JTable tblVehicle;
-    private javax.swing.JToolBar toolBar;
     private javax.swing.JTextField txtFindResource;
     private javax.swing.JPanel viewpotArea;
     // End of variables declaration//GEN-END:variables

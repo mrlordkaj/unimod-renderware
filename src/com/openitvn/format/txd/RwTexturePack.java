@@ -19,6 +19,7 @@ package com.openitvn.format.txd;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.resource.ITexturePack;
 import com.openitvn.engine.renderware.RpSection;
+import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.maintain.DumpEntry;
 import java.util.ArrayList;
@@ -32,9 +33,11 @@ public class RwTexturePack extends ITexturePack {
     
     @Override
     public void decode(DataStream ds) {
-        RpSection grand = RpSection.fromData(ds, null);
-        for (RpTextureNative tex : grand.getChildren(RpTextureNative.class))
-            textures.add(new RwTexture(tex.textureName, tex));
+        RpTextureDictionary texDic = RpSection.loadRoot(ds, RpTextureDictionary.class);
+        for (RpTextureNative texData : texDic.textures) {
+            RwTexture tex = new RwTexture(texData.textureName, texData);
+            textures.add(tex);
+        }
     }
     
     @Override

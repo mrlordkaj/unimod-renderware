@@ -32,10 +32,44 @@ public class WorldScriptEntry {
     WorldScriptEntry(String path, WorldScriptType type) {
         this.path = path;
         this.type = type;
-        file = new File(GameConfig.getDirectory() + "/" + path);
+        this.file = new File(GameConfig.getDirectory() + "/" + path);
     }
 
-    String getName() {
+    public String getName() {
         return file.getName();
+    }
+    
+    @Deprecated
+    private int index;
+    
+    @Deprecated
+    public WorldScriptEntry(int index, String path, WorldScriptType type) {
+        this(path, type);
+        this.index = index;
+    }
+    
+    @Deprecated
+    public int getIndex() {
+        return index;
+    }
+    
+    @Deprecated
+    public String getAbsolutePath() {
+        return file.getAbsolutePath();
+    }
+    
+    @Deprecated
+    public boolean isActive() {
+        return isActive;
+    }
+    
+    @Deprecated
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+    
+    @Deprecated
+    public WorldScriptType getType() {
+        return type;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Thinh Pham <mrlordkaj@gmail.com>
+ * Copyright (C) 2016 Thinh Pham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,40 +17,37 @@
 
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.gtavc.core.RwLoader;
+import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
-import com.openitvn.gtavc.core.entity.TextureLibraryEntry;
-import java.io.IOException;
+import com.openitvn.format.txd.RwTexture;
+import com.openitvn.unicore.data.BufferStream;
+import com.openitvn.unicore.data.DataStream;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.table.AbstractTableModel;
 
 /**
  *
- * @author Thinh Pham <mrlordkaj@gmail.com>
+ * @author Thinh Pham
  */
 public class TextureLibraryTableModel extends AbstractTableModel {
     private final String[] COLUMNS = {"ID", "Name"};
     public static final int COL_INDEX = 0;
     public static final int COL_NAME = 1;
     
-    private final ArrayList<TextureLibraryEntry> entries = new ArrayList<>();
+    private final ArrayList<RwTexture> entries = new ArrayList<>();
     
-    public void bind(byte[] data) {
-        try {
-            RpTextureDictionary rwTexDic = (RpTextureDictionary)RwLoader.loadFromBuffer(data);
-            bind(rwTexDic);
-        } catch (IOException ex) {
-            Logger.getLogger(TextureLibraryTableModel.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void bind(DataStream ds) {
+        RpTextureDictionary txd = RpSection.loadRoot(ds, RpTextureDictionary.class);
+        bind(txd);
     }
     
     public void bind(RpTextureDictionary texDic) {
         entries.clear();
-        for (RpTextureNative tex : texDic.textures)
-            entries.add(new TextureLibraryEntry(entries.size(), tex));
+        for (RpTextureNative texData : texDic.textures) {
+            RwTexture tex = new RwTexture(entries.size(), texData);
+            entries.add(tex);
+        }
         fireTableDataChanged();
     }
     
@@ -99,7 +96,7 @@ public class TextureLibraryTableModel extends AbstractTableModel {
         return null;
     }
     
-    public TextureLibraryEntry getEntry(int index) {
+    public RwTexture getEntry(int index) {
         return entries.get(index);
     }
     

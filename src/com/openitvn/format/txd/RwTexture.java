@@ -20,6 +20,9 @@ import com.openitvn.unicore.world.resource.ICubeMap;
 import com.openitvn.unicore.world.resource.IPixelFormat;
 import com.openitvn.unicore.world.resource.ITexture;
 import com.openitvn.engine.renderware.RpTextureNative;
+import com.openitvn.unicore.world.resource.BufferedRaster;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 /**
@@ -125,5 +128,58 @@ public class RwTexture extends ITexture {
     @Override
     public boolean isMipMapUsed() {
         return true;
+    }
+    
+    @Deprecated
+    private int index;
+    
+    @Deprecated
+    public RwTexture(int index, RpTextureNative texture) {
+        this(texture.textureName, texture);
+        this.index = index;
+    }
+    
+    @Deprecated
+    public int getIndex() {
+        return index;
+    }
+    
+    @Deprecated
+    public String getTextureName() {
+        return texture.textureName;
+    }
+    
+    @Deprecated
+    public String getMaskName() {
+        return texture.maskName;
+    }
+    
+    @Deprecated
+    public String getSize() {
+        return texture.width + " x " + texture.height;
+    }
+    
+    @Deprecated
+    public String getColorDepth() {
+        return texture.colorDepth + " bit";
+    }
+    
+    @Deprecated
+    public String hasAlpha() {
+        return texture.hasAlpha ? "Yes" : "No";
+    }
+    
+    @Deprecated
+    public String getCompression() {
+        return texture.getCompressionName();
+    }
+    
+    @Deprecated
+    public BufferedImage toBufferedImage(int mip) {
+        Dimension imgSize = ITexture.computeMipMapSize(texture.width, texture.height, mip);
+        BufferedRaster img = new BufferedRaster(imgSize.width, imgSize.height);
+        RwTexture tex = new RwTexture(texture.textureName, texture);
+        tex.decodeImage(img, 0, 0);
+        return img;
     }
 }

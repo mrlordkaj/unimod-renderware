@@ -62,8 +62,9 @@ class ResourceModel extends AbstractTableModel {
         dffTxdMap.clear();
         LinkedHashMap<String, RwArchiveEntry> entryMap = new LinkedHashMap<>();
         // load resources from main archive
-        for (String arc : GameConfig.getMainArchives())
+        for (String arc : GameConfig.getMainArchives()) {
             loadImg(arc, entryMap);
+        }
         // override or load addition resources from loaders
         for (String loader : GameConfig.getLoaders()) {
             Logger.printNotice("Executing loader: %1$s", loader);
@@ -197,6 +198,10 @@ class ResourceModel extends AbstractTableModel {
         }
         return null;
     }
+    
+    String findTexDicByModel(String modName) {
+        return dffTxdMap.get(modName.toLowerCase());
+    }
         
     @Override
     public int getRowCount() {
@@ -253,8 +258,9 @@ class ResourceModel extends AbstractTableModel {
     private static ResourceModel instance;
     
     static ResourceModel getInstance() {
-        if (instance == null)
+        if (instance == null) {
             instance = new ResourceModel();
+        }
         return instance;
     }
 }

@@ -84,7 +84,6 @@ public abstract class GameConfig {
         switch (workspace.name) {
             case ALIAS_III:
                 ret.add("default.ide");
-//                ret.add("gta3.ide");
                 break;
                 
             case ALIAS_VC:
@@ -208,6 +207,5 @@ public abstract class GameConfig {
             workspace = space;
             Workspace.setActive(space, 0x240691);
         }
-            
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Thinh Pham <mrlordkaj@gmail.com>
+ * Copyright (C) 2016 Thinh Pham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@ package com.openitvn.gtavc.gui;
 
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.format.img.RwArchiveEntry;
-import com.openitvn.gtavc.core.entity.TextureLibraryEntry;
+import com.openitvn.format.txd.RwTexture;
+import com.openitvn.unicore.data.BufferStream;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,20 +28,19 @@ import javax.swing.table.TableColumnModel;
 
 /**
  *
- * @author thinh
+ * @author Thinh Pham
  */
 public class TextureDialog extends javax.swing.JDialog {
     
-    private static TextureDialog _instance;
+    private static TextureDialog instance;
     public static TextureDialog getInstance() {
-        if(_instance == null) {
-            _instance = new TextureDialog(Main.getInstance());
-            _instance.resetForm();
+        if (instance == null) {
+            instance = new TextureDialog(Main.getInstance());
+            instance.resetForm();
         }
-        return _instance;
+        return instance;
     }
     
-    private Main main = null;
     private final TextureLibraryTableModel texLibModel = new TextureLibraryTableModel();
     private int selectedTexId = -1;
     private final ArrayList<BufferedImage> images = new ArrayList<>();
@@ -49,9 +49,7 @@ public class TextureDialog extends javax.swing.JDialog {
     
     private TextureDialog(Main main) {
         super(main);
-        this.main = main;
         initComponents();
-        if(this.main != null) main.setRwTextureVisible(true);
         initTableTextureLibrary();
     }
     
@@ -63,24 +61,22 @@ public class TextureDialog extends javax.swing.JDialog {
     
     @Override
     public void dispose() {
-        if(main != null) main.setRwTextureVisible(false);
         super.dispose();
-        _instance = null;
+        instance = null;
     }
     
     public void openFile(RwArchiveEntry entry) throws IOException {
         fileName = entry.getName();
         resetForm();
         
-        byte[] bb = entry.getData();
-        if (bb != null) {
+        try (BufferStream bs = entry.toDataStream()) {
             lblFileName.setText(fileName);
-            texLibModel.bind(bb);
+            texLibModel.bind(bs);
             if (texLibModel.getEntryCount() > 0) {
                 tableTexLib.setRowSelectionInterval(0, 0);
                 selectTexture(0);
             }
-        }
+        } catch (NullPointerException ex) { }
     }
     
     public void openFile(String fileName, RpTextureDictionary rwTexDic) {
@@ -89,7 +85,7 @@ public class TextureDialog extends javax.swing.JDialog {
         
         lblFileName.setText(fileName);
         texLibModel.bind(rwTexDic);
-        if(texLibModel.getEntryCount() > 0) {
+        if (texLibModel.getEntryCount() > 0) {
             tableTexLib.setRowSelectionInterval(0, 0);
             selectTexture(0);
         }
@@ -111,26 +107,25 @@ public class TextureDialog extends javax.swing.JDialog {
     }
     
     private void selectTexture(int rowId) {
-        if(rowId == selectedTexId) return;
-        
-        TextureLibraryEntry texEntry = texLibModel.getEntry(rowId);
-        lblTextureName.setText(texEntry.getTextureName());
-        lblSize.setText(texEntry.getSize());
-        lblBitDepth.setText(texEntry.getColorDepth());
-        lblHasAlpha.setText(texEntry.hasAlpha());
-        lblMipmap.setText(texEntry.getMipmapCount().toString());
-        lblCompression.setText(texEntry.getCompression());
-        createMipmapSelector(texEntry);
-
-        selectedTexId = rowId;
+        if (rowId != selectedTexId) {
+            RwTexture tex = texLibModel.getEntry(rowId);
+            lblTextureName.setText(tex.getTextureName());
+            lblSize.setText(tex.getSize());
+            lblBitDepth.setText(tex.getColorDepth());
+            lblHasAlpha.setText(tex.hasAlpha());
+            lblMipmap.setText(Integer.toString(tex.getMipCount()));
+            lblCompression.setText(tex.getCompression());
+            createMipmapSelector(tex);
+            selectedTexId = rowId;
+        }
     }
     
-    private void createMipmapSelector(TextureLibraryEntry texEntry) {
+    private void createMipmapSelector(RwTexture tex) {
         cboMipmap.removeAllItems();
-        int mipmapCount = texEntry.getMipmapCount();
+        int mipmapCount = tex.getMipCount();
         images.clear();
         for (int i = 0; i < mipmapCount; i++) {
-            images.add(texEntry.getBufferedImage(i));
+            images.add(tex.toBufferedImage(i));
             cboMipmap.addItem("Level " + i);
         }
     }

@@ -18,10 +18,11 @@ package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.openitvn.gtavc.core.RwLoader;
+import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.gtavc.core.GtaAssetModel;
+import com.openitvn.unicore.data.BufferStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -102,25 +103,25 @@ public class GtaTextureManager {
     
     // TODO: cleanup unnecessary dictionaries when unload scene part
     public static RpTextureDictionary getTexDic(String txdName) {
-        RpTextureDictionary rTexDic = TEXDIC_MAP.get(txdName);
-        if (rTexDic == null) {
-            try {
-                byte[] data = GtaAssetModel.getInstance().extract(txdName + ".txd");
-                rTexDic = (RpTextureDictionary) RwLoader.loadFromBuffer(data);
-                TEXDIC_MAP.put(txdName, rTexDic);
+        RpTextureDictionary txd = TEXDIC_MAP.get(txdName);
+        if (txd == null) {
+            try (BufferStream bs = GtaAssetModel.getInstance().extract(txdName + ".txd")) {
+                txd = RpSection.loadRoot(bs, RpTextureDictionary.class);
+                TEXDIC_MAP.put(txdName, txd);
             } catch (IOException ex) {
                 ex.printStackTrace(System.err);
             }
         }
-        return rTexDic;
+        return txd;
     }
     
     public static String getMapperName(String txdName, String texName) {
-        RpTextureDictionary rTexDic = getTexDic(txdName);
-        if (rTexDic != null) {
-            RpTextureNative rTex = rTexDic.findTexture(texName);
-            if (rTex != null)
-                return rTex.getMapperName();
+        RpTextureDictionary txd = getTexDic(txdName);
+        if (txd != null) {
+            RpTextureNative tex = txd.findTexture(texName);
+            if (tex != null) {
+                return tex.getMapperName();
+            }
         }
         return txdName + "_" + texName;
     }

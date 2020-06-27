@@ -21,9 +21,9 @@ import com.openitvn.gtavc.core.item.INSTEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
 import com.openitvn.gtavc.core.item.TOBJEntry;
 import com.openitvn.gtavc.core.item.NULLEntry;
-import com.openitvn.gtavc.core.entity.ScriptFile;
 import com.openitvn.gtavc.core.item.ItemType;
 import com.openitvn.unicore.plugin.gta.ScriptHelper;
+import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -35,7 +35,7 @@ import javax.swing.table.AbstractTableModel;
  * @author Thinh Pham
  */
 public class ScriptItemModel extends AbstractTableModel {
-    private final String[] COLUMNS = {"Description", "Type", "File ID"};
+    private final String[] COLUMNS = {"Description", "Type", "SID"};
     public static final int COL_DESCRIPTION = 0;
     public static final int COL_TYPE = 1;
     public static final int COL_FILE = 2;
@@ -87,14 +87,14 @@ public class ScriptItemModel extends AbstractTableModel {
         return null;
     }
     
-    public void bind(ArrayList<ScriptFile> definitionGroups) {
+    public void bind(ArrayList<WorldScriptEntry> definitionGroups) {
         //reset data
         entries.clear();
         
         //bind new data
-        for(ScriptFile group : definitionGroups) {
+        for (WorldScriptEntry group : definitionGroups) {
             String filePath = group.getAbsolutePath();
-            defineFromFile(filePath, group.index);
+            defineFromFile(filePath, group.getIndex());
         }
         
         fireTableDataChanged();

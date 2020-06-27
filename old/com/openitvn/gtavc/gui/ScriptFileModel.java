@@ -22,12 +22,14 @@ import com.openitvn.gtavc.core.GtaCollision;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import com.openitvn.gtavc.core.item.INSTEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
-import com.openitvn.gtavc.core.entity.ScriptFile;
 import com.openitvn.gtavc.core.item.NULLEntry;
 import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.maintain.Logger;
+import com.openitvn.unicore.data.BufferStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
+import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
+import com.openitvn.unicore.plugin.gta.WorldScriptType;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +54,7 @@ public class ScriptFileModel extends AbstractTableModel {
     public static final int COL_TYPE = 3;
     
     private final ScriptItemModel scriptItemModel = new ScriptItemModel();
-    private final ArrayList<ScriptFile> entries = new ArrayList<>();
+    private final ArrayList<WorldScriptEntry> entries = new ArrayList<>();
     private final HashMap<String, GtaCollision> colFileMap = new HashMap<>();
     
     //<editor-fold defaultstate="collapsed" desc="JTable Model">
@@ -90,37 +92,36 @@ public class ScriptFileModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        switch(col) {
+        switch (col) {
             case COL_ACTIVE:
-                return entries.get(row).isActive;
+                return entries.get(row).isActive();
                 
             case COL_INDEX:
-                return entries.get(row).index;
+                return entries.get(row).getIndex();
                 
             case COL_NAME:
                 return entries.get(row).getName();
                 
             case COL_TYPE:
-                return entries.get(row).type.toString();
+                return entries.get(row).getType();
         }
-        
         return null;
     }
     
     @Override
     public boolean isCellEditable(int row, int col) {
-        return (col == COL_ACTIVE) && entries.get(row).type.equals(ScriptFile.Type.IPL);
+        return (col == COL_ACTIVE) && entries.get(row).getType().equals(WorldScriptType.IPL);
     }
     
     @Override
     public void setValueAt(Object value, int row, int col) {
-        if(col != COL_ACTIVE) return;
-        
-        boolean setActive = (boolean)value;
-        ScriptFile entry = entries.get(row);
-        if(entry.isActive != setActive) {
-            if(setActive) activeIPL(entry.getName());
-            else deactiveIPL(entry.getName());
+        if (col == COL_ACTIVE) {
+            boolean active = (boolean)value;
+            WorldScriptEntry entry = entries.get(row);
+            if (entry.isActive() != active) {
+                if (active) activeIPL(entry.getName());
+                else deactiveIPL(entry.getName());
+            }
         }
     }
     
@@ -143,11 +144,11 @@ public class ScriptFileModel extends AbstractTableModel {
                     String[] args = line.replaceAll("#.*$", "").trim().split("\\s+");
                     switch (args[0]) {
                         case "IDE":
-                            entries.add(new ScriptFile(entries.size(), args[1], ScriptFile.Type.IDE));
+                            entries.add(new WorldScriptEntry(entries.size(), args[1], WorldScriptType.IDE));
                             break;
                             
                         case "IPL":
-                            entries.add(new ScriptFile(entries.size(), args[1], ScriptFile.Type.IPL));
+                            entries.add(new WorldScriptEntry(entries.size(), args[1], WorldScriptType.IPL));
                             break;
                             
                         case "IMG":
@@ -225,27 +226,27 @@ public class ScriptFileModel extends AbstractTableModel {
         return sb.toString();
     }
     
-    public ArrayList<ScriptFile> getEntries() {
+    public ArrayList<WorldScriptEntry> getEntries() {
         return entries;
     }
     
-    public ScriptFile getEntry(int groupId) {
+    public WorldScriptEntry getEntry(int groupId) {
         return (groupId < 0 || groupId >= entries.size()) ? null : entries.get(groupId);
     }
     
-    public ScriptFile getEntry(String entryName) {
+    public WorldScriptEntry getEntry(String entryName) {
         entryName = entryName.toLowerCase();
-        for (ScriptFile entry : entries) {
+        for (WorldScriptEntry entry : entries) {
             if (entry.getName().toLowerCase().equals(entryName))
                 return entry;
         }
         return null;
     }
     
-    private ArrayList<String> getActiveGroups(ScriptFile.Type type) {
+    private ArrayList<String> getActiveGroups(WorldScriptType type) {
         ArrayList<String> rs = new ArrayList<>();
-        for (ScriptFile e : entries) {
-            if (e.type == type && e.isActive)
+        for (WorldScriptEntry e : entries) {
+            if (e.getType() == type && e.isActive())
                 rs.add(e.getName().toLowerCase());
         }
         return rs;
@@ -260,21 +261,19 @@ public class ScriptFileModel extends AbstractTableModel {
         try {
             ArrayList<NULLEntry> items = scriptItemModel.getEntries();
             GtaAssetModel assetModel = GtaAssetModel.getInstance();
-            for (ScriptFile group : entries) {
+            for (WorldScriptEntry group : entries) {
                 if (group.getName().toLowerCase().endsWith(".ipl")) {
                     String name = group.getName();
                     String prefix = name.substring(0, name.length() - 4).concat("_stream");
                     int streamId = 0;
-                    byte[] data;
-                    while ((data = assetModel.extract(prefix + streamId + ".ipl")) != null) {
-                        ByteBuffer bb = ByteBuffer.wrap(data);
-                        bb.order(ByteOrder.LITTLE_ENDIAN);
-                        bb.rewind();
-                        bb.position(4); //skips "bnry"
-                        int instCount = bb.getInt();
-                        bb.position(0x4C); // offset of item instances, 0x4C by default
-                        for (int i = 0; i < instCount; i++)
-                            items.add(new INSTEntry(bb, bb.position(), group.index));
+                    BufferStream bs;
+                    while ((bs = assetModel.extract(prefix + streamId + ".ipl")) != null) {
+                        bs.position(4); //skips "bnry"
+                        int instCount = bs.getInt();
+                        bs.position(0x4C); // offset of item instances, 0x4C by default
+                        for (int i = 0; i < instCount; i++) {
+                            items.add(new INSTEntry(bs, group.getIndex()));
+                        }
                         streamId++;
                     }
                 }
@@ -295,10 +294,10 @@ public class ScriptFileModel extends AbstractTableModel {
         activeGroup(getEntry(ipl));
     }
     
-    private void activeGroup(ScriptFile g) {
-        if (g != null && !g.isActive) {
+    private void activeGroup(WorldScriptEntry g) {
+        if (g != null && !g.isActive()) {
             ViewportApp app = ViewportApp.getInstance();
-            for (NULLEntry e : scriptItemModel.getEntriesByGroup(g.index)) {
+            for (NULLEntry e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
                 try {
                     switch (e.getType()) {
                         case OBJS:
@@ -320,7 +319,7 @@ public class ScriptFileModel extends AbstractTableModel {
                     ex.printStackTrace(System.err);
                 }
             }
-            g.isActive = true;
+            g.setActive(true);
         }
     }
     
@@ -328,19 +327,19 @@ public class ScriptFileModel extends AbstractTableModel {
         // deactive target
         deactiveGroup(getEntry(ipl));
         // deactive no longer required dependencies
-        ArrayList<String> keeps = GameConfig.getDependencies(getActiveGroups(ScriptFile.Type.IPL));
+        ArrayList<String> keeps = GameConfig.getDependencies(getActiveGroups(WorldScriptType.IPL));
         keeps.addAll(GameConfig.getDependencies());
-        for (String ide : getActiveGroups(ScriptFile.Type.IDE)) {
+        for (String ide : getActiveGroups(WorldScriptType.IDE)) {
             if (!keeps.contains(ide))
                 deactiveGroup(getEntry(ide));
         }
         System.gc();
     }
     
-    private void deactiveGroup(ScriptFile g) {
-        if (g != null && g.isActive) {
+    private void deactiveGroup(WorldScriptEntry g) {
+        if (g != null && g.isActive()) {
             ViewportApp app = ViewportApp.getInstance();
-            for (NULLEntry e : scriptItemModel.getEntriesByGroup(g.index)) {
+            for (NULLEntry e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
                 try {
                     switch (e.getType()) {
                         case OBJS:
@@ -356,7 +355,7 @@ public class ScriptFileModel extends AbstractTableModel {
                     ex.printStackTrace(System.err);
                 }
             }
-            g.isActive = false;
+            g.setActive(false);
         }
     }
     //</editor-fold>

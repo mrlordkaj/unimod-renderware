@@ -74,10 +74,10 @@ public class RwModel extends IWorld {
         
         HashMap<RpFrame, INode> frameMap = new HashMap<>();
         int clumpId = 0;
-        RpSection grand;
-        while ((grand = RpSection.loadRoot(dff)) instanceof RpClump) {
+        RpClump clump;
+        while ((clump = RpSection.loadRoot(dff, RpClump.class)) != null) {
             // create nodes by frames
-            for (RpFrame frmData : ((RpClump)grand).frameList.frames) {
+            for (RpFrame frmData : clump.frameList.frames) {
                 boolean isGeometry = frmData.geometry != null;
                 // crete node/geometry
                 INode node = isGeometry ? new IGeometry() : new INode();
@@ -139,7 +139,7 @@ public class RwModel extends IWorld {
     }
     
     public void loadTextureLibrary(DataStream txd) {
-        RpSection grand = RpSection.fromData(txd, null);
+        RpSection grand = RpSection.loadSection(txd, null);
         for (RpTextureNative texData : grand.getChildren(RpTextureNative.class)) {
             String texName = texData.getMapperName();
             if (resource.findTexture(texName) == null) {

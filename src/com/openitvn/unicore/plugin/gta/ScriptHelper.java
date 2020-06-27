@@ -16,7 +16,6 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
-import com.openitvn.unicore.data.DataStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 

@@ -18,6 +18,7 @@ package com.openitvn.format.img;
 
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.BufferStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -32,28 +33,14 @@ public class RwArchiveEntry extends IArchiveEntry {
     }
     
     public BufferStream toDataStream() {
-        try (FileInputStream fis = new FileInputStream(getArchive().getFile())) {
+        File file = getArchive().getFile();
+        try (FileInputStream fis = new FileInputStream(file)) {
             byte[] data = new byte[(int)getSize()];
             fis.skip(getOffset());
             fis.read(data);
             return new BufferStream(data);
-        } catch (IOException ex) { }
-        return null;
-    }
-    
-    @Deprecated
-    public byte[] getData() {
-        byte[] ret = new byte[0];
-        try (FileInputStream fis = new FileInputStream(getArchive().getFile())) {
-            ret = new byte[(int)getSize()];
-            fis.skip(getOffset());
-            fis.read(ret);
-        } catch (IOException ex) { }
-        return ret;
-    }
-    
-    @Deprecated
-    public String getType() {
-        return getExt().toUpperCase();
+        } catch (IOException ex) {
+            return null;
+        }
     }
 }

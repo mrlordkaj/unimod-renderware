@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Thinh Pham <mrlordkaj@gmail.com>
+ * Copyright (C) 2016 Thinh Pham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  *
- * @author Thinh Pham <mrlordkaj@gmail.com>
+ * @author Thinh Pham
  */
 public class VehicleTableModel extends AbstractTableModel {
     private static final String[] COLUMNS = {"ID", "Name", "Type"};

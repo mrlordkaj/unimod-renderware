@@ -41,28 +41,13 @@ public class RpFrameList extends RpSection {
             ByteBuffer bb = exts.get(i).getFirstChild(RpType.NodeName).data;
             String name = new String(bb.array());
             frames[i] = new RpFrame(name, struct);
-//            frames[i].index = i;
         }
         // resolve hierarchy
         for (RpFrame frm : frames) {
             if (frm.parentIndex >= 0)
                 frm.parent = frames[frm.parentIndex];
         }
-//        for (RpFrame frm : frames)
-//            System.out.printf("%1$s (%2$d)\n", frm.name, frm.getLevel());
     }
-    
-//    @Deprecated
-//    public RpFrame[] getFrameSequence(String frameName) {
-//        RpFrame frame = getFrame(frameName);
-//        return getFrameSequence(frame);
-//    }
-    
-//    @Deprecated
-//    public RpFrame[] getFrameSequence(int frameIndex) {
-//        RpFrame frame = getFrame(frameIndex);
-//        return getFrameSequence(frame);
-//    }
     
     @Deprecated
     public RpFrame[] getFrameSequence(RpFrame frame) {
@@ -79,38 +64,8 @@ public class RpFrameList extends RpSection {
     }
     
     @Deprecated
-    public RpFrame getFrame(String frameName) {
-        for (RpFrame frame : frames) {
-            if (frame.name.equals(frameName))
-                return frame;
-        }
-        return null;
-    }
-    
-//    @Deprecated
-//    public RpFrame[] getChildFrames(RpFrame parentFrame) {
-//        return getChildFrames(parentFrame.index);
-//    }
-    
-    @Deprecated
-    public RpFrame[] getChildFrames(int parentIndex) {
-        ArrayList<RpFrame> result = new ArrayList<>();
-        for (RpFrame frame : frames) {
-            if (frame.parentIndex == parentIndex)
-                result.add(frame);
-        }
-        return result.toArray(new RpFrame[result.size()]);
-    }
-    
-    @Deprecated
     public RpFrame getParentFrame(RpFrame childFrame) {
-         int parentIndex = childFrame.parentIndex;
+        int parentIndex = childFrame.parentIndex;
         return frames[parentIndex];
     }
-    
-//    @Deprecated
-//    public RpFrame getParentFrame(int childIndex) {
-//        int parentIndex = frames[childIndex].parentIndex;
-//        return frames[parentIndex];
-//    }
 }

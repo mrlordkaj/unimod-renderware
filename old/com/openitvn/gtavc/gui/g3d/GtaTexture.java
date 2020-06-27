@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.openitvn.engine.renderware.RpTextureNative;
-import com.openitvn.gtavc.core.RwTextureHelper;
+import com.openitvn.format.txd.RwTexture;
 import com.openitvn.unicore.world.resource.ITexture;
 import com.openitvn.unicore.world.resource.PixmapRaster;
 import java.awt.Dimension;
@@ -60,18 +60,19 @@ public class GtaTexture {
         return tex;
     }
     
-    private static Texture createTexture(RpTextureNative rTex, int mip) {
-        if (rTex == null) {
+    private static Texture createTexture(RpTextureNative texData, int mip) {
+        if (texData == null) {
             return new Texture(0, 0, Pixmap.Format.RGBA8888);
         } else {
-            Dimension size = ITexture.computeMipMapSize(rTex.width, rTex.height, mip);
+            Dimension size = ITexture.computeMipMapSize(texData.width, texData.height, mip);
             PixmapRaster img = new PixmapRaster(size.width, size.height);
-            RwTextureHelper.decodeTexture(img, rTex, mip);
+            RwTexture rTex = new RwTexture(texData.textureName, texData);
+            rTex.decodeImage(img, 0, 0);
             Texture tex = new Texture(img, true);
             // set wrap
             tex.bind();
-            GL11.glTexParameterf(tex.glTarget, GL20.GL_TEXTURE_WRAP_S, rTex.getUWrap());
-            GL11.glTexParameterf(tex.glTarget, GL20.GL_TEXTURE_WRAP_T, rTex.getVWrap());
+            GL11.glTexParameterf(tex.glTarget, GL20.GL_TEXTURE_WRAP_S, texData.getUWrap());
+            GL11.glTexParameterf(tex.glTarget, GL20.GL_TEXTURE_WRAP_T, texData.getVWrap());
             // set filter
             tex.setFilter(Texture.TextureFilter.MipMap, Texture.TextureFilter.Nearest);
             return tex;

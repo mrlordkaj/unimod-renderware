@@ -26,36 +26,19 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.openitvn.engine.renderware.struct.RpFrame;
-import com.openitvn.engine.renderware.RpGeometry;
-import com.openitvn.engine.renderware.RpMaterial;
-import com.openitvn.engine.renderware.RpClump;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector3;
-import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.gtavc.core.GtaCollision;
-import com.openitvn.gtavc.core.RwTextureHelper;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import com.openitvn.gtavc.core.item.INSTEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
 import com.openitvn.gtavc.core.item.NULLEntry;
-import com.openitvn.gtavc.gui.Main;
 import com.openitvn.gtavc.gui.VehicleTableModel;
-import com.openitvn.gtavc.plugin.export.fbx.Fbx6100;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Canvas;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import javax.imageio.ImageIO;
-import javax.swing.JProgressBar;
 
 /**
  *
@@ -311,222 +294,5 @@ public class ViewportApp implements ApplicationListener {
                 mapView.moveCameraTo(inst.pos);
                 break;
         }
-    }
-    
-    public boolean exportImg, skipExistImg, skipUnusedImg;
-        
-    public void exportFBX(Fbx6100 fbx, File fbxOut) throws Exception {
-        JProgressBar progBar = Main.getInstance().getProgressBar();
-        int k = 0;
-        
-        if (exportImg) {
-            // export textures as png
-            Collection<GtaTexture> gTexs = new ArrayList<>();
-            switch (mode) {
-                case MapNormal:
-                case MapDistance:
-                    gTexs = mapView.exportTextures(skipUnusedImg);
-                    break;
-                    
-                case SingleModel:
-                    if (gtaModel != null) {
-                        if (skipUnusedImg) {
-                            ArrayList<String> mappedNames = new ArrayList<>();
-                            String texDic = gtaModel.txdName;
-                            for (RpGeometry rGeo : gtaModel.getGeometries()) {
-                                for (RpMaterial rMat : rGeo.materials) {
-                                    if (rMat.textured) {
-                                        String nameMap = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());
-                                        if (!mappedNames.contains(nameMap))
-                                            mappedNames.add(nameMap);
-                                    }
-                                }
-                            }
-                            gTexs = GtaTextureManager.getTexturesByMapperNames(mappedNames);
-                        } else {
-                            gTexs = GtaTextureManager.getTexturesByTexDicName(gtaModel.txdName);
-                        }
-                    }
-                    break;
-                    
-                case VehicleNormal:
-                case VehicleDamaged:
-                case VehicleDistance:
-                    if (skipUnusedImg) {
-                        ArrayList<String> mappedNames = new ArrayList<>();
-                        String texDic = gtaVehicleModel.txdName;
-                        if (gtaVehicleModel != null) {
-                            for (RpGeometry rGeo : gtaVehicleModel.getGeometries()) {
-                                for (RpMaterial rMat : rGeo.materials) {
-                                    if (rMat.textured) {
-                                        String nameMap = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());
-                                        if (!mappedNames.contains(nameMap))
-                                            mappedNames.add(nameMap);
-                                    }
-                                }
-                            }
-                        }
-                        if (mode != ViewportMode.VehicleDistance && gtaWheelModel != null) {
-                            for (RpGeometry rGeo : gtaWheelModel.getGeometries()) {
-                                for (RpMaterial rMat : rGeo.materials) {
-                                    if (rMat.textured) {
-                                        String nameMap = GtaTextureManager.getMapperName(texDic, rMat.getTextureName());
-                                        if (!mappedNames.contains(nameMap))
-                                            mappedNames.add(nameMap);
-                                    }
-                                }
-                            }
-                        }
-                        gTexs = GtaTextureManager.getTexturesByMapperNames(mappedNames);
-                    } else {
-                        ArrayList<String> txdNames = new ArrayList<>();
-                        if (gtaVehicleModel != null)
-                            txdNames.add(gtaVehicleModel.txdName);
-                        if (mode != ViewportMode.VehicleDistance && gtaWheelModel != null)
-                            txdNames.add(gtaWheelModel.txdName);
-                        gTexs = GtaTextureManager.getTexturesByTexDicNames(txdNames);
-                    }
-                    break;
-            }
-            progBar.setMaximum(gTexs.size());
-            progBar.setValue(k);
-            String outPath = fbxOut.getParent() + File.separator;
-            for (GtaTexture gTex : gTexs) {
-                RpTextureNative rTex = gTex.rTex;
-                if (rTex != null) {
-                    String relName = "Textures/" + rTex.getMapperName() + ".png";
-                    progBar.setString("Exporting: " + relName);
-                    File out = new File(outPath + relName);
-                    if (!skipExistImg || !Files.exists(out.toPath())) {
-                        out.mkdirs();
-                        out.createNewFile();
-                        ImageIO.write(RwTextureHelper.toBufferedImage(gTex.rTex, 0), "png", out);
-                    }
-                }
-                progBar.setValue(++k);
-            }
-        } else {
-            progBar.setMaximum(1);
-            progBar.setValue(k);
-        }
-        
-        // export fbx file
-        progBar.setString("Exporting: " + fbxOut.getName());
-        switch (mode) {
-            case MapNormal:
-            case MapDistance:
-            case MapCollision:
-                for (GtaInstance gInst : mapView.instances) {
-                    GtaModel gModel = gInst.gModel;
-                    Vector3 pos = gInst.getFBXPosition();
-                    Vector3 rot = gInst.getFBXRotation();
-                    Vector3 scl = gInst.getScale();
-                    fbx.addGtaModel(gModel.modName, gModel.txdName, gInst, pos, rot, scl);
-                }
-                break;
-                
-            case SingleModel:
-                if (gtaModel != null) {
-                    RpClump rClump = gtaModel.rClump;
-                    ArrayList<RpGeometry> rGeos = rClump.geometries;
-                    for (RpGeometry rGeo : rGeos) {
-                        RpFrame frame = rGeo.frame;
-                        RpFrame[] frmSeq = rClump.frameList.getFrameSequence(frame);
-                        Matrix4 trn = GtaModel.createTransform(frmSeq);
-                        Vector3[] fbxTrn = rw2FbxTransform(trn);
-                        fbx.addGeometry(frame.name, gtaModel.txdName, rGeo, fbxTrn[0], fbxTrn[1], fbxTrn[2]);
-                    }
-                }
-                break;
-                
-            case VehicleNormal:
-            case VehicleDamaged:
-                // export wheels model
-                if (gtaVehicleModel != null && gtaWheelModel != null) {
-                    RpClump rClump = gtaVehicleModel.rClump;
-                    for (RpGeometry rGeo : gtaWheelModel.getGeometries()) {
-                        RpFrame frame = rGeo.frame;
-                        RpFrame[] frmSeq = rClump.frameList.getFrameSequence(frame);
-                        Matrix4 trn = GtaModel.createTransform(frmSeq);
-                        if (frame.name.startsWith("wheel_l"))
-                            trn.rotate(0, 1, 0, 180);
-                        trn.scl(gtaWheelModel.getScale());
-                        Vector3[] fbxTrn = rw2FbxTransform(trn);
-                        fbx.addGeometry(frame.name, gtaWheelModel.txdName, rGeo, fbxTrn[0], fbxTrn[1], fbxTrn[2]);
-                    }
-                }
-                
-            case VehicleDistance:
-                //export vehicle main model
-                if (gtaVehicleModel != null) {
-                    RpClump rClump = gtaVehicleModel.rClump;
-                    for (RpGeometry rGeo : gtaVehicleModel.getGeometries()) {
-                        RpFrame frame = rGeo.frame;
-                        RpFrame[] frmSeq = rClump.frameList.getFrameSequence(frame);
-                        Matrix4 trn = GtaModel.createTransform(frmSeq);
-                        Vector3[] fbxTrn = rw2FbxTransform(trn);
-                        fbx.addGeometry(frame.name, gtaVehicleModel.txdName, rGeo, fbxTrn[0], fbxTrn[1], fbxTrn[2]);
-                    }
-                }
-                break;
-        }
-        fbx.export(fbxOut);
-        fbx.dispose();
-        progBar.setValue(++k);
-    }
-    
-    static Vector3[] gl2FbxTransform(Matrix4 trn) {
-        Vector3 pos = new Vector3();
-        Vector3 rot = new Vector3();
-        Vector3 scl = new Vector3();
-        
-        trn.getTranslation(pos);
-        trn.getScale(scl);
-        Quaternion quat = trn.getRotation(new Quaternion());
-        rot.x = quat.getRoll();
-        rot.y = quat.getPitch();
-        rot.z = quat.getYaw();
-        
-        return new Vector3[] { pos, rot, scl };
-    }
-    
-    static Vector3[] rw2FbxTransform(Matrix4 trn) {
-        Vector3 pos = new Vector3();
-        Vector3 scl = new Vector3();
-        
-        // get scale
-        trn.getScale(scl);
-        
-        // get position
-        Vector3 tmp = trn.getTranslation(new Vector3());
-        pos.set(tmp.x, tmp.z, -tmp.y);
-        
-        // get rotation
-        Quaternion quat = trn.getRotation(new Quaternion());
-        quat.w = -quat.w; // (-x, z, -y, w) -> [z-up to y-up] -> (-x, -y, -z, w) <=> (x, y, z, -w)
-        Vector3 rot = toEuler(quat);
-        
-        return new Vector3[] { pos, rot, scl };
-    }
-    
-    static Vector3 toEuler(Quaternion quat) {
-        // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-        Vector3 rot = new Vector3();
-        float x = quat.x;
-        float y = quat.y;
-        float z = quat.z;
-        float w = quat.w;
-        double ysqr = y * y;
-	double t0 = -2.0f * (ysqr + z * z) + 1.0f;
-	double t1 = +2.0f * (x * y - w * z);
-	double t2 = -2.0f * (x * z + w * y);
-	double t3 = +2.0f * (y * z - w * x);
-	double t4 = -2.0f * (x * x + ysqr) + 1.0f;
-	t2 = t2 > 1.0f ? 1.0f : t2;
-	t2 = t2 < -1.0f ? -1.0f : t2;
-        rot.x = (float)Math.toDegrees(Math.atan2(t3, t4)); // roll
-	rot.y = (float)Math.toDegrees(Math.asin(t2)); // pitch
-	rot.z = (float)Math.toDegrees(Math.atan2(t1, t0)); // yaw
-        return rot;
     }
 }

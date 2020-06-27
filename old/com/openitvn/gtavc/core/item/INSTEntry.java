@@ -19,6 +19,7 @@ package com.openitvn.gtavc.core.item;
 
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.openitvn.unicore.data.BufferStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -84,18 +85,17 @@ public class INSTEntry extends NULLEntry {
     }
     
     // binary format, only SA
-    public INSTEntry(ByteBuffer bb, int bbOffset, int groupId) {
+    public INSTEntry(BufferStream bs, int groupId) {
         super(groupId);
-        bb.position(bbOffset);
-        pos = new Vector3( bb.getFloat(), bb.getFloat(), bb.getFloat() );
+        pos = new Vector3( bs.getFloat(), bs.getFloat(), bs.getFloat() );
         scl = new Vector3 ( 1, 1, 1 );
-        rot.x = bb.getFloat();
-        rot.y = bb.getFloat();
-        rot.z = bb.getFloat();
-        rot.w = bb.getFloat();
-        modId = bb.getInt();
-        interior = bb.getInt();
-        lodId = bb.getInt();
+        rot.x = bs.getFloat();
+        rot.y = bs.getFloat();
+        rot.z = bs.getFloat();
+        rot.w = bs.getFloat();
+        modId = bs.getInt();
+        interior = bs.getInt();
+        lodId = bs.getInt();
     }
     
     @Override

@@ -88,11 +88,9 @@ public class RpGeometry extends RpSection {
         // vertices data
         if ((fmt & GEOMETRYNATIVE) == 0) {
             // prelit
-            prelit = new RpColor[numVerts];
             if ((fmt & GEOMETRYPRELIT) != 0) {
-                int i = 0;
                 for (IVertex v : verts) {
-                    RpColor c = prelit[i++] = new RpColor(bb);
+                    RpColor c = new RpColor(bb);
                     v.setColor(c.r, c.g, c.b, c.a);
                 }
             }
@@ -171,99 +169,7 @@ public class RpGeometry extends RpSection {
         }
     }
     
-//    @Deprecated
-//    public RpFrame frame;
-//    
-//    @Override
-//    @Deprecated
-//    public Object clone() throws CloneNotSupportedException{  
-//        return super.clone();  
-//    }
-//    
-//    @Deprecated
-//    public int getTexCoordCount() {
-//        return (texCoords == null) ? 0 : texCoords.length;
-//    }
-//    
-//    @Deprecated
-//    public Vector2[][] getTexCoords() {
-//        return texCoords;
-//    }
-//    
-//    @Deprecated
-//    public Vector2[] getTexCoord(int setId) {
-//        return (setId < texCoords.length) ? texCoords[setId] : null;
-//    }
-//    
-//    @Deprecated
-//    public int getVertexCount() {
-//        return vertices.length;
-//    }
-//    
-//    @Deprecated
-//    public Vector3[] getVertices() {
-//        return vertices;
-//    }
-//    
-//    @Deprecated
-//    public boolean hasNormal() {
-//        return normals != null;
-//    }
-//    
-//    @Deprecated
-//    public Vector3[] getNormals() {
-//        return normals;
-//    }
-//    
-//    @Deprecated
-//    public boolean hasVertexColor() {
-//        return prelit != null;
-//    }
-//    
-//    @Deprecated
-//    public RpColor[] getVertexColor() {
-//        return prelit;
-//    }
-//    
-//    @Deprecated
-//    public int getIndexCount() {
-//        return triangles.length * 3;
-//    }
-//    
-//    @Deprecated
-//    public short[] getIndices(int matId) {
-//        ArrayList<Short> ids = new ArrayList<>();
-//        for (RwTriangle tri : triangles) {
-//            if (tri.materialId == matId) {
-//                ids.add(tri.vertex1);
-//                ids.add(tri.vertex2);
-//                ids.add(tri.vertex3);
-//            }
-//        }
-//        short[] rs = new short[ids.size()];
-//        for(int i = 0; i < rs.length; i++)
-//            rs[i] = ids.get(i);
-//        return rs;
-//    }
-//    
-//    @Deprecated
-//    public RwTriangle[] getTriangles() {
-//        return triangles;
-//    }
-//    
-//    @Deprecated
-//    public RwTriangle[] getTriangles(int matId) {
-//        ArrayList<RwTriangle> rs = new ArrayList<>();
-//        for (RwTriangle tri : triangles) {
-//            if (tri.materialId == matId)
-//                rs.add(tri);
-//        }
-//        return rs.toArray(new RwTriangle[rs.size()]);
-//    }
-    
-    
     //<editor-fold defaultstate="collapsed" desc="Deprecated">
-    @Deprecated public RpColor[] prelit;
     @Deprecated private Vector2[][] texCoords;
     @Deprecated private RpTriangle[] triangles;
     @Deprecated private IVertex[] vertices;
@@ -287,11 +193,6 @@ public class RpGeometry extends RpSection {
     }
     
     @Deprecated
-    public Vector2[] getTexCoord(int setId) {
-        return (setId < texCoords.length) ? texCoords[setId] : null;
-    }
-    
-    @Deprecated
     public int getVertexCount() {
         return vertices.length;
     }
@@ -309,11 +210,6 @@ public class RpGeometry extends RpSection {
     @Deprecated
     public Vector3[] getNormals() {
         return normals;
-    }
-    
-    @Deprecated
-    public RpTriangle[] getTriangles() {
-        return triangles;
     }
     
     @Deprecated

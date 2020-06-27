@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Thinh Pham <mrlordkaj@gmail.com>
+ * Copyright (C) 2016 Thinh Pham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author Thinh Pham <mrlordkaj@gmail.com>
+ * @author Thinh Pham
  */
 public class GtaWheelModel extends GtaModel {
     

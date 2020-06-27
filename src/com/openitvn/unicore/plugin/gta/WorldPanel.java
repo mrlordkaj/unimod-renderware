@@ -94,9 +94,6 @@ public final class WorldPanel extends PanelViewer {
         // prepare world world
         world = WorldFactory.create("GTA World");
         world.setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
-//        world.setInfo(new String[] {
-//            "GTA III World Viewer"
-//        });
         world.layers.add(new ILayer(LAYER_NORMAL, "Normal Map", true));
         world.layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
         world.layers.add(new ILayer(LAYER_COLLISION, "Collision Map", false));
@@ -310,14 +307,14 @@ public final class WorldPanel extends PanelViewer {
             // load txd from resource
             try (RwArchiveEntry e = res.findEntry(objs.txdName + ".txd");
                     BufferStream bs = e.toDataStream()) {
-                grand = RpSection.fromData(bs, null);
+                grand = RpSection.loadSection(bs, null);
                 for (RpTextureNative texData : grand.getChildren(RpTextureNative.class)) {
                     texNavMap.put(texData.textureName.toLowerCase(), texData);
                     String texName = texData.getMapperName();
                     // register new texture when missing
                     if (world.resource.findTexture(texName) == null) {
-                        RwTexture rTex = new RwTexture(texName, texData);
-                        world.resource.register(rTex);
+                        RwTexture tex = new RwTexture(texName, texData);
+                        world.resource.register(tex);
                         reg.texNames.add(texName);
                     }
                 }
@@ -333,9 +330,10 @@ public final class WorldPanel extends PanelViewer {
         // load model
         try (RwArchiveEntry e = res.findEntry(objs.modName + ".dff");
                 BufferStream ds = e.toDataStream()) {
-            while ((grand = RpSection.loadRoot(ds)) instanceof RpClump) {
+            RpClump clump;
+            while ((clump = RpSection.loadRoot(ds, RpClump.class)) != null) {
                 // only load root geometry as model
-                RpGeometry geoData = ((RpClump)grand).getRootGeometry();
+                RpGeometry geoData = clump.getRootGeometry();
                 if (geoData != null) {
                     IModel mod = new IModel(objs.modName);
                     reg.modNames.add(objs.modName);
@@ -494,8 +492,9 @@ public final class WorldPanel extends PanelViewer {
             world.resource.deleteModels(reg.modNames, true);
             world.resource.deleteMaterials(reg.matNames, true);
             world.resource.deleteTextures(reg.texNames, true);
-            for (String colName : reg.colNames)
+            for (String colName : reg.colNames) {
                 collisionMap.remove(colName);
+            }
             groupRegistryMap.remove(groupName);
         }
     }
@@ -515,8 +514,9 @@ public final class WorldPanel extends PanelViewer {
                     pathMap.put(modName, entry);
                 } else {
                     // skip ped
-                    for (int i = 0; i < 12; i++)
+                    for (int i = 0; i < 12; i++) {
                         br.readLine();
+                    }
                 }
             }
         } else {
@@ -609,8 +609,9 @@ public final class WorldPanel extends PanelViewer {
             ArrayList<PathNode> straightPorts = new ArrayList<>();
             for (PathSegment seg : group.getChildrenByClass(PathSegment.class)) {
                 ArrayList<PathNode> segPorts = seg.getPorts();
-                if (!seg.isCross())
+                if (!seg.isCross()) {
                     straightPorts.addAll(segPorts);
+                }
                 // collects all ports for fix step
                 allPorts.addAll(segPorts);
             }

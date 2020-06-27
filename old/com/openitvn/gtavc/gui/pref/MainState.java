@@ -40,10 +40,13 @@ public class MainState {
     public int dividerLocation;
     
     private final Preferences prefs = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
-    private static MainState _instance;
+    
+    private static MainState instance;
     public static MainState getInstance() {
-        if(_instance == null) _instance = new MainState();
-        return _instance;
+        if (instance == null) {
+            instance = new MainState();
+        }
+        return instance;
     }
     
     private MainState() {
@@ -57,13 +60,12 @@ public class MainState {
     
     public void saveWindowState(Main mainFrame) {
         windowExtendedState = mainFrame.getExtendedState();
-        if(windowExtendedState == JFrame.NORMAL) {
+        if (windowExtendedState == JFrame.NORMAL) {
             windowTop = mainFrame.getY();
             windowLeft = mainFrame.getX();
             windowWidth = mainFrame.getWidth();
             windowHeight = mainFrame.getHeight();
         }
-        
         prefs.putInt(WINDOW_EXTENDED_STATE, windowExtendedState);
         prefs.putInt(WINDOW_TOP, windowTop);
         prefs.putInt(WINDOW_LEFT, windowLeft);

@@ -32,7 +32,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.engine.renderware.struct.RpFrame;
 import com.openitvn.engine.renderware.RpType;
-import com.openitvn.gtavc.core.RwLoader;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
 import com.openitvn.engine.renderware.RpClump;
@@ -40,12 +39,14 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.engine.renderware.struct.RpColor;
 import com.openitvn.gtavc.core.GtaAssetModel;
 import com.openitvn.gtavc.core.GtaCollision;
 import com.openitvn.gtavc.core.item.OBJSEntry;
+import com.openitvn.unicore.data.BufferStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,8 +75,9 @@ public class GtaModel {
         this.meshType = meshType;
         this.modName = modName;
         this.txdName = txdName;
-        byte[] data = GtaAssetModel.getInstance().extract(modName + ".dff");
-        rClump = (RpClump) RwLoader.loadFromBuffer(data);
+        try (BufferStream bs = GtaAssetModel.getInstance().extract(modName + ".dff")) {
+            rClump = RpSection.loadRoot(bs, RpClump.class);
+        } catch (NullPointerException ex) { }
     }
     
     public Model getModel() {

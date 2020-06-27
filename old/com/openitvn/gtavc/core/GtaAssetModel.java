@@ -18,6 +18,7 @@ package com.openitvn.gtavc.core;
 
 import com.openitvn.format.img.RwArchive;
 import com.openitvn.format.img.RwArchiveEntry;
+import com.openitvn.unicore.data.BufferStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -86,7 +87,7 @@ public class GtaAssetModel extends AbstractTableModel {
                 return getEntry(row).getName();
 
             case COL_TYPE:
-                return getEntry(row).getType();
+                return getEntry(row).getExt();
 
             case COL_SIZE:
                 long size = getEntry(row).getSize();
@@ -100,12 +101,12 @@ public class GtaAssetModel extends AbstractTableModel {
         return assetMap.values().stream().skip(i).findFirst().get();
     }
     
-    public byte[] extract(String name) throws IOException {
-        try {
-            return assetMap.get(name.toLowerCase()).getData();
-        } catch (NullPointerException ex) {
-            return null;
+    public BufferStream extract(String name) throws IOException {
+        RwArchiveEntry entry = assetMap.get(name.toLowerCase());
+        if (entry != null) {
+            return entry.toDataStream();
         }
+        return null;
     }
     
     public void addArchive(String imgName) {

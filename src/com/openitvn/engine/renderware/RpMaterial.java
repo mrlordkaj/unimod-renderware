@@ -62,14 +62,4 @@ public class RpMaterial extends RpSection {
     public String getTextureName() {
         return textured ? texture.textureName : "";
     }
-    
-    @Deprecated
-    public RpTexture getTexture() {
-        return texture;
-    }
-    
-    @Deprecated
-    public String getMaskName() {
-        return textured ? texture.maskName : "";
-    }
 }

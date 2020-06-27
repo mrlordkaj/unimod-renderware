@@ -17,7 +17,6 @@
 package com.openitvn.engine.renderware;
 
 import com.openitvn.unicore.data.DataStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -32,14 +31,14 @@ import javax.swing.tree.TreeNode;
  */
 public class RpSection implements TreeNode {
     
-    private static int libraryIDPack(int ver, int build) {
-        if (ver <= 0x31000) {
-            return ver >> 8;
-        }
-        return ((ver - 0x30000 & 0x3ff00) << 14) |
-               ((ver           & 0x0003f) << 16) |
-               ((build         & 0x0ffff));
-    }
+//    private static int libraryIDPack(int ver, int build) {
+//        if (ver <= 0x31000) {
+//            return ver >> 8;
+//        }
+//        return ((ver - 0x30000 & 0x3ff00) << 14) |
+//               ((ver           & 0x0003f) << 16) |
+//               ((build         & 0x0ffff));
+//    }
     
     private static int libraryIDUnpackVersion(int libId) {
         if ((libId & 0xffff0000) != 0)
@@ -55,15 +54,27 @@ public class RpSection implements TreeNode {
     }
     
     public static RpSection loadRoot(DataStream ds) {
-        return fromData(ds, null);
+        return loadRoot(ds, RpSection.class);
     }
     
-    public static RpSection fromData(DataStream ds, RpSection parent) {
-        if (ds.remaining() < 12)
+    public static <T extends RpSection> T loadRoot(DataStream ds, Class<T> type) {
+        try {
+            RpSection root = loadSection(ds, null);
+            root.getClass().asSubclass(type);
+            return (T) root;
+        } catch (ClassCastException ex) {
+            return null;
+        }
+    }
+    
+    public static RpSection loadSection(DataStream ds, RpSection parent) {
+        if (ds.remaining() < 12) {
             return null; // section below 12 bytes makes no sense
+        }
         int typeId = ds.getInt();
-        if (typeId == 0)
+        if (typeId == 0) {
             return null; // file padding with 0
+        }
         int size = ds.getInt();
         int libId = ds.getInt();
         RpType type = RpType.getType(typeId);
@@ -136,20 +147,12 @@ public class RpSection implements TreeNode {
 //        dumpName.append(toString());
 //        System.out.println(dumpName.toString());
         
-        parseChildren(ds);
-    }
-    
-    /**
-     * TODO: Adapt with previous application,
-     * will be removed in futher release.
-     */
-    @Deprecated
-    protected void parseChildren(DataStream ds) {
+        // parse children sections
         if (type.isContainer) {
             // parse children
             long endPos = ds.position() + size;
             while (ds.position() < endPos) {
-                children.add(fromData(ds, RpSection.this));
+                children.add(loadSection(ds, RpSection.this));
             }
         } else {
             // get data
@@ -242,16 +245,5 @@ public class RpSection implements TreeNode {
     @Override
     public Enumeration children() {
         return Collections.enumeration(children);
-    }
-    
-    @Deprecated
-    public byte[] toData() throws IOException {
-        ByteBuffer bb = ByteBuffer.allocate(12 + size);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        bb.putInt(type.id);
-        bb.putInt(size);
-        bb.putInt(libraryIDPack(version, build));
-        bb.put(data.array());
-        return bb.array();
     }
 }

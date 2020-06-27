@@ -16,6 +16,7 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
+import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.format.dff.RwModel;
 import com.openitvn.format.img.RwArchiveEntry;
 import com.openitvn.unicore.world.WorldFactory;
@@ -34,9 +35,9 @@ import javax.swing.table.TableRowSorter;
  */
 public final class ResourcePanel extends PanelViewer {
     
-    private RwArchiveEntry sel;
-    private RwModel viewer;
     private final ResourceModel resModel = ResourceModel.getInstance();
+    private RwArchiveEntry selected;
+    private RwModel viewer;
     
     public ResourcePanel() {
         initComponents();
@@ -52,8 +53,8 @@ public final class ResourcePanel extends PanelViewer {
     }
     
     @Override
-    public void workspaceChanged(Workspace w) {
-        GameConfig.setWorkspace(w);
+    public void workspaceChanged(Workspace space) {
+        GameConfig.setWorkspace(space);
         lblInfo.setText(String.format("Total %1$d entries", resModel.entries.size()));
     }
     
@@ -72,18 +73,14 @@ public final class ResourcePanel extends PanelViewer {
                 if (row >= 0 && !evt.getValueIsAdjusting()) {
                     int id = resTable.convertRowIndexToModel(row);
                     ResourceModel res = ResourceModel.getInstance();
-                    RwArchiveEntry e = res.entries.get(id);
-                    String name = e.getName().toLowerCase();
-                    if (name.endsWith(".dff")) {
-                        String modName = name.substring(0, name.length() - 4);
-                        String txdName = res.dffTxdMap.get(modName);
-                        lblInfo.setText(String.format("%1$s < %2$s", modName, txdName));
-                        WorldFactory.unregister(viewer);
-                        viewer = new RwModel(modName);
-                        res.extractModel(viewer);
-                        viewer.construct(viewer.resource);
-                        WorldFactory.register(viewer);
-                        WorldFactory.focusTo(viewer);
+                    selected = res.entries.get(id);
+                    String type = selected.getExt().toLowerCase();
+                    String name = selected.getNameWithoutExt();
+                    if (type.equals("dff")) {
+                        String txdName = res.findTexDicByModel(name);
+                        lblInfo.setText(String.format("%1$s | %2$s", name, txdName));
+                    } else {
+                        lblInfo.setText(name);
                     }
                 }
             }
@@ -96,6 +93,8 @@ public final class ResourcePanel extends PanelViewer {
 
         mnuEntry = new javax.swing.JPopupMenu();
         mnuOpen = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        mnuDump = new javax.swing.JMenuItem();
         jScrollPane1 = new javax.swing.JScrollPane();
         resTable = new javax.swing.JTable() {
             public String getToolTipText(MouseEvent evt) {
@@ -112,7 +111,21 @@ public final class ResourcePanel extends PanelViewer {
         lblInfo = new javax.swing.JLabel();
 
         mnuOpen.setText("Open...");
+        mnuOpen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuOpenActionPerformed(evt);
+            }
+        });
         mnuEntry.add(mnuOpen);
+        mnuEntry.add(jSeparator1);
+
+        mnuDump.setText("Dump...");
+        mnuDump.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuDumpActionPerformed(evt);
+            }
+        });
+        mnuEntry.add(mnuDump);
 
         setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 4, 4, 4));
         setMinimumSize(new java.awt.Dimension(200, 200));
@@ -126,6 +139,9 @@ public final class ResourcePanel extends PanelViewer {
         resTable.setShowVerticalLines(false);
         resTable.getTableHeader().setResizingAllowed(false);
         resTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                resTableMouseClicked(evt);
+            }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
                 resTableMouseReleased(evt);
             }
@@ -169,22 +185,63 @@ public final class ResourcePanel extends PanelViewer {
     }//GEN-LAST:event_txtSearchKeyReleased
 
     private void resTableMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_resTableMouseReleased
-        int x = evt.getX();
-        int y = evt.getY();
         if (evt.getButton() == MouseEvent.BUTTON3) {
             int row = resTable.rowAtPoint(evt.getPoint());
             resTable.setRowSelectionInterval(row, row);
         }
         int id = resTable.convertRowIndexToModel(resTable.getSelectedRow());
         if (evt.isPopupTrigger() && id > -1) {
-            sel = ResourceModel.getInstance().getEntry(id);
+            int x = evt.getX();
+            int y = evt.getY();
             mnuEntry.show(evt.getComponent(), x, y);
         }
     }//GEN-LAST:event_resTableMouseReleased
+
+    private void mnuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuOpenActionPerformed
+        if (selected != null) {
+            String type = selected.getExt().toLowerCase();
+            String name = selected.getNameWithoutExt();
+            ResourceModel res = ResourceModel.getInstance();
+            switch (type) {
+                case "dff":
+                    WorldFactory.unregister(viewer);
+                    viewer = new RwModel(name);
+                    res.extractModel(viewer);
+                    viewer.construct(viewer.resource);
+                    WorldFactory.register(viewer);
+                    WorldFactory.focusTo(viewer);
+                    break;
+                    
+                case "txd":
+                    
+                    break;
+            }
+        }
+    }//GEN-LAST:event_mnuOpenActionPerformed
+
+    private void resTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_resTableMouseClicked
+        if (evt.getClickCount() >= 2) {
+            mnuOpenActionPerformed(null);
+            evt.consume();
+        }
+    }//GEN-LAST:event_resTableMouseClicked
+
+    private void mnuDumpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuDumpActionPerformed
+        if (selected != null) {
+            String type = selected.getExt().toLowerCase();
+            if (type.equals("txd") || type.equals("dff")) {
+                RwDumper dlg = RwDumper.getInstance();
+                dlg.openEntry(selected);
+                dlg.setVisible(true);
+            }
+        }
+    }//GEN-LAST:event_mnuDumpActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JLabel lblInfo;
+    private javax.swing.JMenuItem mnuDump;
     private javax.swing.JPopupMenu mnuEntry;
     private javax.swing.JMenuItem mnuOpen;
     private javax.swing.JTable resTable;
