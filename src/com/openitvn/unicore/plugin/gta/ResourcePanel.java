@@ -58,7 +58,6 @@ public final class ResourcePanel extends PanelViewer {
     @Override
     public void workspaceChanged(Workspace space) {
         GameConfig.setWorkspace(space);
-        lblInfo.setText(String.format("Total %1$d entries", resModel.entries.size()));
     }
     
     private void initResourceTable() {
@@ -77,14 +76,6 @@ public final class ResourcePanel extends PanelViewer {
                     int id = resTable.convertRowIndexToModel(row);
                     ResourceModel res = ResourceModel.getInstance();
                     selected = res.entries.get(id);
-                    String type = selected.getExt().toLowerCase();
-                    String name = selected.getNameWithoutExt();
-                    if (type.equals("dff")) {
-                        String txdName = res.findTexDicByModel(name);
-                        lblInfo.setText(String.format("%1$s | %2$s", name, txdName));
-                    } else {
-                        lblInfo.setText(name);
-                    }
                 }
             }
         });
@@ -104,14 +95,14 @@ public final class ResourcePanel extends PanelViewer {
                 int row = resTable.rowAtPoint(evt.getPoint());
                 if (row >= 0) {
                     row = resTable.convertRowIndexToModel(row);
-                    IArchiveEntry e = ResourceModel.getInstance().getEntry(row);
+                    ResourceModel res = ResourceModel.getInstance();
+                    IArchiveEntry e = res.entries.get(row);
                     return e.getArchive().getFile().toString();
                 }
                 return null;
             }
         };
         txtSearch = new com.openitvn.control.UCTextField();
-        lblInfo = new javax.swing.JLabel();
 
         mnuOpen.setText("Open...");
         mnuOpen.addActionListener(new java.awt.event.ActionListener() {
@@ -158,26 +149,19 @@ public final class ResourcePanel extends PanelViewer {
             }
         });
 
-        lblInfo.setText("<info>");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE)
             .addComponent(txtSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(lblInfo)
-                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lblInfo))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 166, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -249,7 +233,6 @@ public final class ResourcePanel extends PanelViewer {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
-    private javax.swing.JLabel lblInfo;
     private javax.swing.JMenuItem mnuDump;
     private javax.swing.JPopupMenu mnuEntry;
     private javax.swing.JMenuItem mnuOpen;

@@ -49,105 +49,106 @@ public abstract class GameConfig {
     }
     
     public static ArrayList<String> getMainArchives() {
-        ArrayList<String> ret = new ArrayList<>();
+        ArrayList<String> rs = new ArrayList<>();
         switch (workspace.name) {
             case ALIAS_III:
-                ret.add("models/txd.img");
+                rs.add("models/txd.img");
                 break;
         }
-        ret.add("models/gta3.img");
-        return ret;
+        rs.add("models/gta3.img");
+        return rs;
     }
     
     public static ArrayList<String> getLoaders() {
-        ArrayList<String> ret = new ArrayList<>();
-        ret.add("/data/default.dat");
+        ArrayList<String> rs = new ArrayList<>();
+        rs.add("/data/default.dat");
         switch (workspace.name) {
             case ALIAS_III:
-                ret.add("/data/gta3.dat");
-                ret.add("/data/animviewer.dat");
+                rs.add("/data/gta3.dat");
+                rs.add("/data/animviewer.dat");
                 break;
                 
             case ALIAS_VC:
-                ret.add("/data/gta_vc.dat");
+                rs.add("/data/gta_vc.dat");
                 break;
                 
             case ALIAS_SA:
-                ret.add("/data/gta.dat");
+                rs.add("/data/gta.dat");
                 break;
         }
-        return ret;
+        return rs;
     }
     
     public static ArrayList<String> getDependencies() {
-        ArrayList<String> ret = new ArrayList<>();
+        ArrayList<String> rs = new ArrayList<>();
         switch (workspace.name) {
             case ALIAS_III:
-                ret.add("default.ide");
+                rs.add("default.ide");
                 break;
                 
             case ALIAS_VC:
-                ret.add("default.ide");
+                rs.add("default.ide");
                 break;
                 
             case ALIAS_SA:
-                ret.add("default.ide");
-                ret.add("vehicles.ide");
-                ret.add("peds.ide");
+                rs.add("default.ide");
+                rs.add("vehicles.ide");
+                rs.add("peds.ide");
                 break;
         }
-        return ret;
+        return rs;
     }
     
     public static ArrayList<String> getDependencies(ArrayList<String> ipls) {
-        ArrayList<String> ret = new ArrayList<>();
+        ArrayList<String> rs = new ArrayList<>();
         for (String ipl : ipls) {
             for (String dp : GameConfig.getDependencies(ipl)) {
-                if (!ret.contains(dp))
-                    ret.add(dp);
+                if (!rs.contains(dp)) {
+                    rs.add(dp);
+                }
             }
         }
-        return ret;
+        return rs;
     }
     
     public static ArrayList<String> getDependencies(String ipl) {
-        ArrayList<String> ret = new ArrayList<>();
+        ArrayList<String> rs = new ArrayList<>();
         if (ipl.toLowerCase().endsWith(".ipl")) {
             switch (workspace.name) {
                 case ALIAS_III:
-                    ret.add("generic.ide");
-                    ret.add("making.ide");
-                    ret.add("temppart.ide");
-                    ret.add("subroads.ide");
+                    rs.add("generic.ide");
+                    rs.add("making.ide");
+                    rs.add("temppart.ide");
+                    rs.add("subroads.ide");
                     if (ipl.startsWith("COM"))
-                        ret.add("comroad.ide");
+                        rs.add("comroad.ide");
                     if (ipl.startsWith("INDUST"))
-                        ret.add("indroads.ide");
+                        rs.add("indroads.ide");
                     break;
 
                 case ALIAS_VC:
-                    ret.add("generic.ide");
+                    rs.add("generic.ide");
                     break;
 
                 case ALIAS_SA:
                     // load generic
                     String loc = workspace.location + "/data/maps/";
                     for (File f : new File(loc+"generic").listFiles())
-                        ret.add(f.getName());
+                        rs.add(f.getName());
                     // load xref
                     if (ipl.startsWith("vega"))
-                        ret.add("vegaxref.ide");
+                        rs.add("vegaxref.ide");
                     if (ipl.startsWith("coun"))
-                        ret.add("counxref.ide");
+                        rs.add("counxref.ide");
                     if (ipl.startsWith("LA"))
-                        ret.add("LAxref.ide");
+                        rs.add("LAxref.ide");
                     if (ipl.startsWith("SF"))
-                        ret.add("SFxref.ide");
+                        rs.add("SFxref.ide");
                     break;
             }
-            ret.add(ipl.substring(0, ipl.length() - 4) + ".ide"); // .ipl replaced by .ide
+            rs.add(ipl.substring(0, ipl.length() - 4) + ".ide"); // .ipl replaced by .ide
         }
-        return ret;
+        return rs;
     }
     
     public static File getVehicleScript() {
@@ -156,55 +157,56 @@ public abstract class GameConfig {
     }
     
     public static HashMap<Integer, String> getWheelNameMap() {
-        HashMap<Integer, String> ret = new HashMap<>();
+        HashMap<Integer, String> rs = new HashMap<>();
         switch (workspace.name) {
             case ALIAS_III:
-                ret.put(160, "wheel_sport");
-                ret.put(161, "wheel_saloon");
-                ret.put(162, "wheel_lightvan");
-                ret.put(163, "wheel_classic");
-                ret.put(164, "wheel_alloy");
-                ret.put(165, "wheel_lighttruck");
-                ret.put(166, "wheel_smallcar");
+                rs.put(160, "wheel_sport");
+                rs.put(161, "wheel_saloon");
+                rs.put(162, "wheel_lightvan");
+                rs.put(163, "wheel_classic");
+                rs.put(164, "wheel_alloy");
+                rs.put(165, "wheel_lighttruck");
+                rs.put(166, "wheel_smallcar");
                 break;
                 
             case ALIAS_VC:
-                ret.put(237, "wheel_rim");
-                ret.put(238, "wheel_offroad");
-                ret.put(239, "wheel_truck");
-                ret.put(250, "wheel_sport");
-                ret.put(251, "wheel_saloon");
-                ret.put(252, "wheel_lightvan");
-                ret.put(253, "wheel_classic");
-                ret.put(254, "wheel_alloy");
-                ret.put(255, "wheel_lighttruck");
-                ret.put(256, "wheel_smallcar");
+                rs.put(237, "wheel_rim");
+                rs.put(238, "wheel_offroad");
+                rs.put(239, "wheel_truck");
+                rs.put(250, "wheel_sport");
+                rs.put(251, "wheel_saloon");
+                rs.put(252, "wheel_lightvan");
+                rs.put(253, "wheel_classic");
+                rs.put(254, "wheel_alloy");
+                rs.put(255, "wheel_lighttruck");
+                rs.put(256, "wheel_smallcar");
                 break;
         }
-        return ret;
+        return rs;
     }
     
     @Deprecated
     public static ArrayList<Integer> getWheelIds() {
-        ArrayList<Integer> ret = new ArrayList<>();
+        ArrayList<Integer> rs = new ArrayList<>();
         switch (workspace.name) {
             case ALIAS_III:
                 for (int i = 160; i <= 169; i++)
-                    ret.add(i);
+                    rs.add(i);
                 break;
                 
             case ALIAS_VC:
                 for (int i = 250; i <= 257; i++)
-                    ret.add(i);
+                    rs.add(i);
                 break;
         }
-        return ret;
+        return rs;
     }
     
     @Deprecated
     public static void setWorkspaceOld(Workspace space) {
         if (space != workspace) {
             workspace = space;
+            ResourceModel.getInstance().load(space);
             Workspace.setActive(space, 0x240691);
         }
     }

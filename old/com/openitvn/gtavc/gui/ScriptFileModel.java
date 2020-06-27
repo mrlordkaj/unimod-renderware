@@ -17,7 +17,6 @@
 
 package com.openitvn.gtavc.gui;
 
-import com.openitvn.gtavc.core.GtaAssetModel;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import com.openitvn.gtavc.core.item.INSTEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
@@ -25,8 +24,10 @@ import com.openitvn.gtavc.core.item.NULLEntry;
 import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.maintain.Logger;
-import com.openitvn.unicore.data.DataStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
+import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
 import com.openitvn.unicore.plugin.gta.WorldScriptType;
 import java.io.BufferedReader;
@@ -43,7 +44,7 @@ import javax.swing.table.AbstractTableModel;
  * @author Thinh Pham
  */
 public class ScriptFileModel extends AbstractTableModel {
-    private static final String[] COLUMNS = {"", "ID", "Name", "Type"};
+    public static final String[] COLUMNS = {"", "ID", "Name", "Type"};
     public static final int COL_ACTIVE = 0;
     public static final int COL_INDEX = 1;
     public static final int COL_NAME = 2;
@@ -145,24 +146,7 @@ public class ScriptFileModel extends AbstractTableModel {
                             entries.add(new WorldScriptEntry(entries.size(), args[1], WorldScriptType.IPL));
                             break;
                             
-                        case "IMG":
-                            GtaAssetModel.getInstance().addArchive(args[1]);
-                            break;
-                            
-                        case "SPLASH":
-                            continue;
-                            
-                        case "TEXDICTION":
-                        case "MODELFILE":
-                        case "MAPZONE":
-                            String path = args[0].equals("COLFILE") ? args[2] : args[1];
-//                            AssetModel.getInstance().addFile(path);
-                            GtaAssetModel.getInstance().addArchive(path);
-                            break;
-                            
                         default:
-                            if (args.length > 1)
-                                Logger.printWarning(line);
                             continue;
                     }
                     Logger.printNormal(line);
@@ -226,21 +210,24 @@ public class ScriptFileModel extends AbstractTableModel {
         // for GTA SA only, read extra binary stream inside img file
         try {
             ArrayList<NULLEntry> items = scriptItemModel.getEntries();
-            GtaAssetModel assetModel = GtaAssetModel.getInstance();
+            ResourceModel res = ResourceModel.getInstance();
             for (WorldScriptEntry group : entries) {
                 if (group.getName().toLowerCase().endsWith(".ipl")) {
                     String name = group.getName();
                     String prefix = name.substring(0, name.length() - 4).concat("_stream");
-                    int streamId = 0;
-                    DataStream bs;
-                    while ((bs = assetModel.extract(prefix + streamId + ".ipl")) != null) {
-                        bs.position(4); //skips "bnry"
-                        int instCount = bs.getInt();
-                        bs.position(0x4C); // offset of item instances, 0x4C by default
-                        for (int i = 0; i < instCount; i++) {
-                            items.add(new INSTEntry(bs, group.getIndex()));
+                    int id = 0;
+                    IArchiveEntry entry;
+                    while ((entry = res.findEntry(prefix + id, "ipl")) != null) {
+                        try (EntryStream es = new EntryStream(entry)) {
+                            es.position(4); //skips "bnry"
+                            int instCount = es.getInt();
+                            es.position(0x4C); // offset of item instances, 0x4C by default
+                            for (int i = 0; i < instCount; i++) {
+                                INSTEntry inst = new INSTEntry(es, group.getIndex());
+                                items.add(inst);
+                            }
                         }
-                        streamId++;
+                        id++;
                     }
                 }
             }

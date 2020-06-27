@@ -18,7 +18,6 @@ package com.openitvn.gtavc.gui;
 
 import com.openitvn.engine.renderware.tool.RwTexer;
 import com.openitvn.engine.renderware.tool.RwDumper;
-import com.openitvn.gtavc.core.GtaAssetModel;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.gtavc.core.item.CARSEntry;
 import com.openitvn.gtavc.core.item.OBJSEntry;
@@ -27,9 +26,9 @@ import com.openitvn.gtavc.gui.g3d.GtaTextureManager;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
-import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
+import com.openitvn.unicore.plugin.gta.ResourceModel;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
@@ -50,7 +49,7 @@ import javax.swing.table.TableRowSorter;
 public class Main extends javax.swing.JFrame {
     
     private final ScriptFileModel scriptGroupModel = new ScriptFileModel();
-    private final GtaAssetModel assetModel = GtaAssetModel.getInstance();
+    private final ResourceModel resource = ResourceModel.getInstance();
     private final ViewportApp gdxApp = ViewportApp.getInstance();
     private String currentModelFile, currentTexDicFile;
     
@@ -96,17 +95,10 @@ public class Main extends javax.swing.JFrame {
     private void initAssetTable() {
         //setup the table
         TableColumnModel cm = tblResource.getColumnModel();
-        cm.getColumn(GtaAssetModel.COL_INDEX).setMinWidth(40);
-        cm.getColumn(GtaAssetModel.COL_INDEX).setMaxWidth(40);
-        cm.getColumn(GtaAssetModel.COL_TYPE).setMinWidth(40);
-        cm.getColumn(GtaAssetModel.COL_TYPE).setMaxWidth(40);
-        cm.getColumn(GtaAssetModel.COL_SIZE).setMinWidth(60);
-        cm.getColumn(GtaAssetModel.COL_SIZE).setMaxWidth(60);
-        // bind data
-        for (String img : GameConfig.getMainArchives()) {
-            Logger.printNormal("Loading archive: " + img);
-            assetModel.addArchive(img);
-        }
+        cm.getColumn(ResourceModel.COL_INDEX).setMinWidth(40);
+        cm.getColumn(ResourceModel.COL_INDEX).setMaxWidth(40);
+        cm.getColumn(ResourceModel.COL_SIZE).setMinWidth(60);
+        cm.getColumn(ResourceModel.COL_SIZE).setMaxWidth(60);
     }
 
     private void initItemGroupTable() {
@@ -126,15 +118,16 @@ public class Main extends javax.swing.JFrame {
     }
 
     private void refineItemGroupTable() {
-        String filterRegex = "(^NULL$)";
+        String regex;
         if (rdoIDE.isSelected()) {
-            filterRegex = "(^IDE$)";
+            regex = "(^IDE$)";
         } else if (rdoIPL.isSelected()) {
-            filterRegex = "(^IPL$)";
+            regex = "(^IPL$)";
+        } else {
+            regex = "(^NULL$)";
         }
-        
-        TableRowSorter<ScriptFileModel> sorter = (TableRowSorter)tblDefinitionGroup.getRowSorter();
-        sorter.setRowFilter(RowFilter.regexFilter(filterRegex, ScriptFileModel.COL_TYPE));
+        TableRowSorter<ScriptFileModel> sorter = (TableRowSorter) tblDefinitionGroup.getRowSorter();
+        sorter.setRowFilter(RowFilter.regexFilter(regex, ScriptFileModel.COL_TYPE));
     }
 
     private void initItemTable() {
@@ -193,7 +186,7 @@ public class Main extends javax.swing.JFrame {
     private void openRwDump() {
         int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (id >= 0) {
-            IArchiveEntry e = assetModel.getEntry(id);
+            IArchiveEntry e = resource.getEntry(id);
             String type = e.getExt().toLowerCase();
             if (type.equals("txd") || type.equals("dff")) {
                 RwDumper dlg = RwDumper.getInstance();
@@ -206,7 +199,7 @@ public class Main extends javax.swing.JFrame {
     private void openRwTexture() {
         int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (id >= 0) {
-            IArchiveEntry e = assetModel.getEntry(id);
+            IArchiveEntry e = resource.getEntry(id);
             if (e.getExt().equalsIgnoreCase("txd")) {
                 RwTexer dlg = RwTexer.getInstance();
                 dlg.setVisible(true);
@@ -219,7 +212,7 @@ public class Main extends javax.swing.JFrame {
         try {
             int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
             if (id >= 0) {
-                IArchiveEntry e = assetModel.getEntry(id);
+                IArchiveEntry e = resource.getEntry(id);
                 if (e.getExt().equalsIgnoreCase("dff")) {
                     String fileName = e.getName();
                     currentModelFile = fileName;
@@ -374,7 +367,7 @@ public class Main extends javax.swing.JFrame {
         });
 
         tblResource.setAutoCreateRowSorter(true);
-        tblResource.setModel(assetModel);
+        tblResource.setModel(resource);
         tblResource.setRowHeight(20);
         tblResource.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tblResource.setShowHorizontalLines(false);
@@ -714,7 +707,7 @@ public class Main extends javax.swing.JFrame {
         String textSearch = txtFindResource.getText();
         textSearch = String.format("(?i)(%1$s)", textSearch);
         TableRowSorter<ScriptItemModel> sorter = (TableRowSorter) tblResource.getRowSorter();
-        sorter.setRowFilter(RowFilter.regexFilter(textSearch, GtaAssetModel.COL_NAME));
+        sorter.setRowFilter(RowFilter.regexFilter(textSearch, ResourceModel.COL_NAME));
     }//GEN-LAST:event_txtFindResourceKeyTyped
 
     private void onTableResourcePopupTrigger(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onTableResourcePopupTrigger
@@ -726,7 +719,7 @@ public class Main extends javax.swing.JFrame {
         }
         int selId = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (evt.isPopupTrigger() && selId > -1) {
-            IArchiveEntry e = assetModel.getEntry(selId);
+            IArchiveEntry e = resource.getEntry(selId);
             switch (e.getExt().toLowerCase()) {
                 case "txd":
                     mnuTxd.show(evt.getComponent(), x, y);

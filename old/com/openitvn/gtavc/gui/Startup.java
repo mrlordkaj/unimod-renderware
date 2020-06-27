@@ -35,12 +35,11 @@ public class Startup extends javax.swing.JFrame {
     
     public Startup() {
         initComponents();
-        
         txtGta3Location.setText(Setting.getInstance().getGta3Location());
         txtGtaVcLocation.setText(Setting.getInstance().getGtaVcLocation());
         txtGtaSaLocation.setText(Setting.getInstance().getGtaSaLocation());
     }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

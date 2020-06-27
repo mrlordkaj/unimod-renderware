@@ -39,11 +39,20 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Thinh Pham
  */
-class ResourceModel extends AbstractTableModel {
+public class ResourceModel extends AbstractTableModel {
     
-    static final int COL_INDEX = 0;
-    static final int COL_NAME = 1;
-    static final int COL_SIZE = 2;
+    public static final int COL_INDEX = 0;
+    public static final int COL_NAME = 1;
+    public static final int COL_SIZE = 2;
+    
+    private static ResourceModel instance;
+    
+    public static ResourceModel getInstance() {
+        if (instance == null) {
+            instance = new ResourceModel();
+        }
+        return instance;
+    }
     
     final ArrayList<IArchiveEntry> entries;
     final ArrayList<WorldScriptEntry> scripts;
@@ -189,11 +198,7 @@ class ResourceModel extends AbstractTableModel {
         }
     }
     
-    IArchiveEntry getEntry(int index) {
-        return entries.get(index);
-    }
-    
-    IArchiveEntry findEntry(String fullName) {
+    public IArchiveEntry findEntry(String fullName) {
         for (IArchiveEntry e : entries) {
             if (e.getName().equalsIgnoreCase(fullName)) {
                 return e;
@@ -202,14 +207,10 @@ class ResourceModel extends AbstractTableModel {
         return null;
     }
     
-    IArchiveEntry findEntry(String name, String ext) {
+    public IArchiveEntry findEntry(String name, String ext) {
         return findEntry(name+"."+ext);
     }
     
-    String findTexDicByModel(String modName) {
-        return dffTxdMap.get(modName.toLowerCase());
-    }
-        
     @Override
     public int getRowCount() {
         return entries.size();
@@ -262,12 +263,8 @@ class ResourceModel extends AbstractTableModel {
         return null;
     }
     
-    private static ResourceModel instance;
-    
-    static ResourceModel getInstance() {
-        if (instance == null) {
-            instance = new ResourceModel();
-        }
-        return instance;
+    @Deprecated
+    public IArchiveEntry getEntry(int index) {
+        return entries.get(index);
     }
 }

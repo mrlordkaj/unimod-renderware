@@ -43,9 +43,10 @@ import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.engine.renderware.struct.RpColor;
-import com.openitvn.gtavc.core.GtaAssetModel;
 import com.openitvn.gtavc.core.item.OBJSEntry;
-import com.openitvn.unicore.data.DataStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
+import com.openitvn.unicore.plugin.gta.ResourceModel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,18 +65,22 @@ public class GtaModel {
     RpClump rClump;
     Model model;
     
-    public GtaModel(OBJSEntry objs) throws IOException {
+    public GtaModel(OBJSEntry objs) {
         this(objs.modName, objs.txdName, MeshType.OneMesh);
         drawDistance = objs.dd1;
     }
     
-    public GtaModel(String modName, String txdName, MeshType meshType) throws IOException {
+    public GtaModel(String modName, String txdName, MeshType meshType) {
         this.meshType = meshType;
         this.modName = modName;
         this.txdName = txdName;
-        try (DataStream ds = GtaAssetModel.getInstance().extract(modName + ".dff")) {
-            rClump = RpSection.loadRoot(ds, RpClump.class);
-        } catch (NullPointerException ex) { }
+        ResourceModel res = ResourceModel.getInstance();
+        try (IArchiveEntry me = res.findEntry(modName, "dff");
+                EntryStream ms = new EntryStream(me)) {
+            rClump = RpSection.loadRoot(ms, RpClump.class);
+        } catch (IOException ex) {
+            System.err.println("DFF not found: " + modName);
+        }
     }
     
     public Model getModel() {

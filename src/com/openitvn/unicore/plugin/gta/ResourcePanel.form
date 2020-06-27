@@ -57,10 +57,6 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Component id="jScrollPane1" pref="192" max="32767" attributes="0"/>
           <Component id="txtSearch" alignment="0" max="32767" attributes="0"/>
-          <Group type="102" alignment="0" attributes="0">
-              <Component id="lblInfo" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-          </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -68,9 +64,7 @@
           <Group type="102" alignment="0" attributes="0">
               <Component id="txtSearch" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane1" pref="146" max="32767" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="lblInfo" min="-2" max="-2" attributes="0"/>
+              <Component id="jScrollPane1" pref="166" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -107,7 +101,7 @@
             <EventHandler event="mouseReleased" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="resTableMouseReleased"/>
           </Events>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable() {&#xa;    public String getToolTipText(MouseEvent evt) {&#xa;        int row = resTable.rowAtPoint(evt.getPoint());&#xa;        if (row &gt;= 0) {&#xa;            row = resTable.convertRowIndexToModel(row);&#xa;            IArchiveEntry e = ResourceModel.getInstance().getEntry(row);&#xa;            return e.getArchive().getFile().toString();&#xa;        }&#xa;        return null;&#xa;    }&#xa;}"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable() {&#xa;    public String getToolTipText(MouseEvent evt) {&#xa;        int row = resTable.rowAtPoint(evt.getPoint());&#xa;        if (row &gt;= 0) {&#xa;            row = resTable.convertRowIndexToModel(row);&#xa;            ResourceModel res = ResourceModel.getInstance();&#xa;            IArchiveEntry e = res.entries.get(row);&#xa;            return e.getArchive().getFile().toString();&#xa;        }&#xa;        return null;&#xa;    }&#xa;}"/>
           </AuxValues>
         </Component>
       </SubComponents>
@@ -119,11 +113,6 @@
       <Events>
         <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtSearchKeyReleased"/>
       </Events>
-    </Component>
-    <Component class="javax.swing.JLabel" name="lblInfo">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="&lt;info&gt;"/>
-      </Properties>
     </Component>
   </SubComponents>
 </Form>

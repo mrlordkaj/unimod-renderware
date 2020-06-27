@@ -21,8 +21,9 @@ import com.badlogic.gdx.graphics.Texture;
 import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
-import com.openitvn.gtavc.core.GtaAssetModel;
-import com.openitvn.unicore.data.DataStream;
+import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
+import com.openitvn.unicore.plugin.gta.ResourceModel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -105,11 +106,13 @@ public class GtaTextureManager {
     public static RpTextureDictionary getTexDic(String txdName) {
         RpTextureDictionary txd = TEXDIC_MAP.get(txdName);
         if (txd == null) {
-            try (DataStream ds = GtaAssetModel.getInstance().extract(txdName + ".txd")) {
+            ResourceModel res = ResourceModel.getInstance();
+            try (IArchiveEntry te = res.findEntry(txdName, "txd");
+                    EntryStream ds = new EntryStream(te)) {
                 txd = RpSection.loadRoot(ds, RpTextureDictionary.class);
                 TEXDIC_MAP.put(txdName, txd);
             } catch (IOException ex) {
-                ex.printStackTrace(System.err);
+                System.err.println("TXD not found: " + txdName);
             }
         }
         return txd;
