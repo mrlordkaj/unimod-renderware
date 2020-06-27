@@ -23,7 +23,7 @@ import com.openitvn.unicore.data.DataStream;
  * @author Thinh Pham
  * https://gtamods.com/wiki/INST
  */
-public class ItemINST {
+public class ItemINST extends ItemNULL {
     
     public int modId;
     public String modName;
@@ -95,5 +95,24 @@ public class ItemINST {
         modId = ds.getInt();
         interior = ds.getInt();
         lodId = ds.getInt();
+    }
+    
+    @Deprecated
+    public ItemINST(String[] args, int groupId) {
+        this(args);
+        this.groupIndex = groupId;
+        this.itemType = ItemType.INST;
+    }
+    
+    @Deprecated
+    public ItemINST(DataStream ds, int groupId) {
+        this(ds);
+        this.groupIndex = groupId;
+        this.itemType = ItemType.INST;
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("[%1$04d] %2$s", modId, modName);
     }
 }

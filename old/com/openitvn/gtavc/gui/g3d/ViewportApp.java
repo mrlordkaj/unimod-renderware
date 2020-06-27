@@ -29,12 +29,13 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
-import com.openitvn.gtavc.core.item.ItemINST;
+import com.badlogic.gdx.math.Vector3;
 import com.openitvn.gtavc.core.item.ItemOBJS;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.VehicleTableModel;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.item.ItemCARS;
+import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import java.awt.Canvas;
 import java.io.IOException;
 import java.util.HashMap;
@@ -288,7 +289,7 @@ public class ViewportApp implements ApplicationListener {
         switch (entry.getType()) {
             case INST:
                 ItemINST inst = (ItemINST)entry;
-                mapView.moveCameraTo(inst.pos);
+                mapView.moveCameraTo(new Vector3(inst.posX, inst.posY, inst.posZ));
                 break;
         }
     }

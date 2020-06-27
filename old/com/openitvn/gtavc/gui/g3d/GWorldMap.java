@@ -17,9 +17,9 @@
 package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.gtavc.core.item.ItemINST;
 import com.openitvn.gtavc.core.item.ItemOBJS;
 import com.openitvn.gtavc.core.item.ItemTOBJ;
+import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import java.util.ArrayList;
 
 /**

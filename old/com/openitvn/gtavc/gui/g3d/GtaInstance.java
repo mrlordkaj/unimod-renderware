@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.gtavc.core.item.ItemINST;
+import com.openitvn.unicore.plugin.gta.item.ItemINST;
 
 /**
  *
@@ -42,9 +42,9 @@ public class GtaInstance {
         this.inst = new ModelInstance(mod.getModel());
         
         // compute transform
-        Vector3 pos = def.pos;
-        Vector3 scl = def.scl;
-        Quaternion rot = def.rot;
+        Vector3 pos = new Vector3(def.posX, def.posY, def.posZ);
+        Vector3 scl = new Vector3(1, 1, 1);
+        Quaternion rot = new Quaternion(def.rotX, def.rotY, def.rotZ, def.rotW);
         inst.transform.translate(pos.x, pos.z, -pos.y);
         inst.transform.rotateRad(rot.x, rot.z, -rot.y, -2*(float)Math.acos(rot.w));
         inst.transform.scale(scl.x, scl.y, scl.z);
