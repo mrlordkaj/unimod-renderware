@@ -37,9 +37,9 @@ import javax.swing.table.AbstractTableModel;
  */
 public class VehicleModel extends AbstractTableModel {
     
-    static final int COL_INDEX = 0;
-    static final int COL_NAME = 1;
-    static final int COL_TYPE = 2;
+    public static final int COL_INDEX = 0;
+    public static final int COL_NAME = 1;
+    public static final int COL_TYPE = 2;
     
     ArrayList<ItemCARS> entries = new ArrayList<>();
     ArrayList<ITexture> comTexLib;
@@ -94,7 +94,6 @@ public class VehicleModel extends AbstractTableModel {
         fireTableDataChanged();
     }
     
-    //<editor-fold defaultstate="collapsed" desc="JTable Model">
     @Override
     public int getColumnCount() {
         return 3;
@@ -145,5 +144,9 @@ public class VehicleModel extends AbstractTableModel {
         }
         return null;
     }
-    //</editor-fold>
+    
+    @Deprecated
+    public ArrayList<ItemCARS> entries() {
+        return entries;
+    }
 }

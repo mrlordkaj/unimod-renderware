@@ -28,7 +28,7 @@ public class ItemINST extends ItemNULL {
     public int modId;
     public String modName;
     public float interior, posX, posY, posZ, rotX, rotY, rotZ, rotW;
-//    public float sclX = 1, sclY = 1, sclZ = 1;
+    public float sclX = 1, sclY = 1, sclZ = 1;
     public int lodId;
     
     public ItemINST(String[] args) throws IllegalArgumentException {
@@ -53,10 +53,10 @@ public class ItemINST extends ItemNULL {
                 posX = Float.parseFloat(args[2]);
                 posY = Float.parseFloat(args[3]);
                 posZ = Float.parseFloat(args[4]);
-//                // By default each value is 1.0, which means the object is not scaled at all.
-//                sclX = Float.parseFloat(args[5]);
-//                sclY = Float.parseFloat(args[6]);
-//                sclZ = Float.parseFloat(args[7]);
+                // By default each value is 1.0, which means the object is not scaled at all.
+                sclX = Float.parseFloat(args[5]);
+                sclY = Float.parseFloat(args[6]);
+                sclZ = Float.parseFloat(args[7]);
                 rotX = Float.parseFloat(args[8]);
                 rotY = Float.parseFloat(args[9]);
                 rotZ = Float.parseFloat(args[10]);
@@ -69,10 +69,10 @@ public class ItemINST extends ItemNULL {
                 posX = Float.parseFloat(args[3]);
                 posY = Float.parseFloat(args[4]);
                 posZ = Float.parseFloat(args[5]);
-//                // By default each value is 1.0, which means the object is not scaled at all.
-//                sclX = Float.parseFloat(args[6]);
-//                sclY = Float.parseFloat(args[7]);
-//                sclZ = Float.parseFloat(args[8]);
+                // By default each value is 1.0, which means the object is not scaled at all.
+                sclX = Float.parseFloat(args[6]);
+                sclY = Float.parseFloat(args[7]);
+                sclZ = Float.parseFloat(args[8]);
                 rotX = Float.parseFloat(args[9]);
                 rotY = Float.parseFloat(args[10]);
                 rotZ = Float.parseFloat(args[11]);

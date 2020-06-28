@@ -31,8 +31,8 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
-import com.openitvn.gtavc.gui.VehicleTableModel;
 import com.openitvn.unicore.plugin.gta.GameConfig;
+import com.openitvn.unicore.plugin.gta.VehicleModel;
 import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
@@ -52,7 +52,7 @@ public class ViewportApp implements ApplicationListener {
     private final LwjglCanvas canvas;
     private ViewportMode mode;
     
-    public final VehicleTableModel vehicleModel = new VehicleTableModel();
+    public final VehicleModel vehicleModel = new VehicleModel();
     
     //single model mode
     private GtaModel gtaModel;
@@ -282,7 +282,7 @@ public class ViewportApp implements ApplicationListener {
     }
     
     public void addCARS(ItemCARS e) {
-        vehicleModel.entries.add(e);
+        vehicleModel.entries().add(e);
     }
     
     public void select(ItemNULL entry) {

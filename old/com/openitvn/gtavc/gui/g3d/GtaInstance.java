@@ -43,7 +43,7 @@ public class GtaInstance {
         
         // compute transform
         Vector3 pos = new Vector3(def.posX, def.posY, def.posZ);
-        Vector3 scl = new Vector3(1, 1, 1);
+        Vector3 scl = new Vector3(def.sclX, def.sclY, def.sclZ);
         Quaternion rot = new Quaternion(def.rotX, def.rotY, def.rotZ, def.rotW);
         inst.transform.translate(pos.x, pos.z, -pos.y);
         inst.transform.rotateRad(rot.x, rot.z, -rot.y, -2*(float)Math.acos(rot.w));

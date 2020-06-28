@@ -5,6 +5,8 @@
  */
 package com.openitvn.gtavc.gui.pref;
 
+import com.openitvn.unicore.Workspace;
+import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.util.prefs.Preferences;
 
 /**
@@ -33,27 +35,31 @@ public class Setting {
         prefs = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
     }
     
+    public void saveDirectory(Workspace space) {
+        switch (space.name) {
+            case GameConfig.ALIAS_III:
+                prefs.put(GTA3_LOCATION, space.location);
+                break;
+                
+            case GameConfig.ALIAS_VC:
+                prefs.put(GTAVC_LOCATION, space.location);
+                break;
+                
+            case GameConfig.ALIAS_SA:
+                prefs.put(GTASA_LOCATION, space.location);
+                break;
+        }
+    }
+    
     public String getGta3Location() {
         return prefs.get(GTA3_LOCATION, "");
     }
     
-    public void saveGta3Location(String location) {
-        prefs.put(GTA3_LOCATION, location);
-    }
-
     public String getGtaVcLocation() {
         return prefs.get(GTAVC_LOCATION, "");
     }
 
-    public void saveGtaVcLocation(String location) {
-        prefs.put(GTAVC_LOCATION, location);
-    }
-    
     public String getGtaSaLocation() {
         return prefs.get(GTASA_LOCATION, "");
-    }
-
-    public void saveGtaSaLocation(String location) {
-        prefs.put(GTASA_LOCATION, location);
     }
 }

@@ -27,6 +27,7 @@ import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
+import com.openitvn.unicore.plugin.gta.VehicleModel;
 import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.awt.Canvas;
@@ -162,10 +163,10 @@ public class Main extends javax.swing.JFrame {
     private void initVehicleTable() {
         tblVehicle.setModel(ViewportApp.getInstance().vehicleModel);
         TableColumnModel cm = tblVehicle.getColumnModel();
-        cm.getColumn(VehicleTableModel.COL_INDEX).setMinWidth(40);
-        cm.getColumn(VehicleTableModel.COL_INDEX).setMaxWidth(40);
-        cm.getColumn(VehicleTableModel.COL_TYPE).setMinWidth(50);
-        cm.getColumn(VehicleTableModel.COL_TYPE).setMaxWidth(50);
+        cm.getColumn(VehicleModel.COL_INDEX).setMinWidth(40);
+        cm.getColumn(VehicleModel.COL_INDEX).setMaxWidth(40);
+        cm.getColumn(VehicleModel.COL_TYPE).setMinWidth(50);
+        cm.getColumn(VehicleModel.COL_TYPE).setMaxWidth(50);
     }
 
     public int getDividerLocation() {
@@ -264,8 +265,8 @@ public class Main extends javax.swing.JFrame {
             int row = tblVehicle.getSelectedRow();
             if (row >= 0) {
                 int id = tblVehicle.convertRowIndexToModel(row);
-                VehicleTableModel data = (VehicleTableModel) tblVehicle.getModel();
-                ItemCARS entry = data.entries.get(id);
+                VehicleModel data = (VehicleModel) tblVehicle.getModel();
+                ItemCARS entry = data.entries().get(id);
                 if (entry != null) {
                     gdxApp.setVehicle(entry, viewMode);
                 }

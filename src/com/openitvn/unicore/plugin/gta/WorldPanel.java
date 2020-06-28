@@ -332,8 +332,8 @@ public final class WorldPanel extends PanelViewer {
         // load model
         try (IArchiveEntry me = res.findEntry(objs.modName, "dff");
                 EntryStream ms = new EntryStream(me)) {
-            RpClump clump;
-            while ((clump = RpSection.loadRoot(ms, RpClump.class)) != null) {
+            RpClump clump = RpSection.loadRoot(ms, RpClump.class);
+            if (clump != null) {
                 // only load root geometry as model
                 RpGeometry geoData = clump.getRootGeometry();
                 if (geoData != null) {
@@ -362,7 +362,6 @@ public final class WorldPanel extends PanelViewer {
                     }
                     world.resource.register(mod);
                     modelNameMap.put(objs.modId, objs.modName);
-                    break;
                 }
             }
         } catch (IOException ex) {
@@ -534,7 +533,8 @@ public final class WorldPanel extends PanelViewer {
             INode group = new INode(groupName);
             String[] args;
             while ((args = ScriptHelper.parseLineByComma(br)) != null) {
-                addINST(group, new ItemINST(args));
+                ItemINST inst = new ItemINST(args);
+                addINST(group, inst);
             }
             pendingNodes.add(group);
         } else {

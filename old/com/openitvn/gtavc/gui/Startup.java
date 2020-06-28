@@ -21,6 +21,7 @@ import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import javax.swing.JFileChooser;
+import javax.swing.JTextField;
 
 /**
  *
@@ -38,6 +39,26 @@ public class Startup extends javax.swing.JFrame {
         txtGta3Location.setText(Setting.getInstance().getGta3Location());
         txtGtaVcLocation.setText(Setting.getInstance().getGtaVcLocation());
         txtGtaSaLocation.setText(Setting.getInstance().getGtaSaLocation());
+    }
+    
+    private void browser(JTextField txtLoc, String title) {
+        JFileChooser fc = new JFileChooser(txtLoc.getText());
+        fc.setDialogTitle(title);
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            txtLoc.setText(fc.getSelectedFile().getPath());
+        }
+    }
+    
+    private void launch(JTextField txtLoc, String alias, String title) {
+        Workspace space = new Workspace();
+        space.name = alias;
+        space.location = txtLoc.getText();
+        Setting.getInstance().saveDirectory(space);
+        GameConfig.setWorkspaceOld(space);
+        Main.getInstance().setTitle(title);
+        Main.getInstance().setVisible(true);
+        dispose();
     }
     
     @SuppressWarnings("unchecked")
@@ -235,66 +256,27 @@ public class Startup extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnGtaVcBrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaVcBrowserActionPerformed
-        JFileChooser fc = new JFileChooser(txtGtaVcLocation.getText());
-        fc.setApproveButtonText("Select");
-        fc.setDialogTitle("GTA Vice City Directory");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            txtGtaVcLocation.setText(fc.getSelectedFile().getPath());
-        }
+        browser(txtGtaVcLocation, "GTA Vice City Directory");
     }//GEN-LAST:event_btnGtaVcBrowserActionPerformed
 
     private void btnGtaVcLaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaVcLaunchActionPerformed
-        Workspace space = new Workspace();
-        space.name = GameConfig.ALIAS_VC;
-        space.location = txtGtaVcLocation.getText();
-        GameConfig.setWorkspaceOld(space);
-        Main.getInstance().setTitle("Grand Theft Auto Vice City");
-        Main.getInstance().setVisible(true);
-        Setting.getInstance().saveGtaVcLocation(space.location);
-        dispose();
+        launch(txtGtaVcLocation, GameConfig.ALIAS_VC, "Grand Theft Auto Vice City");
     }//GEN-LAST:event_btnGtaVcLaunchActionPerformed
 
     private void btnGta3BrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGta3BrowserActionPerformed
-        JFileChooser fc = new JFileChooser(txtGta3Location.getText());
-        fc.setApproveButtonText("Select");
-        fc.setDialogTitle("GTA III Directory");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            txtGta3Location.setText(fc.getSelectedFile().getPath());
-        }
+        browser(txtGta3Location, "GTA III Directory");
     }//GEN-LAST:event_btnGta3BrowserActionPerformed
 
     private void btnGta3LaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGta3LaunchActionPerformed
-        Workspace space = new Workspace();
-        space.name = GameConfig.ALIAS_III;
-        space.location = txtGta3Location.getText();
-        GameConfig.setWorkspaceOld(space);
-        Main.getInstance().setTitle("Grand Theft Auto III");
-        Main.getInstance().setVisible(true);
-        Setting.getInstance().saveGta3Location(space.location);
-        dispose();
+        launch(txtGta3Location, GameConfig.ALIAS_III, "Grand Theft Auto III");
     }//GEN-LAST:event_btnGta3LaunchActionPerformed
 
     private void btnGtaSaBrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaSaBrowserActionPerformed
-        JFileChooser fc = new JFileChooser(txtGtaVcLocation.getText());
-        fc.setApproveButtonText("Select");
-        fc.setDialogTitle("GTA San Andreas Directory");
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            txtGtaSaLocation.setText(fc.getSelectedFile().getPath());
-        }
+        browser(txtGtaSaLocation, "GTA San Andreas Directory");
     }//GEN-LAST:event_btnGtaSaBrowserActionPerformed
 
     private void btnGtaSaLaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaSaLaunchActionPerformed
-        Workspace space = new Workspace();
-        space.name = GameConfig.ALIAS_SA;
-        space.location = txtGtaSaLocation.getText();
-        GameConfig.setWorkspaceOld(space);
-        Main.getInstance().setTitle("Grand Theft Auto San Andreas");
-        Main.getInstance().setVisible(true);
-        Setting.getInstance().saveGtaSaLocation(space.location);
-        dispose();
+        launch(txtGtaSaLocation, GameConfig.ALIAS_SA, "Grand Theft Auto San Andreas");
     }//GEN-LAST:event_btnGtaSaLaunchActionPerformed
 
     public static void main(String args[]) {

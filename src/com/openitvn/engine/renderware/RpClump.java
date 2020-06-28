@@ -34,16 +34,19 @@ public class RpClump extends RpSection {
     public RpClump(int size, int libId, RpSection parent, DataStream ds) {
         super(RpType.Clump, size, libId, parent, ds);
         // parse data
+        frameList = getFirstChild(RpFrameList.class);
+        if (version >= 0x30400) {
+            RpSection geoList = getFirstChild(RpType.GeometryList);
+            geometries = geoList.getChildren(RpGeometry.class);
+        }
         ArrayList<RpAtomic> atoms = getChildren(RpAtomic.class);
         if (!atoms.isEmpty()) {
             if (version < 0x30400) {
                 for (RpAtomic atom : atoms) {
-                    geometries.add(atom.getFirstChild(RpGeometry.class));
+                    RpGeometry geo = atom.getFirstChild(RpGeometry.class);
+                    geometries.add(geo);
                 }
-            } else {
-                geometries = getFirstChild(RpType.GeometryList).getChildren(RpGeometry.class);
             }
-            frameList = getFirstChild(RpFrameList.class);
             for (RpAtomic atom : atoms) {
                 RpGeometry geo = geometries.get(atom.geometryIndex);
                 RpFrame frm = frameList.frames[atom.frameIndex];

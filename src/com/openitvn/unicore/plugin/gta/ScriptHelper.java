@@ -29,19 +29,26 @@ public abstract class ScriptHelper {
      * Read the next line, remove comment, then split up by comma.
      * @return arguments or null.
      */
-    public static String[] parseLineByComma(BufferedReader br) throws IOException {
-        return parseLineByComma(br.readLine());
+    public static String[] parseLineByComma(BufferedReader br) {
+        try {
+            String line = br.readLine();
+            return parseLineByComma(line);
+        } catch (IOException ex) {
+            return null;
+        }
     }
     
     /**
      * Remove comment, then split up by comma.
      * @return arguments or null.
      */
+    @Deprecated
     public static String[] parseLineByComma(String line) {
         if (line != null) {
             line = line.replaceAll("#.*$", "").trim();
-            if (!line.equalsIgnoreCase("end"))
+            if (!line.equalsIgnoreCase("end")) {
                 return line.split("\\s*\\,\\s*");
+            }
         }
         return null;
     }
