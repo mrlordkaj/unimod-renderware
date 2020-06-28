@@ -35,7 +35,8 @@ public class RwTexturePack extends ITexturePack {
     public void decode(DataStream ds) {
         RpTextureDictionary texDic = RpSection.loadRoot(ds, RpTextureDictionary.class);
         for (RpTextureNative texData : texDic.textures) {
-            RwTexture tex = new RwTexture(texData.textureName, texData);
+            String name = texData.getMapperName();
+            RwTexture tex = new RwTexture(name, texData);
             textures.add(tex);
         }
     }

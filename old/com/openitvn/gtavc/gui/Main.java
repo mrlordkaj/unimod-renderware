@@ -27,8 +27,6 @@ import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
-import com.openitvn.unicore.plugin.gta.VehicleModel;
-import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.awt.Canvas;
 import java.awt.Point;
@@ -73,8 +71,6 @@ public class Main extends javax.swing.JFrame {
         for (String ide : GameConfig.getDependencies()) {
             scriptGroupModel.activeIPL(ide);
         }
-        
-        initVehicleTable();
     }
 
     //<editor-fold defaultstate="collapsed" desc="Initialize and Dispose">
@@ -160,15 +156,6 @@ public class Main extends javax.swing.JFrame {
         sorter.setRowFilter(RowFilter.andFilter(filters));
     }
     
-    private void initVehicleTable() {
-        tblVehicle.setModel(ViewportApp.getInstance().vehicleModel);
-        TableColumnModel cm = tblVehicle.getColumnModel();
-        cm.getColumn(VehicleModel.COL_INDEX).setMinWidth(40);
-        cm.getColumn(VehicleModel.COL_INDEX).setMaxWidth(40);
-        cm.getColumn(VehicleModel.COL_TYPE).setMinWidth(50);
-        cm.getColumn(VehicleModel.COL_TYPE).setMaxWidth(50);
-    }
-
     public int getDividerLocation() {
         return splMain.getDividerLocation();
     }
@@ -239,41 +226,17 @@ public class Main extends javax.swing.JFrame {
     }
     
     private String findTexDic(String modName) {
-        for (ItemNULL def : scriptGroupModel.getDefinitionItemModel().getEntries()) {
-            switch (def.getType()){
+        for (ItemNULL script : scriptGroupModel.getDefinitionItemModel().entries) {
+            switch (script.getType()){
                 case OBJS:
                 case TOBJ:
-                    ItemOBJS objs = (ItemOBJS)def;
+                    ItemOBJS objs = (ItemOBJS)script;
                     if (modName.equals(objs.modName)) {
                         return objs.txdName;
                     }
             }
         }
         return modName;
-    }
-    
-    private void showVehicle() {
-        try {
-            ViewportMode viewMode;
-            if (rdoVehicleDamaged.isSelected()) {
-                viewMode = ViewportMode.VehicleDamaged;
-            } else if (rdoVehicleDistance.isSelected()) {
-                viewMode = ViewportMode.VehicleDistance;
-            } else {
-                viewMode = ViewportMode.VehicleNormal;
-            }
-            int row = tblVehicle.getSelectedRow();
-            if (row >= 0) {
-                int id = tblVehicle.convertRowIndexToModel(row);
-                VehicleModel data = (VehicleModel) tblVehicle.getModel();
-                ItemCARS entry = data.entries().get(id);
-                if (entry != null) {
-                    gdxApp.setVehicle(entry, viewMode);
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
     }
     
     //</editor-fold>
@@ -310,12 +273,6 @@ public class Main extends javax.swing.JFrame {
         cboViewMode = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
         cboMapTime = new javax.swing.JComboBox<>();
-        jPanel3 = new javax.swing.JPanel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        tblVehicle = new javax.swing.JTable();
-        rdoVehicleNormal = new javax.swing.JRadioButton();
-        rdoVehicleDamaged = new javax.swing.JRadioButton();
-        rdoVehicleDistance = new javax.swing.JRadioButton();
         viewpotArea = new javax.swing.JPanel();
         statusBar = new javax.swing.JToolBar();
         lblInfo = new javax.swing.JLabel();
@@ -555,88 +512,6 @@ public class Main extends javax.swing.JFrame {
 
     tabbedControlPanel.addTab("Map", new javax.swing.ImageIcon(getClass().getResource("/icon16/map.png")), jPanel2); // NOI18N
 
-    tblVehicle.setAutoCreateRowSorter(true);
-    tblVehicle.setModel(new javax.swing.table.DefaultTableModel(
-        new Object [][] {
-
-        },
-        new String [] {
-
-        }
-    ));
-    tblVehicle.setRowHeight(20);
-    tblVehicle.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-    tblVehicle.setShowHorizontalLines(false);
-    tblVehicle.setShowVerticalLines(false);
-    tblVehicle.addMouseListener(new java.awt.event.MouseAdapter() {
-        public void mouseReleased(java.awt.event.MouseEvent evt) {
-            tblVehicleMouseReleased(evt);
-        }
-    });
-    tblVehicle.addKeyListener(new java.awt.event.KeyAdapter() {
-        public void keyReleased(java.awt.event.KeyEvent evt) {
-            tblVehicleKeyReleased(evt);
-        }
-    });
-    jScrollPane4.setViewportView(tblVehicle);
-
-    rdoVehicleMode.add(rdoVehicleNormal);
-    rdoVehicleNormal.setSelected(true);
-    rdoVehicleNormal.setText("Normal");
-    rdoVehicleNormal.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-            onVehicleModeChanged(evt);
-        }
-    });
-
-    rdoVehicleMode.add(rdoVehicleDamaged);
-    rdoVehicleDamaged.setText("Damaged");
-    rdoVehicleDamaged.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-            onVehicleModeChanged(evt);
-        }
-    });
-
-    rdoVehicleMode.add(rdoVehicleDistance);
-    rdoVehicleDistance.setText("Distance");
-    rdoVehicleDistance.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-            onVehicleModeChanged(evt);
-        }
-    });
-
-    javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-    jPanel3.setLayout(jPanel3Layout);
-    jPanel3Layout.setHorizontalGroup(
-        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addGroup(jPanel3Layout.createSequentialGroup()
-            .addContainerGap()
-            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel3Layout.createSequentialGroup()
-                    .addComponent(rdoVehicleNormal)
-                    .addGap(18, 18, 18)
-                    .addComponent(rdoVehicleDamaged)
-                    .addGap(18, 18, 18)
-                    .addComponent(rdoVehicleDistance)
-                    .addGap(0, 62, Short.MAX_VALUE))
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-            .addContainerGap())
-    );
-    jPanel3Layout.setVerticalGroup(
-        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-        .addGroup(jPanel3Layout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 454, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(rdoVehicleNormal)
-                .addComponent(rdoVehicleDamaged)
-                .addComponent(rdoVehicleDistance))
-            .addContainerGap())
-    );
-
-    tabbedControlPanel.addTab("Vehicle", new javax.swing.ImageIcon(getClass().getResource("/icon16/lorry.png")), jPanel3); // NOI18N
-
     tabbedControlPanel.setSelectedIndex(1);
 
     splMain.setLeftComponent(tabbedControlPanel);
@@ -762,7 +637,7 @@ public class Main extends javax.swing.JFrame {
 
     private void tblDefinitionItemMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblDefinitionItemMouseClicked
         int id = tblDefinitionItem.convertRowIndexToModel(tblDefinitionItem.getSelectedRow());
-        ItemNULL e = scriptGroupModel.getDefinitionItemModel().getEntry(id);
+        ItemNULL e = scriptGroupModel.getDefinitionItemModel().entries.get(id);
         switch (e.getType()) {
             case INST:
                 gdxApp.select(e);
@@ -790,29 +665,8 @@ public class Main extends javax.swing.JFrame {
             case 1: // map
                 setViewportMode((ViewportMode)cboViewMode.getSelectedItem());
                 break;
-                
-            case 2: //vehicle
-                if (rdoVehicleNormal.isSelected())
-                    setViewportMode(ViewportMode.VehicleNormal);
-                else if (rdoVehicleDamaged.isSelected())
-                    setViewportMode(ViewportMode.VehicleDamaged);
-                else if (rdoVehicleDistance.isSelected())
-                    setViewportMode(ViewportMode.VehicleDistance);
-                break;
         }
     }//GEN-LAST:event_onSwitchControlPanel
-
-    private void onVehicleModeChanged(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onVehicleModeChanged
-        showVehicle();
-    }//GEN-LAST:event_onVehicleModeChanged
-
-    private void tblVehicleMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblVehicleMouseReleased
-        showVehicle();
-    }//GEN-LAST:event_tblVehicleMouseReleased
-
-    private void tblVehicleKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblVehicleKeyReleased
-        showVehicle();
-    }//GEN-LAST:event_tblVehicleKeyReleased
 
     private void cboViewModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cboViewModeItemStateChanged
         if (evt.getStateChange() == ItemEvent.SELECTED)
@@ -845,11 +699,9 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JLabel lblInfo;
@@ -863,17 +715,13 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JRadioButton rdoIDE;
     private javax.swing.JRadioButton rdoIPL;
     private javax.swing.ButtonGroup rdoMapDefinition;
-    private javax.swing.JRadioButton rdoVehicleDamaged;
-    private javax.swing.JRadioButton rdoVehicleDistance;
     private javax.swing.ButtonGroup rdoVehicleMode;
-    private javax.swing.JRadioButton rdoVehicleNormal;
     private javax.swing.JSplitPane splMain;
     private javax.swing.JToolBar statusBar;
     private javax.swing.JTabbedPane tabbedControlPanel;
     private javax.swing.JTable tblDefinitionGroup;
     private javax.swing.JTable tblDefinitionItem;
     private javax.swing.JTable tblResource;
-    private javax.swing.JTable tblVehicle;
     private javax.swing.JTextField txtFindResource;
     private javax.swing.JPanel viewpotArea;
     // End of variables declaration//GEN-END:variables

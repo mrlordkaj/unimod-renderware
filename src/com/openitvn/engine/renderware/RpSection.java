@@ -62,53 +62,52 @@ public class RpSection implements TreeNode {
             RpSection root = loadSection(ds, null);
             root.getClass().asSubclass(type);
             return (T) root;
-        } catch (ClassCastException ex) {
+        } catch (ClassCastException | NullPointerException ex) {
             return null;
         }
     }
     
     public static RpSection loadSection(DataStream ds, RpSection parent) {
-        if (ds.remaining() < 12) {
-            return null; // section below 12 bytes makes no sense
+        if (ds.remaining() >= 12) { // section below 12 bytes makes no sense
+            int typeId = ds.getInt();
+            if (typeId > 0) { // file padding with 0
+                int size = ds.getInt();
+                int libId = ds.getInt();
+                RpType type = RpType.getType(typeId);
+                switch (type) {
+                    case Clump:
+                        return new RpClump(size, libId, parent, ds);
+
+                    case FrameList:
+                        return new RpFrameList(size, libId, parent, ds);
+
+                    case Atomic:
+                        return new RpAtomic(size, libId, parent, ds);
+
+                    case Geometry:
+                        return new RpGeometry(size, libId, parent, ds);
+
+                    case Material:
+                        return new RpMaterial(size, libId, parent, ds);
+
+                    case Texture:
+                        return new RpTexture(size, libId, parent, ds);
+
+                    case TextureDictionary:
+                        return new RpTextureDictionary(size, libId, parent, ds);
+
+                    case TextureNative:
+                        return new RpTextureNative(size, libId, parent, ds);
+
+                    case Null:
+                        return null;
+
+                    default:
+                        return new RpSection(type, size, libId, parent, ds);
+                }
+            }
         }
-        int typeId = ds.getInt();
-        if (typeId == 0) {
-            return null; // file padding with 0
-        }
-        int size = ds.getInt();
-        int libId = ds.getInt();
-        RpType type = RpType.getType(typeId);
-        switch (type) {
-            case Clump:
-                return new RpClump(size, libId, parent, ds);
-                
-            case FrameList:
-                return new RpFrameList(size, libId, parent, ds);
-                
-            case Atomic:
-                return new RpAtomic(size, libId, parent, ds);
-                
-            case Geometry:
-                return new RpGeometry(size, libId, parent, ds);
-                
-            case Material:
-                return new RpMaterial(size, libId, parent, ds);
-                
-            case Texture:
-                return new RpTexture(size, libId, parent, ds);
-                
-            case TextureDictionary:
-                return new RpTextureDictionary(size, libId, parent, ds);
-                
-            case TextureNative:
-                return new RpTextureNative(size, libId, parent, ds);
-                
-            case Null:
-                return null;
-                
-            default:
-                return new RpSection(type, size, libId, parent, ds);
-        }
+        return null;
     }
     
     // data

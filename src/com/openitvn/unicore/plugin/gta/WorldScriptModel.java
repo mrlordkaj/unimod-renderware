@@ -35,7 +35,6 @@ import javax.swing.table.AbstractTableModel;
  */
 class WorldScriptModel extends AbstractTableModel {
     
-    private static final String[] COLUMNS = {"", "Name", "Type"};
     public static final int COL_ACTIVE = 0;
     public static final int COL_NAME = 1;
     public static final int COL_TYPE = 2;
@@ -48,9 +47,9 @@ class WorldScriptModel extends AbstractTableModel {
         this.scripts = res.scripts;
         // active default dependencies
         app.prepareDispatcher();
-        for (String dp : GameConfig.getDependencies()) {
+        for (String dep : GameConfig.getDependencies()) {
             for (WorldScriptEntry e : scripts) {
-                if (dp.equalsIgnoreCase(e.getName())) {
+                if (dep.equalsIgnoreCase(e.getName())) {
                     executeScript(e, true);
                     break;
                 }
@@ -141,20 +140,22 @@ class WorldScriptModel extends AbstractTableModel {
     
     //<editor-fold defaultstate="collapsed" desc="JTable Model">
     @Override
-    public String getColumnName(int col) {
-        return COLUMNS[col];
-    }
-
-    @Override
-    public int getRowCount() {
-        return scripts.size();
-    }
-
-    @Override
     public int getColumnCount() {
-        return COLUMNS.length;
+        return 3;
     }
     
+    @Override
+    public String getColumnName(int col) {
+        switch (col) {
+            case COL_NAME:
+                return "Name";
+                
+            case COL_TYPE:
+                return "Type";
+        }
+        return null;
+    }
+
     @Override
     public Class getColumnClass(int col) {
         switch (col) {
@@ -167,6 +168,11 @@ class WorldScriptModel extends AbstractTableModel {
         }
         return Object.class;
     }
+    
+    @Override
+    public int getRowCount() {
+        return scripts.size();
+    }
 
     @Override
     public Object getValueAt(int row, int col) {
@@ -178,9 +184,8 @@ class WorldScriptModel extends AbstractTableModel {
                 return scripts.get(row).getName();
                 
             case COL_TYPE:
-                return scripts.get(row).type.toString();
+                return scripts.get(row).type;
         }
-        
         return null;
     }
     
@@ -206,8 +211,8 @@ class WorldScriptModel extends AbstractTableModel {
                             int actived = 0;
                             app.prepareDispatcher();
                             // active dependecies
-                            for (String dp : deps) {
-                                executeScript(findScript(dp), true);
+                            for (String dep : deps) {
+                                executeScript(findScript(dep), true);
                                 setProcessedCount(++actived);
                             }
                             // active target
@@ -227,11 +232,14 @@ class WorldScriptModel extends AbstractTableModel {
                 // deactive target
                 executeScript(findScript(name), false);
                 // deactive no longer required dependencies
-                ArrayList<String> keeps = GameConfig.getDependencies(getActivatedGroups(WorldScriptType.IPL));
+                ArrayList<String> ipls = getActivatedGroups(WorldScriptType.IPL);
+                ArrayList<String> ides = getActivatedGroups(WorldScriptType.IDE);
+                ArrayList<String> keeps = GameConfig.getDependencies(ipls);
                 keeps.addAll(GameConfig.getDependencies());
-                for (String ide : getActivatedGroups(WorldScriptType.IDE)) {
-                    if (!keeps.contains(ide))
+                for (String ide : ides) {
+                    if (!keeps.contains(ide)) {
                         executeScript(findScript(ide), false);
+                    }
                 }
             }
         }

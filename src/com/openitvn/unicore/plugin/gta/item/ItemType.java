@@ -92,8 +92,9 @@ public enum ItemType {
                 
             default:
                 for (ItemType v : values()) {
-                    if (v.toString().equals(line))
+                    if (v.toString().equals(line)) {
                         return v;
+                    }
                 }
         }
         return null;

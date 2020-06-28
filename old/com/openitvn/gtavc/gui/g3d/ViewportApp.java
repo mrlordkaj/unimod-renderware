@@ -60,12 +60,6 @@ public class ViewportApp implements ApplicationListener {
     private PerspectiveCamera modCam;
     private CameraInputController modCtrl;
     
-    //vehicle
-    private GtaVehicleModel gtaVehicleModel;
-    private GtaWheelModel gtaWheelModel;
-    private ModelInstance wheelInstance;
-    private final HashMap<Integer, String> wheelLib = new HashMap<>();
-    
     // map mode
     final GWorldMap mapView = GWorldMap.getInstance();
     final GWorldModel modView = GWorldModel.getInstance();
@@ -173,27 +167,12 @@ public class ViewportApp implements ApplicationListener {
                 break;
                 
             case SingleModel:
-            case VehicleNormal:
-            case VehicleDamaged:
-            case VehicleDistance:
                 modCam.update();
                 modCtrl.update();
                 drawGrid(modCam);
                 mb.begin(modCam);
-                switch (mode) {
-                    case SingleModel:
-                    case VehicleDistance:
-                        if (modInst != null)
-                            mb.render(modInst, env);
-                        break;
-                        
-                    case VehicleNormal:
-                    case VehicleDamaged:
-                        if (modInst != null)
-                            mb.render(modInst, env);
-                        if (wheelInstance != null)
-                            mb.render(wheelInstance, env);
-                        break;
+                if (modInst != null) {
+                    mb.render(modInst, env);
                 }
                 mb.end();
                 break;
@@ -217,29 +196,6 @@ public class ViewportApp implements ApplicationListener {
         modInst = new ModelInstance(gtaModel.getModel());
     }
     
-    public void setVehicle(ItemCARS e, ViewportMode viewMode) throws IOException {
-        if (gtaWheelModel == null)
-            gtaWheelModel = new GtaWheelModel();
-        if (gtaVehicleModel == null) {
-            gtaVehicleModel = new GtaVehicleModel(e, viewMode);
-        } else if (!gtaVehicleModel.modName.equals(e.modName)) {
-            gtaVehicleModel.dispose();
-            gtaVehicleModel = new GtaVehicleModel(e, viewMode);
-        }
-        if (viewMode != mode) {
-            gtaVehicleModel.changeViewMode(viewMode);
-            mode = viewMode;
-        }
-        modInst = new ModelInstance(gtaVehicleModel.getModel());
-        switch (viewMode) {
-            case VehicleNormal:
-            case VehicleDamaged:
-                gtaWheelModel.setWheel(gtaVehicleModel, wheelLib.get(e.wheelModelId));
-                wheelInstance = new ModelInstance(gtaWheelModel.getModel());
-                break;
-        }
-    }
-    
     public ViewportMode getViewpotMode() {
         return mode;
     }
@@ -257,24 +213,11 @@ public class ViewportApp implements ApplicationListener {
                 modInst = (gtaModel == null) ? null : new ModelInstance(gtaModel.getModel());
                 Gdx.input.setInputProcessor(modCtrl);
                 break;
-                
-            case VehicleNormal:
-            case VehicleDamaged:
-            case VehicleDistance:
-                modInst = (gtaVehicleModel == null) ? null : new ModelInstance(gtaVehicleModel.getModel());
-                Gdx.input.setInputProcessor(modCtrl);
-                break;
         }
     }
     
     public void addOBJS(ItemOBJS objs) throws Exception {
-        int modId = objs.modId;
-        if (GameConfig.getWheelIds().contains(modId)) {
-            //TODO: just a temporary method, need a better solution to determine wheel entries
-            wheelLib.put(modId, objs.modName);
-        } else {
-            mapView.addOBJS(objs);
-        }
+        mapView.addOBJS(objs);
     }
     
     public void removeOBJS(ItemOBJS e) {

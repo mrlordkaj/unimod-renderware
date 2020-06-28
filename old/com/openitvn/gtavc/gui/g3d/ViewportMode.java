@@ -24,10 +24,7 @@ public enum ViewportMode {
     
     MapNormal ("Normal Map"),
     MapDistance ("Distance Map"),
-    SingleModel ("Single Model"),
-    VehicleNormal ("Normal Vehicle"),
-    VehicleDamaged ("Damaged Vehicle"),
-    VehicleDistance ("Distance Vehicle");
+    SingleModel ("Single Model");
     
     private final String name;
     

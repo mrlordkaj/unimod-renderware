@@ -126,7 +126,7 @@ public class ScriptFileModel extends AbstractTableModel {
     //<editor-fold defaultstate="collapsed" desc="Data Management">
     public void reload() throws IOException {
         // reset data
-        scriptItemModel.unbind();
+        scriptItemModel.bind(null);
         entries.clear();
         // bind data from script file
         for (String loader : GameConfig.getLoaders()) {
@@ -185,10 +185,10 @@ public class ScriptFileModel extends AbstractTableModel {
     }
     
     public WorldScriptEntry getEntry(String entryName) {
-        entryName = entryName.toLowerCase();
-        for (WorldScriptEntry entry : entries) {
-            if (entry.getName().toLowerCase().equals(entryName))
-                return entry;
+        for (WorldScriptEntry e : entries) {
+            if (e.getName().equalsIgnoreCase(entryName)) {
+                return e;
+            }
         }
         return null;
     }
@@ -196,8 +196,9 @@ public class ScriptFileModel extends AbstractTableModel {
     private ArrayList<String> getActiveGroups(WorldScriptType type) {
         ArrayList<String> rs = new ArrayList<>();
         for (WorldScriptEntry e : entries) {
-            if (e.getType() == type && e.isActive())
+            if (e.getType() == type && e.isActive()) {
                 rs.add(e.getName().toLowerCase());
+            }
         }
         return rs;
     }
@@ -209,7 +210,7 @@ public class ScriptFileModel extends AbstractTableModel {
     private void parseInternalScript() {
         // for GTA SA only, read extra binary stream inside img file
         try {
-            ArrayList<ItemNULL> items = scriptItemModel.getEntries();
+            ArrayList<ItemNULL> items = scriptItemModel.entries;
             ResourceModel res = ResourceModel.getInstance();
             for (WorldScriptEntry group : entries) {
                 if (group.getName().toLowerCase().endsWith(".ipl")) {

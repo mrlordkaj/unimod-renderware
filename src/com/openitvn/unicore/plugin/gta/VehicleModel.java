@@ -91,6 +91,7 @@ public class VehicleModel extends AbstractTableModel {
                 }
             }
         } catch (IOException ex) { }
+        // update table
         fireTableDataChanged();
     }
     

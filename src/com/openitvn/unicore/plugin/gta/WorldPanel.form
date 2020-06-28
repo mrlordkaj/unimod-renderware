@@ -56,9 +56,9 @@
                   <Component id="rdoIDE" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="rdoAll" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane1" pref="178" max="32767" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Component id="jScrollPane1" pref="200" max="32767" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnExportPath" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnOptimizePath" alignment="3" min="-2" max="-2" attributes="0"/>

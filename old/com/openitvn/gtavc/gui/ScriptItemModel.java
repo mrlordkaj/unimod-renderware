@@ -35,46 +35,66 @@ import javax.swing.table.AbstractTableModel;
  * @author Thinh Pham
  */
 public class ScriptItemModel extends AbstractTableModel {
-    private final String[] COLUMNS = {"Description", "Type", "SID"};
-    public static final int COL_DESCRIPTION = 0;
+    
+    public static final int COL_DESC = 0;
     public static final int COL_TYPE = 1;
     public static final int COL_FILE = 2;
     
-
-    private final ArrayList<ItemNULL> entries = new ArrayList<>();
+    public final ArrayList<ItemNULL> entries = new ArrayList<>();
+    
+    public void bind(ArrayList<WorldScriptEntry> scripts) {
+        entries.clear();
+        if (scripts != null) {
+            for (WorldScriptEntry script : scripts) {
+                String filePath = script.getAbsolutePath();
+                defineFromFile(filePath, script.getIndex());
+            }
+        }
+        fireTableDataChanged();
+    }
+    
+    @Override
+    public int getColumnCount() {
+        return 3;
+    }
 
     @Override
     public String getColumnName(int col) {
-        return COLUMNS[col];
+        switch (col) {
+            case COL_DESC:
+                return "Description";
+                
+            case COL_TYPE:
+                return "Type";
+                
+            case COL_FILE:
+                return "SID";
+        }
+        return null;
     }
-
-    @Override
-    public int getRowCount() {
-        return entries.size();
-    }
-
-    @Override
-    public int getColumnCount() {
-        return COLUMNS.length;
-    }
-
+    
     @Override
     public Class getColumnClass(int col) {
         switch (col) {
             case COL_FILE:
                 return Integer.class;
 
-            case COL_DESCRIPTION:
+            case COL_DESC:
             case COL_TYPE:
                 return String.class;
         }
         return String.class;
     }
+    
+    @Override
+    public int getRowCount() {
+        return entries.size();
+    }
 
     @Override
     public Object getValueAt(int row, int col) {
         switch(col) {
-            case COL_DESCRIPTION:
+            case COL_DESC:
                 return entries.get(row);
                 
             case COL_TYPE:
@@ -83,34 +103,12 @@ public class ScriptItemModel extends AbstractTableModel {
             case COL_FILE:
                 return entries.get(row).getGroupIndex();
         }
-
         return null;
     }
     
-    public void bind(ArrayList<WorldScriptEntry> definitionGroups) {
-        //reset data
-        entries.clear();
-        
-        //bind new data
-        for (WorldScriptEntry group : definitionGroups) {
-            String filePath = group.getAbsolutePath();
-            defineFromFile(filePath, group.getIndex());
-        }
-        
-        fireTableDataChanged();
-    }
-    
-    public void unbind() {
-        entries.clear();
-        fireTableDataChanged();
-    }
-    
-    public void addEntry(ItemNULL newEntry) {
-        entries.add(newEntry);
-    }
-    
     private void defineFromFile(String fileName, int fileId) {
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+        try (FileReader fr = new FileReader(fileName);
+                BufferedReader br = new BufferedReader(fr)) {
             ItemType curType = ItemType.NULL; // read definition by group of types
             String line;
             while ((line = br.readLine()) != null) {
@@ -144,10 +142,6 @@ public class ScriptItemModel extends AbstractTableModel {
         }
     }
     
-    public ArrayList<ItemNULL> getEntries() {
-        return entries;
-    }
-    
     public ArrayList<ItemNULL> getEntriesByGroup(int gid) {
         ArrayList<ItemNULL> rs = new ArrayList<>();
         for (ItemNULL e : entries) {
@@ -156,10 +150,6 @@ public class ScriptItemModel extends AbstractTableModel {
             }
         }
         return rs;
-    }
-    
-    public ItemNULL getEntry(int id) {
-        return entries.get(id);
     }
     
     private static ItemNULL createItemEntry(String line, ItemType itemType, int groupId) {
