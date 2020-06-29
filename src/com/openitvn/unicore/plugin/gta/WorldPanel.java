@@ -99,7 +99,6 @@ public final class WorldPanel extends PanelViewer {
         world.layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
         world.layers.add(new ILayer(LAYER_COLLISION, "Collision Map", false));
         world.layers.add(new ILayer(LAYER_CAR_PATH, "Vehicle Path", true));
-        workspaceChanged(Workspace.getActive());
 //        camera = Launcher.getWorldProcessor().getActiveCamera();
 //        updateTimer = new Timer("GTA World Updater");
 //        updateTimer.schedule(new TimerTask() {

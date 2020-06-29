@@ -18,7 +18,10 @@ package com.openitvn.engine.renderware.tool;
 
 import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.data.EntryStream;
+import com.openitvn.unicore.data.FileStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import javax.swing.JFileChooser;
@@ -29,6 +32,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  * @author Thinh Pham
  */
+@SuppressWarnings("serial")
 public class RwDumper extends javax.swing.JDialog {
     
     private final HashMap<Object, RwDumperTab> entryMap = new HashMap<>(); // key is String or RwArchiveEntry
@@ -57,10 +61,15 @@ public class RwDumper extends javax.swing.JDialog {
     
     public void openEntry(IArchiveEntry entry) {
         if (!trySwitchTab(entry)) {
-            RwDumperTab tab = new RwDumperTab(entry);
-            tabbedDumper.addTab(entry.getName(), tab);
-            tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
-            entryMap.put(entry, tab);
+            try (EntryStream es = new EntryStream(entry)) {
+                RwDumperTab tab = new RwDumperTab();
+                tab.fromStream(es.getFullPath(), es);
+                tabbedDumper.addTab(entry.getName(), tab);
+                tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
+                entryMap.put(entry, tab);
+            } catch (IOException ex) {
+                ex.printStackTrace(System.err);
+            }
         }
     }
     
@@ -75,7 +84,6 @@ public class RwDumper extends javax.swing.JDialog {
         return false;
     }
     
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
@@ -197,10 +205,15 @@ public class RwDumper extends javax.swing.JDialog {
             currentFile = fc.getSelectedFile();
             String fileName = currentFile.toString();
             if (!trySwitchTab(fileName)) {
-                RwDumperTab tab = new RwDumperTab(fileName);
-                tabbedDumper.addTab(new File(fileName).getName(), tab);
-                tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
-                entryMap.put(fileName, tab);
+                try (FileStream fs = new FileStream(fileName)) {
+                    RwDumperTab tab = new RwDumperTab();
+                    tab.fromStream(fileName, fs);
+                    tabbedDumper.addTab(new File(fileName).getName(), tab);
+                    tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
+                    entryMap.put(fileName, tab);
+                } catch (IOException ex) {
+                    ex.printStackTrace(System.err);
+                }
             }
         }
     }//GEN-LAST:event_mnuOpenActionPerformed

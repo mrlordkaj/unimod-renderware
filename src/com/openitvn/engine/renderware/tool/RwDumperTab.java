@@ -17,68 +17,47 @@
 
 package com.openitvn.engine.renderware.tool;
 
-import com.openitvn.engine.renderware.RpSection;
-import com.openitvn.unicore.archive.IArchiveEntry;
-import com.openitvn.unicore.data.EntryStream;
-import com.openitvn.unicore.data.FileStream;
-import java.io.IOException;
+import java.awt.BorderLayout;
+
 import javax.swing.tree.DefaultTreeModel;
+
+import com.openitvn.engine.renderware.RpSection;
+import com.openitvn.unicore.data.DataStream;
 
 /**
  *
  * @author Thinh Pham
  */
-public class RwDumperTab extends javax.swing.JPanel {
+@SuppressWarnings("serial")
+class RwDumperTab extends javax.swing.JPanel {
 	
-    public RwDumperTab() {
+    RwDumperTab() {
         initComponents();
     }
     
-    public RwDumperTab(IArchiveEntry entry) {
-        initComponents();
-        try (EntryStream ds = new EntryStream(entry)) {
-            RpSection root = RpSection.loadRoot(ds);
-            DefaultTreeModel model = new DefaultTreeModel(root);
-            treeSection.setModel(model);
-            super.setName(ds.getFullPath());
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
+    void fromStream(String name, DataStream ds) {
+        RpSection root = RpSection.loadRoot(ds);
+        DefaultTreeModel model = new DefaultTreeModel(root);
+        treeSection.setModel(model);
+        setName(name);
     }
     
-    public RwDumperTab(String fileName) {
-        initComponents();
-        try (FileStream fs = new FileStream(fileName)) {
-            RpSection root = RpSection.loadRoot(fs);
-            DefaultTreeModel model = new DefaultTreeModel(root);
-            treeSection.setModel(model);
-            super.setName(fileName);
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
-    }
-    
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
+        javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         treeSection = new javax.swing.JTree();
 
-        setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 4, 4, 4));
-        setLayout(new java.awt.BorderLayout());
+        setBorder(new javax.swing.border.EmptyBorder(4, 4, 4, 4));
+        setLayout(new BorderLayout());
 
         jScrollPane1.setBorder(null);
 
         treeSection.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jScrollPane1.setViewportView(treeSection);
 
-        add(jScrollPane1, java.awt.BorderLayout.CENTER);
-    }// </editor-fold>//GEN-END:initComponents
+        add(jScrollPane1, BorderLayout.CENTER);
+    }
     
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTree treeSection;
-    // End of variables declaration//GEN-END:variables
 
 }

@@ -45,7 +45,6 @@ public final class ResourcePanel extends PanelViewer {
     public ResourcePanel() {
         initComponents();
         initResourceTable();
-        workspaceChanged(Workspace.getActive());
     }
     
     @Override

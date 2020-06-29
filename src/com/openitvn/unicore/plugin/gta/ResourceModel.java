@@ -68,6 +68,11 @@ public class ResourceModel extends AbstractTableModel {
         entries.clear();
         scripts.clear();
         dffTxdMap.clear();
+        if (!GameConfig.ALIAS_III.equals(space.name) &&
+                !GameConfig.ALIAS_VC.equals(space.name) &&
+                !GameConfig.ALIAS_SA.equals(space.name)) {
+            return;
+        }
         LinkedHashMap<String, IArchiveEntry> entryMap = new LinkedHashMap<>();
         // load resources from main archive
         for (String arc : GameConfig.getMainArchives()) {

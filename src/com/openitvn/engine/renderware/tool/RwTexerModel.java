@@ -27,8 +27,10 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Thinh Pham
  */
-public class RwTexerModel extends AbstractTableModel {
-    final String[] COLUMNS = { "Name", "Mask", "A" };
+@SuppressWarnings("serial")
+class RwTexerModel extends AbstractTableModel {
+    
+    static final String[] COLUMNS = { "Name", "Mask", "A" };
     static final int COL_NAME = 0;
     static final int COL_MASK = 1;
     static final int COL_ALPHA = 2;
@@ -62,7 +64,7 @@ public class RwTexerModel extends AbstractTableModel {
     }
     
     @Override
-    public Class getColumnClass(int col) {
+    public Class<?> getColumnClass(int col) {
         switch (col) {
             case COL_ALPHA:
                 return Boolean.class;

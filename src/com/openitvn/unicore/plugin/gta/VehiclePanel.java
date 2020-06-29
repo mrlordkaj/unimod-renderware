@@ -47,7 +47,6 @@ public final class VehiclePanel extends PanelViewer {
     public VehiclePanel() {
         initComponents();
         initVehicleTable();
-        workspaceChanged(Workspace.getActive());
     }
 
     @Override

@@ -37,11 +37,17 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumn;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.GroupLayout;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
+import java.awt.Component;
 
 /**
  *
  * @author Thinh Pham
  */
+@SuppressWarnings("serial")
 public final class RwTexer extends javax.swing.JDialog {
     
     private static RwTexer instance;
@@ -59,7 +65,6 @@ public final class RwTexer extends javax.swing.JDialog {
     private RwTexer() {
         super(Unicore.getMainFrame(), false);
         initComponents();
-        loadTexDic(null, null);
         
         TableColumn colAlpha = tableTexLib.getColumnModel().getColumn(RwTexerModel.COL_ALPHA);
         colAlpha.setMinWidth(20);
@@ -91,6 +96,8 @@ public final class RwTexer extends javax.swing.JDialog {
                 }
             }
         });
+        
+        loadTexDic(null, null);
     }
     
     @Override
@@ -136,26 +143,35 @@ public final class RwTexer extends javax.swing.JDialog {
         return null;
     }
     
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                Unicore.loadDefaultStyle();
+                RwTexer texer = new RwTexer();
+                texer.setVisible(true);
+            }
+        });
+    }
+    
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
+        javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         tableTexLib = new javax.swing.JTable();
         cboMipmap = new javax.swing.JComboBox<>();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
         lblImage = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         lblFormat = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
+        javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
+        javax.swing.JMenu jMenu1 = new javax.swing.JMenu();
         mnuOpen = new javax.swing.JMenuItem();
         mnuSave = new javax.swing.JMenuItem();
         mnuExport = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator2 = new javax.swing.JPopupMenu.Separator();
         mnuExit = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
+        javax.swing.JMenu jMenu2 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setLocationByPlatform(true);
@@ -171,8 +187,16 @@ public final class RwTexer extends javax.swing.JDialog {
         jScrollPane1.setViewportView(tableTexLib);
 
         cboMipmap.addItemListener(new java.awt.event.ItemListener() {
+            @Override
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                cboMipmapItemStateChanged(evt);
+            	if (texture != null && evt.getStateChange() == ItemEvent.SELECTED) {
+                    int mip = cboMipmap.getSelectedIndex();
+                    if (mip >= 0) {
+                        BufferedRaster img = exportImage(texture, mip);
+                        ImageIcon ico = new ImageIcon(img);
+                        lblImage.setIcon(ico);
+                    }
+                }
             }
         });
 
@@ -192,8 +216,20 @@ public final class RwTexer extends javax.swing.JDialog {
         mnuOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         mnuOpen.setText("Open...");
         mnuOpen.addActionListener(new java.awt.event.ActionListener() {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuOpenActionPerformed(evt);
+            	JFileChooser fc = new JFileChooser(curFile);
+                fc.setAcceptAllFileFilterUsed(false);
+                fc.addChoosableFileFilter(new FileNameExtensionFilter("Renderware Textures (txd)","txd"));
+                if (fc.showOpenDialog(RwTexer.this) == JFileChooser.APPROVE_OPTION) {
+                    curFile = fc.getSelectedFile();
+                    try (FileStream fs = new FileStream(curFile)) {
+                        RpTextureDictionary txd = RpSection.loadRoot(fs, RpTextureDictionary.class);
+                        loadTexDic(fs.getFullPath(), txd);
+                    } catch (IOException ex) {
+                        ex.printStackTrace(System.err);
+                    }
+                }
             }
         });
         jMenu1.add(mnuOpen);
@@ -202,8 +238,21 @@ public final class RwTexer extends javax.swing.JDialog {
         mnuSave.setText("Save As...");
         mnuSave.setEnabled(false);
         mnuSave.addActionListener(new java.awt.event.ActionListener() {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuSaveActionPerformed(evt);
+            	JFileChooser fc = new JFileChooser(curFile);
+                fc.setAcceptAllFileFilterUsed(false);
+                fc.addChoosableFileFilter(new FileNameExtensionFilter("Portable Network Graphics (png)","png"));
+                fc.setSelectedFile(new File(texture.getTextureData().getMapperName()+".png"));
+                if (fc.showSaveDialog(RwTexer.this) == JFileChooser.APPROVE_OPTION) {
+                    curFile = fc.getSelectedFile();
+                    try {
+                        BufferedRaster img = exportImage(texture, 0);
+                        ImageIO.write(img, "png", curFile);
+                    } catch (IOException ex) {
+                        ex.printStackTrace(System.err);
+                    }
+                }
             }
         });
         jMenu1.add(mnuSave);
@@ -212,8 +261,23 @@ public final class RwTexer extends javax.swing.JDialog {
         mnuExport.setText("Export...");
         mnuExport.setEnabled(false);
         mnuExport.addActionListener(new java.awt.event.ActionListener() {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuExportActionPerformed(evt);
+            	JFileChooser fc = new JFileChooser(curFile);
+                fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                if (fc.showSaveDialog(RwTexer.this) == JFileChooser.APPROVE_OPTION) {
+                    curFile = fc.getSelectedFile();
+                    for (RwTexture tex : texLibModel.entries) {
+                        try {
+                            String fileName = tex.getTextureData().getMapperName() + ".png";
+                            File out = new File(curFile.getPath() + "/" + fileName);
+                            BufferedRaster img = exportImage(tex, 0);
+                            ImageIO.write(img, "png", out);
+                        } catch (IOException ex) {
+                            ex.printStackTrace(System.err);
+                        }
+                    }
+                }
             }
         });
         jMenu1.add(mnuExport);
@@ -222,8 +286,9 @@ public final class RwTexer extends javax.swing.JDialog {
         mnuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_MASK));
         mnuExit.setText("Exit");
         mnuExit.addActionListener(new java.awt.event.ActionListener() {
+            @Override
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuExitActionPerformed(evt);
+                dispose();
             }
         });
         jMenu1.add(mnuExit);
@@ -236,134 +301,49 @@ public final class RwTexer extends javax.swing.JDialog {
         setJMenuBar(jMenuBar1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cboMipmap, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblFormat, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 330, Short.MAX_VALUE)
-                .addContainerGap())
+        	layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
+        				.addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 240, GroupLayout.PREFERRED_SIZE)
+        				.addGroup(layout.createSequentialGroup()
+        					.addGroup(layout.createParallelGroup(Alignment.LEADING)
+        						.addComponent(jLabel1)
+        						.addComponent(jLabel3, GroupLayout.PREFERRED_SIZE, 41, GroupLayout.PREFERRED_SIZE))
+        					.addPreferredGap(ComponentPlacement.RELATED)
+        					.addGroup(layout.createParallelGroup(Alignment.LEADING)
+        						.addComponent(cboMipmap, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        						.addComponent(lblFormat, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+        			.addPreferredGap(ComponentPlacement.UNRELATED)
+        			.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 330, Short.MAX_VALUE)
+        			.addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(lblFormat))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(cboMipmap, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1)))
-                    .addComponent(jScrollPane2))
-                .addContainerGap())
+        	layout.createParallelGroup(Alignment.LEADING)
+        		.addGroup(layout.createSequentialGroup()
+        			.addContainerGap()
+        			.addGroup(layout.createParallelGroup(Alignment.LEADING)
+        				.addComponent(jScrollPane2, GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE)
+        				.addGroup(layout.createSequentialGroup()
+        					.addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
+        					.addPreferredGap(ComponentPlacement.RELATED)
+        					.addGroup(layout.createParallelGroup(Alignment.LEADING)
+        						.addComponent(lblFormat)
+        						.addComponent(jLabel3))
+        					.addPreferredGap(ComponentPlacement.RELATED)
+        					.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+        						.addComponent(cboMipmap, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+        						.addComponent(jLabel1))))
+        			.addContainerGap())
         );
-
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {cboMipmap, jLabel1, jLabel3, lblFormat});
+        layout.linkSize(SwingConstants.VERTICAL, new Component[] {jLabel3, cboMipmap, jLabel1, lblFormat});
+        getContentPane().setLayout(layout);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void cboMipmapItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cboMipmapItemStateChanged
-        if (texture != null && evt.getStateChange() == ItemEvent.SELECTED) {
-            int mip = cboMipmap.getSelectedIndex();
-            if (mip >= 0) {
-                BufferedRaster img = exportImage(texture, mip);
-                ImageIcon ico = new ImageIcon(img);
-                lblImage.setIcon(ico);
-            }
-        }
-    }//GEN-LAST:event_cboMipmapItemStateChanged
-
-    private void mnuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuExitActionPerformed
-        dispose();
-    }//GEN-LAST:event_mnuExitActionPerformed
-
-    private void mnuOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuOpenActionPerformed
-        JFileChooser fc = new JFileChooser(curFile);
-        fc.setAcceptAllFileFilterUsed(false);
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("Renderware Textures (txd)","txd"));
-        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            curFile = fc.getSelectedFile();
-            try (FileStream fs = new FileStream(curFile)) {
-                RpTextureDictionary txd = RpSection.loadRoot(fs, RpTextureDictionary.class);
-                loadTexDic(fs.getFullPath(), txd);
-            } catch (IOException ex) {
-                ex.printStackTrace(System.err);
-            }
-        }
-    }//GEN-LAST:event_mnuOpenActionPerformed
-
-    private void mnuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSaveActionPerformed
-        JFileChooser fc = new JFileChooser(curFile);
-        fc.setAcceptAllFileFilterUsed(false);
-        fc.addChoosableFileFilter(new FileNameExtensionFilter("Portable Network Graphics (png)","png"));
-        fc.setSelectedFile(new File(texture.getTextureData().getMapperName()+".png"));
-        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            curFile = fc.getSelectedFile();
-            try {
-                BufferedRaster img = exportImage(texture, 0);
-                ImageIO.write(img, "png", curFile);
-            } catch (IOException ex) {
-                ex.printStackTrace(System.err);
-            }
-        }
-    }//GEN-LAST:event_mnuSaveActionPerformed
-
-    private void mnuExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuExportActionPerformed
-        JFileChooser fc = new JFileChooser(curFile);
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            curFile = fc.getSelectedFile();
-            for (RwTexture tex : texLibModel.entries) {
-                try {
-                    String fileName = tex.getTextureData().getMapperName() + ".png";
-                    File out = new File(curFile.getPath() + "/" + fileName);
-                    BufferedRaster img = exportImage(tex, 0);
-                    ImageIO.write(img, "png", out);
-                } catch (IOException ex) {
-                    ex.printStackTrace(System.err);
-                }
-            }
-        }
-    }//GEN-LAST:event_mnuExportActionPerformed
-
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                Unicore.loadDefaultStyle();
-                RwTexer texer = new RwTexer();
-                texer.setVisible(true);
-            }
-        });
     }
-    
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+
     private javax.swing.JComboBox<String> cboMipmap;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JLabel lblFormat;
     private javax.swing.JLabel lblImage;
     private javax.swing.JMenuItem mnuExit;
@@ -371,5 +351,4 @@ public final class RwTexer extends javax.swing.JDialog {
     private javax.swing.JMenuItem mnuOpen;
     private javax.swing.JMenuItem mnuSave;
     private javax.swing.JTable tableTexLib;
-    // End of variables declaration//GEN-END:variables
 }
