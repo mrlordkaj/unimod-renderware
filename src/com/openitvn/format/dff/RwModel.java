@@ -25,6 +25,7 @@ import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpClump;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
+import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.engine.renderware.struct.RpFrame;
 import com.openitvn.format.txd.RwTexture;
@@ -62,7 +63,7 @@ public class RwModel extends IWorld {
         fromData(ds, true);
     }
     
-    public Collection<INode> fromData(DataStream dff, boolean allClump) {
+    public Collection<INode> fromData(DataStream ds, boolean allClump) {
         // prepare texture native cache from resource manager
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
         for (ITexture tex : resource.getTextures()) {
@@ -71,11 +72,11 @@ public class RwModel extends IWorld {
                 texNavMap.put(texData.textureName.toLowerCase(), texData);
             }
         }
-        
+        // load model data from stream
         HashMap<RpFrame, INode> frameMap = new HashMap<>();
         int clumpId = 0;
         RpClump clump;
-        while ((clump = RpSection.loadRoot(dff, RpClump.class)) != null) {
+        while ((clump = RpSection.loadRoot(ds, RpClump.class)) != null) {
             // create nodes by frames
             for (RpFrame frmData : clump.frameList.frames) {
                 boolean isGeometry = frmData.geometry != null;
@@ -108,7 +109,7 @@ public class RwModel extends IWorld {
                             // default if texture not found
                             matName = frmData.name + "_untex" + i;
                         }
-                        if (resource.findMaterial(matName) == null) {
+                        if (!resource.containsMaterial(matName)) {
                             RwMaterial mat = new RwMaterial(matName, matData, texData);
                             resource.register(mat);
                         }
@@ -138,11 +139,11 @@ public class RwModel extends IWorld {
         return frameMap.values(); // return for vehicle management
     }
     
-    public void loadTextureLibrary(DataStream txd) {
-        RpSection grand = RpSection.loadSection(txd, null);
-        for (RpTextureNative texData : grand.getChildren(RpTextureNative.class)) {
+    public void loadTexDic(DataStream ds) {
+        RpTextureDictionary texDic = RpSection.loadRoot(ds, RpTextureDictionary.class);
+        for (RpTextureNative texData : texDic.textures) {
             String texName = texData.getMapperName();
-            if (resource.findTexture(texName) == null) {
+            if (!resource.containsTexture(texName)) {
                 RwTexture tex = new RwTexture(texName, texData);
                 resource.register(tex);
             }

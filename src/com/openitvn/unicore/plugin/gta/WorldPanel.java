@@ -26,6 +26,7 @@ import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.col.ColFile;
 import com.openitvn.format.dff.RwMaterial;
+import com.openitvn.format.dff.RwModel;
 import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.Unicore;
@@ -93,12 +94,13 @@ public final class WorldPanel extends PanelViewer {
         refineWorldTable(null);
         tblMap.setDefaultRenderer(Boolean.class, new UCBooleanCellRenderer());
         // prepare world world
-        world = WorldFactory.create("GTA World");
+        world = new RwModel("GTA World");
         world.setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
         world.layers.add(new ILayer(LAYER_NORMAL, "Normal Map", true));
         world.layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
         world.layers.add(new ILayer(LAYER_COLLISION, "Collision Map", false));
         world.layers.add(new ILayer(LAYER_CAR_PATH, "Vehicle Path", true));
+        WorldFactory.register(world);
 //        camera = Launcher.getWorldProcessor().getActiveCamera();
 //        updateTimer = new Timer("GTA World Updater");
 //        updateTimer.schedule(new TimerTask() {
@@ -343,11 +345,20 @@ public final class WorldPanel extends PanelViewer {
                         // material
                         RpMaterial matData = geoData.materials.get(i);
                         RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
-                        String matName = (texData == null) ?
-                                objs.modName + "_untex" + i :
-                                texData.getMapperName() + "m";
+                        String matName;
+                        if (texData != null) {
+                            // create material name by add "m"
+                            matName = texData.getMapperName()+"m";
+                            // if have alpha channel, add "a"
+                            if (matData.isMasked() || matData.color.a < 255) {
+                                matName += "a";
+                            }
+                        } else {
+                            // default if texture not found
+                            matName = objs.modName + "_untex" + i;
+                        }
                         // register new material when missing
-                        if (world.resource.findMaterial(matName) == null) {
+                        if (!world.resource.containsMaterial(matName)) {
                             RwMaterial mat = new RwMaterial(matName, matData, texData);
                             world.resource.register(mat);
                             reg.matNames.add(matName);

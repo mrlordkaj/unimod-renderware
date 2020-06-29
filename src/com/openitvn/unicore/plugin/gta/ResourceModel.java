@@ -190,7 +190,7 @@ public class ResourceModel extends AbstractTableModel {
             }
             try (IArchiveEntry te = findEntry(txdName, "txd");
                     EntryStream ts = new EntryStream(te)) {
-                mod.loadTextureLibrary(ts);
+                mod.loadTexDic(ts);
             }
             Collection<INode> nodes = mod.fromData(ms, false);
             // node list use in vehicle
