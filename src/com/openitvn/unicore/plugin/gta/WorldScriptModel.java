@@ -19,7 +19,6 @@ package com.openitvn.unicore.plugin.gta;
 
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.BackgroundTask;
-import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -35,6 +34,7 @@ import javax.swing.table.AbstractTableModel;
  */
 class WorldScriptModel extends AbstractTableModel {
     
+    public static final String[] COLUMNS = { "", "Name", "Type" };
     public static final int COL_ACTIVE = 0;
     public static final int COL_NAME = 1;
     public static final int COL_TYPE = 2;
@@ -87,17 +87,16 @@ class WorldScriptModel extends AbstractTableModel {
             String name = group.getName();
             String prefix = name.toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
             ResourceModel res = ResourceModel.getInstance();
-            IArchiveEntry e;
             int i = 0;
-            while ((e = res.findEntry(prefix + i, "ipl")) != null) {
-                try (EntryStream ds = new EntryStream(e)) {
-                    app.executeINSTGroup(e.getName(), ds, active);
+            while (true) {
+                try (EntryStream ds = res.getEntryStream(prefix + i, "ipl")) {
+                    String entryName = ds.getLastPath();
+                    app.executeINSTGroup(entryName, ds, active);
+                    Logger.printNotice("IPL executed: %1$s", entryName);
+                    i++;
                 } catch (IOException ex) {
-                    Logger.printNotice("IPL failed: %1$s", e.getName());
                     break;
                 }
-                Logger.printNotice("IPL executed: %1$s", e.getName());
-                i++;
             }
         }
     }
@@ -141,19 +140,12 @@ class WorldScriptModel extends AbstractTableModel {
     //<editor-fold defaultstate="collapsed" desc="JTable Model">
     @Override
     public int getColumnCount() {
-        return 3;
+        return COLUMNS.length;
     }
     
     @Override
     public String getColumnName(int col) {
-        switch (col) {
-            case COL_NAME:
-                return "Name";
-                
-            case COL_TYPE:
-                return "Type";
-        }
-        return null;
+        return COLUMNS[col];
     }
 
     @Override

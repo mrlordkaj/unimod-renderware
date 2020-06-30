@@ -17,7 +17,7 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.openitvn.engine.renderware.tool.RwDumper;
-import com.openitvn.format.dff.RwModel;
+import com.openitvn.format.dff.RwWorld;
 import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
@@ -40,7 +40,7 @@ public final class ResourcePanel extends PanelViewer {
     
     private final ResourceModel resModel = ResourceModel.getInstance();
     private IArchiveEntry selected;
-    private RwModel viewer;
+    private RwWorld viewer;
     
     public ResourcePanel() {
         initComponents();
@@ -191,8 +191,8 @@ public final class ResourcePanel extends PanelViewer {
             switch (type) {
                 case "dff":
                     WorldFactory.unregister(viewer);
-                    viewer = new RwModel(name);
-                    res.extractModel(name, viewer, null);
+                    viewer = new RwWorld(name);
+                    res.extractModel(name, viewer);
                     viewer.construct(viewer.resource);
                     WorldFactory.register(viewer);
                     WorldFactory.focusTo(viewer);

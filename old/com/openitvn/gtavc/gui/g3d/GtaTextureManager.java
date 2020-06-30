@@ -107,8 +107,7 @@ public class GtaTextureManager {
         RpTextureDictionary txd = TEXDIC_MAP.get(txdName);
         if (txd == null) {
             ResourceModel res = ResourceModel.getInstance();
-            try (IArchiveEntry te = res.findEntry(txdName, "txd");
-                    EntryStream ds = new EntryStream(te)) {
+            try (EntryStream ds = res.getEntryStream(txdName, "txd")) {
                 txd = RpSection.loadRoot(ds, RpTextureDictionary.class);
                 TEXDIC_MAP.put(txdName, txd);
             } catch (IOException ex) {

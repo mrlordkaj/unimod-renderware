@@ -21,7 +21,6 @@ import java.awt.BorderLayout;
 
 import javax.swing.tree.DefaultTreeModel;
 
-import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.unicore.data.DataStream;
 
 /**
@@ -31,15 +30,12 @@ import com.openitvn.unicore.data.DataStream;
 @SuppressWarnings("serial")
 class RwDumperTab extends javax.swing.JPanel {
 	
-    RwDumperTab() {
+    RwDumperTab(String name, DataStream ds) {
         initComponents();
-    }
-    
-    void fromStream(String name, DataStream ds) {
-        RpSection root = RpSection.loadRoot(ds);
+        RwDumperRoot root = new RwDumperRoot(name, ds);
         DefaultTreeModel model = new DefaultTreeModel(root);
         treeSection.setModel(model);
-        setName(name);
+        super.setName(name);
     }
     
     private void initComponents() {

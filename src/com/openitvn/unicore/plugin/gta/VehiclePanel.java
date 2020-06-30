@@ -17,7 +17,7 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.format.dff.RwModel;
+import com.openitvn.format.dff.RwWorld;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.plugin.PanelViewer;
@@ -25,6 +25,7 @@ import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.world.IGeometry;
 import com.openitvn.unicore.world.INode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
@@ -38,10 +39,10 @@ import javax.swing.table.TableRowSorter;
  */
 public final class VehiclePanel extends PanelViewer {
 
-    private RwModel vehicleWorld;
+    private RwWorld vehicleWorld;
     private final VehicleModel vehicleModel = new VehicleModel();
     
-    private final ArrayList<INode> nodes = new ArrayList<>(); // for easy control
+    private Collection<INode> nodes; // for easy control
     private HashMap<Integer, String> wheelMap;
     
     public VehiclePanel() {
@@ -81,13 +82,13 @@ public final class VehiclePanel extends PanelViewer {
                     // create new world and pre-register libraries
                     int id = tblCar.convertRowIndexToModel(row);
                     ItemCARS e = vehicleModel.entries.get(id);
-                    vehicleWorld = new RwModel(e.modName);
+                    vehicleWorld = new RwWorld(e.modName);
                     vehicleWorld.resource.register(vehicleModel.comTexLib);
                     vehicleWorld.resource.register(vehicleModel.comMatLib);
                     vehicleWorld.resource.register(vehicleModel.comModLib);
                     // load world from dff stream
                     ResourceModel res = ResourceModel.getInstance();
-                    res.extractModel(e.modName, vehicleWorld, nodes);
+                    nodes = res.extractModel(e.modName, vehicleWorld);
                     // create wheels
                     switch (e.type) {
                         case "car":

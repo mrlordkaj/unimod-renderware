@@ -16,7 +16,7 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
-import com.openitvn.format.dff.RwModel;
+import com.openitvn.format.dff.RwWorld;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.format.img.RwArchive;
 import com.openitvn.maintain.Logger;
@@ -41,6 +41,7 @@ import javax.swing.table.AbstractTableModel;
  */
 public class ResourceModel extends AbstractTableModel {
     
+    public static final String[] COLUMNS = { "", "Name", "Size" };
     public static final int COL_INDEX = 0;
     public static final int COL_NAME = 1;
     public static final int COL_SIZE = 2;
@@ -176,27 +177,21 @@ public class ResourceModel extends AbstractTableModel {
         }
     }
     
-    void extractModel(String modName, RwModel target, ArrayList<INode> nodeList) {
+    Collection<INode> extractModel(String modName, RwWorld target) {
         // try load dependency texDic
         String txdName = dffTxdMap.get(modName.toLowerCase());
         if (txdName == null) {
             txdName = modName;
         }
-        try (IArchiveEntry te = findEntry(txdName, "txd");
-                EntryStream ts = new EntryStream(te)) {
+        try (EntryStream ts = getEntryStream(txdName, "txd")) {
             target.loadTexDic(ts);
         } catch (IOException ex) { }
         // try load model content
-        try (IArchiveEntry me = findEntry(modName, "dff");
-                EntryStream ms = new EntryStream(me)) {
-            Collection<INode> nodes = target.fromData(ms, false);
-            // node list use in vehicle
-            if (nodeList != null) {
-                nodeList.clear();
-                nodeList.addAll(nodes);
-            }
+        try (EntryStream ms = getEntryStream(modName, "dff")) {
+            return target.loadData(ms, false);
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
+            return new ArrayList<>();
         }
     }
     
@@ -209,8 +204,9 @@ public class ResourceModel extends AbstractTableModel {
         return null;
     }
     
-    public IArchiveEntry findEntry(String name, String ext) {
-        return findEntry(name+"."+ext);
+    public EntryStream getEntryStream(String name, String ext) throws IOException {
+        IArchiveEntry e = findEntry(name+"."+ext);
+        return new EntryStream(e);
     }
     
     @Override
@@ -220,19 +216,12 @@ public class ResourceModel extends AbstractTableModel {
     
     @Override
     public int getColumnCount() {
-        return 3;
+        return COLUMNS.length;
     }
     
     @Override
     public String getColumnName(int col) {
-        switch (col) {
-            case COL_NAME:
-                return "Name";
-                
-            case COL_SIZE:
-                return "Size";
-        }
-        return null;
+        return COLUMNS[col];
     }
     
     @Override

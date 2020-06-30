@@ -224,10 +224,6 @@ public class ViewportApp implements ApplicationListener {
         mapView.removeOBJS(e);
     }
     
-    public void addCARS(ItemCARS e) {
-        vehicleModel.entries().add(e);
-    }
-    
     public void select(ItemNULL entry) {
         switch (entry.getType()) {
             case INST:

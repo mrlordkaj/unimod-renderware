@@ -25,13 +25,12 @@ import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.col.ColFile;
 import com.openitvn.format.dff.RwMaterial;
-import com.openitvn.format.dff.RwModel;
+import com.openitvn.format.dff.RwWorld;
 import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
-import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.PanelViewer;
@@ -76,7 +75,7 @@ public final class WorldPanel extends PanelViewer {
     private final HashMap<Integer, Integer> modelLayerMap = new HashMap<>(); // layer find - objs.id, layer.id
     private final WorldScriptModel scriptModel = new WorldScriptModel();
     
-    private final RwModel world;
+    private final RwWorld world;
 //    private final Camera camera;
 //    private final Vector3 prevPos = new Vector3();
 //    private final Vector3 prevDir = new Vector3();
@@ -93,7 +92,7 @@ public final class WorldPanel extends PanelViewer {
         refineWorldTable(null);
         tblMap.setDefaultRenderer(Boolean.class, new UCBooleanCellRenderer());
         // prepare world world
-        world = new RwModel("GTA World");
+        world = new RwWorld("GTA World");
         world.setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
         world.layers.add(new ILayer(LAYER_NORMAL, "Normal Map", true));
         world.layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
@@ -301,8 +300,7 @@ public final class WorldPanel extends PanelViewer {
     private void addOBJS(ItemOBJS objs, GroupRegistry reg) {
         ResourceModel res = ResourceModel.getInstance();
         // load textures
-        try (IArchiveEntry te = res.findEntry(objs.txdName, "txd");
-                EntryStream ts = new EntryStream(te)) {
+        try (EntryStream ts = res.getEntryStream(objs.txdName, "txd")) {
             world.loadTexDic(ts);
         } catch (IOException ex) {
             Logger.printWarning("TXD not found: " + objs.txdName);
@@ -316,8 +314,7 @@ public final class WorldPanel extends PanelViewer {
             }
         }
         // load model
-        try (IArchiveEntry me = res.findEntry(objs.modName, "dff");
-                EntryStream ms = new EntryStream(me)) {
+        try (EntryStream ms = res.getEntryStream(objs.modName, "dff")) {
             RpClump clump = RpSection.loadRoot(ms, RpClump.class);
             if (clump != null) {
                 // only load root geometry as model
@@ -440,8 +437,7 @@ public final class WorldPanel extends PanelViewer {
             // need implement primitive collision in future
             ResourceModel res = ResourceModel.getInstance();
             String colFile = groupName.substring(0, groupName.length() - 4);
-            try (IArchiveEntry ce = res.findEntry(colFile, "col");
-                    EntryStream cs = new EntryStream(ce)) {
+            try (EntryStream cs = res.getEntryStream(colFile, "col")) {
                 int fourCC;
                 while (cs.remaining() > 4 && (fourCC = cs.getInt()) != 0) {
                     ColFile col = new ColFile(fourCC, cs);

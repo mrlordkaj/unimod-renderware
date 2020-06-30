@@ -75,8 +75,7 @@ public class GtaModel {
         this.modName = modName;
         this.txdName = txdName;
         ResourceModel res = ResourceModel.getInstance();
-        try (IArchiveEntry me = res.findEntry(modName, "dff");
-                EntryStream ms = new EntryStream(me)) {
+        try (EntryStream ms = res.getEntryStream(modName, "dff")) {
             rClump = RpSection.loadRoot(ms, RpClump.class);
         } catch (IOException ex) {
             System.err.println("DFF not found: " + modName);

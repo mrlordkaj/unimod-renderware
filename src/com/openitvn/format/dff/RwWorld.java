@@ -34,6 +34,7 @@ import com.openitvn.unicore.world.INode;
 import com.openitvn.unicore.world.IWorldUnit;
 import com.openitvn.unicore.world.resource.IModel;
 import com.openitvn.unicore.world.resource.ITexture;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -41,13 +42,13 @@ import java.util.HashMap;
  *
  * @author Thinh Pham
  */
-public class RwModel extends IWorld {
+public class RwWorld extends IWorld {
     
-    public RwModel() {
+    public RwWorld() {
         this(null);
     }
     
-    public RwModel(String name) {
+    public RwWorld(String name) {
         super(name);
         // TODO: some dff use X-up coordinate, (eg. love.dff from GTA3)
         setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
@@ -60,10 +61,10 @@ public class RwModel extends IWorld {
     
     @Override
     public void fromData(DataStream ds) {
-        fromData(ds, true);
+        loadData(ds, true);
     }
     
-    public Collection<INode> fromData(DataStream ds, boolean allClump) {
+    public Collection<INode> loadData(DataStream ds, boolean allClump) {
         // prepare texture native cache from resource manager
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
         for (ITexture tex : resource.getTextures()) {
@@ -73,10 +74,11 @@ public class RwModel extends IWorld {
             }
         }
         // load model data from stream
-        HashMap<RpFrame, INode> frameMap = new HashMap<>();
+        ArrayList<INode> nodes = new ArrayList<>();
         int clumpId = 0;
         RpClump clump;
         while ((clump = RpSection.loadRoot(ds, RpClump.class)) != null) {
+            HashMap<RpFrame, INode> frameMap = new HashMap<>();
             // create nodes by frames
             for (RpFrame frmData : clump.frameList.frames) {
                 boolean isGeometry = frmData.geometry != null;
@@ -125,29 +127,39 @@ public class RwModel extends IWorld {
             }
             // resolve hierarchy by frame
             for (HashMap.Entry<RpFrame, INode> e : frameMap.entrySet()) {
-                INode geo = frameMap.get(e.getKey().parent);
-                e.getValue().attach(geo == null ? this : geo);
+                INode p = frameMap.get(e.getKey().parent);
+                e.getValue().attach(p == null ? this : p);
             }
+            nodes.addAll(frameMap.values());
             // add new layer for clump
             if (allClump) {
-                layers.add(new ILayer(clumpId, "Clump " + clumpId));
+                ILayer layer = new ILayer(clumpId, "Clump " + clumpId);
+                layer.visible = (clumpId == 0);
+                layers.add(layer);
                 clumpId++;
             } else {
                 break;
             }
         }
         // return for vehicle management
-        return frameMap.values();
+        return nodes;
     }
     
-    public void loadTexDic(DataStream ds) {
+    public HashMap<String, RwTexture> loadTexDic(DataStream ds) {
+        HashMap<String, RwTexture> rs = new HashMap<>();
         RpTextureDictionary texDic = RpSection.loadRoot(ds, RpTextureDictionary.class);
         for (RpTextureNative texNav : texDic.textures) {
             String texName = texNav.getMapperName();
+            RwTexture tex;
             if (!resource.containsTexture(texName)) {
-                RwTexture tex = new RwTexture(texName, texNav);
+                tex = new RwTexture(texName, texNav);
                 resource.register(tex);
+            } else {
+                tex = (RwTexture) resource.findTexture(texName);
             }
+            String key = tex.getTextureData().textureName.toLowerCase();
+            rs.put(key, tex);
         }
+        return rs;
     }
 }

@@ -62,8 +62,7 @@ public class RwDumper extends javax.swing.JDialog {
     public void openEntry(IArchiveEntry entry) {
         if (!trySwitchTab(entry)) {
             try (EntryStream es = new EntryStream(entry)) {
-                RwDumperTab tab = new RwDumperTab();
-                tab.fromStream(es.getFullPath(), es);
+                RwDumperTab tab = new RwDumperTab(es.getFullPath(), es);
                 tabbedDumper.addTab(entry.getName(), tab);
                 tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
                 entryMap.put(entry, tab);
@@ -206,8 +205,7 @@ public class RwDumper extends javax.swing.JDialog {
             String fileName = currentFile.toString();
             if (!trySwitchTab(fileName)) {
                 try (FileStream fs = new FileStream(fileName)) {
-                    RwDumperTab tab = new RwDumperTab();
-                    tab.fromStream(fileName, fs);
+                    RwDumperTab tab = new RwDumperTab(fileName, fs);
                     tabbedDumper.addTab(new File(fileName).getName(), tab);
                     tabbedDumper.setSelectedIndex(tabbedDumper.getTabCount() - 1);
                     entryMap.put(fileName, tab);

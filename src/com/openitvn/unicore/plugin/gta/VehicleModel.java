@@ -16,7 +16,7 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
-import com.openitvn.format.dff.RwModel;
+import com.openitvn.format.dff.RwWorld;
 import com.openitvn.format.txd.RwTexturePack;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.FileStream;
@@ -37,11 +37,13 @@ import javax.swing.table.AbstractTableModel;
  */
 public class VehicleModel extends AbstractTableModel {
     
+    public static final String[] COLUMNS = { "", "Name", "Type" };
     public static final int COL_INDEX = 0;
     public static final int COL_NAME = 1;
     public static final int COL_TYPE = 2;
     
     ArrayList<ItemCARS> entries = new ArrayList<>();
+    // common resources
     ArrayList<ITexture> comTexLib;
     ArrayList<IMaterial> comMatLib;
     ArrayList<IModel> comModLib;
@@ -54,8 +56,8 @@ public class VehicleModel extends AbstractTableModel {
         switch (GameConfig.getAlias()) {
             case GameConfig.ALIAS_III:
             case GameConfig.ALIAS_VC:
-                RwModel extraLib = new RwModel("wheels");
-                res.extractModel("wheels", extraLib, null);
+                RwWorld extraLib = new RwWorld("wheels");
+                res.extractModel("wheels", extraLib);
                 comTexLib.addAll(extraLib.resource.getTextures());
                 comMatLib.addAll(extraLib.resource.getMaterials());
                 comModLib.addAll(extraLib.resource.getModels());
@@ -99,19 +101,12 @@ public class VehicleModel extends AbstractTableModel {
     
     @Override
     public int getColumnCount() {
-        return 3;
+        return COLUMNS.length;
     }
     
     @Override
     public String getColumnName(int col) {
-        switch (col) {
-            case COL_NAME:
-                return "Name";
-                
-            case COL_TYPE:
-                return "Type";
-        }
-        return null;
+        return COLUMNS[col];
     }
     
     @Override
@@ -146,10 +141,5 @@ public class VehicleModel extends AbstractTableModel {
                 return e.type;
         }
         return null;
-    }
-    
-    @Deprecated
-    public ArrayList<ItemCARS> entries() {
-        return entries;
     }
 }

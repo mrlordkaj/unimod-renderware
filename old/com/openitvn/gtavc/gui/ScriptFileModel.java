@@ -21,13 +21,11 @@ import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.maintain.Logger;
-import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
 import com.openitvn.unicore.plugin.gta.WorldScriptType;
-import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.io.BufferedReader;
@@ -209,7 +207,7 @@ public class ScriptFileModel extends AbstractTableModel {
     
     private void parseInternalScript() {
         // for GTA SA only, read extra binary stream inside img file
-        try {
+//        try {
             ArrayList<ItemNULL> items = scriptItemModel.entries;
             ResourceModel res = ResourceModel.getInstance();
             for (WorldScriptEntry group : entries) {
@@ -217,9 +215,8 @@ public class ScriptFileModel extends AbstractTableModel {
                     String name = group.getName();
                     String prefix = name.substring(0, name.length() - 4).concat("_stream");
                     int id = 0;
-                    IArchiveEntry entry;
-                    while ((entry = res.findEntry(prefix + id, "ipl")) != null) {
-                        try (EntryStream es = new EntryStream(entry)) {
+                    while (true) {
+                        try (EntryStream es = res.getEntryStream(prefix + id, "ipl")) {
                             es.position(4); //skips "bnry"
                             int instCount = es.getInt();
                             es.position(0x4C); // offset of item instances, 0x4C by default
@@ -227,14 +224,29 @@ public class ScriptFileModel extends AbstractTableModel {
                                 ItemINST inst = new ItemINST(es, group.getIndex());
                                 items.add(inst);
                             }
+                            id++;
+                        } catch (IOException ex) {
+                            break;
                         }
-                        id++;
                     }
+//                    IArchiveEntry entry;
+//                    while ((entry = res.findEntry(prefix + id, "ipl")) != null) {
+//                        try (EntryStream es = new EntryStream(entry)) {
+//                            es.position(4); //skips "bnry"
+//                            int instCount = es.getInt();
+//                            es.position(0x4C); // offset of item instances, 0x4C by default
+//                            for (int i = 0; i < instCount; i++) {
+//                                ItemINST inst = new ItemINST(es, group.getIndex());
+//                                items.add(inst);
+//                            }
+//                        }
+//                        id++;
+//                    }
                 }
             }
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
+//        } catch (IOException ex) {
+//            ex.printStackTrace(System.err);
+//        }
     }
     
     //</editor-fold>
@@ -258,10 +270,6 @@ public class ScriptFileModel extends AbstractTableModel {
                         case TOBJ:
                             ItemOBJS objs = (ItemOBJS) e;
                             app.addOBJS(objs);
-                            break;
-
-                        case CARS:
-                            app.addCARS((ItemCARS)e);
                             break;
 
                         case INST:
