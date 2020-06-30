@@ -96,11 +96,11 @@ public class RwModel extends IWorld {
                     for (short i = 0; i < geoData.materials.size(); i++) {
                         // material
                         RpMaterial matData = geoData.materials.get(i);
-                        RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
+                        RpTextureNative texNav = texNavMap.get(matData.getTextureName().toLowerCase());
                         String matName;
-                        if (texData != null) {
+                        if (texNav != null) {
                             // create material name by add "m"
-                            matName = texData.getMapperName()+"m";
+                            matName = texNav.getMapperName()+"m";
                             // if have alpha channel, add "a"
                             if (matData.isMasked() || matData.color.a < 255) {
                                 matName += "a";
@@ -110,7 +110,7 @@ public class RwModel extends IWorld {
                             matName = frmData.name + "_untex" + i;
                         }
                         if (!resource.containsMaterial(matName)) {
-                            RwMaterial mat = new RwMaterial(matName, matData, texData);
+                            RwMaterial mat = new RwMaterial(matName, matData, texNav);
                             resource.register(mat);
                         }
                         // mesh
@@ -142,10 +142,10 @@ public class RwModel extends IWorld {
     
     public void loadTexDic(DataStream ds) {
         RpTextureDictionary texDic = RpSection.loadRoot(ds, RpTextureDictionary.class);
-        for (RpTextureNative texData : texDic.textures) {
-            String texName = texData.getMapperName();
+        for (RpTextureNative texNav : texDic.textures) {
+            String texName = texNav.getMapperName();
             if (!resource.containsTexture(texName)) {
-                RwTexture tex = new RwTexture(texName, texData);
+                RwTexture tex = new RwTexture(texName, texNav);
                 resource.register(tex);
             }
         }

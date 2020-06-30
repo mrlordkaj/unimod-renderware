@@ -22,7 +22,6 @@ import com.openitvn.engine.renderware.RpClump;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
 import com.openitvn.engine.renderware.RpSection;
-import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.col.ColFile;
 import com.openitvn.format.dff.RwMaterial;
@@ -43,10 +42,10 @@ import com.openitvn.unicore.world.IGeometry;
 import com.openitvn.unicore.world.ILayer;
 import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.INode;
-import com.openitvn.unicore.world.IWorld;
 import com.openitvn.unicore.world.IWorldCoord;
 import com.openitvn.unicore.world.IWorldUnit;
 import com.openitvn.unicore.world.resource.IModel;
+import com.openitvn.unicore.world.resource.ITexture;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
@@ -77,7 +76,7 @@ public final class WorldPanel extends PanelViewer {
     private final HashMap<Integer, Integer> modelLayerMap = new HashMap<>(); // layer find - objs.id, layer.id
     private final WorldScriptModel scriptModel = new WorldScriptModel();
     
-    private final IWorld world;
+    private final RwModel world;
 //    private final Camera camera;
 //    private final Vector3 prevPos = new Vector3();
 //    private final Vector3 prevDir = new Vector3();
@@ -123,7 +122,6 @@ public final class WorldPanel extends PanelViewer {
         modelLayerMap.clear();
         groupRegistryMap.clear();
         pendingNodes = null;
-        txdCache = null;
         WorldFactory.unregister(world);
         return true;
     }
@@ -303,30 +301,17 @@ public final class WorldPanel extends PanelViewer {
     private void addOBJS(ItemOBJS objs, GroupRegistry reg) {
         ResourceModel res = ResourceModel.getInstance();
         // load textures
+        try (IArchiveEntry te = res.findEntry(objs.txdName, "txd");
+                EntryStream ts = new EntryStream(te)) {
+            world.loadTexDic(ts);
+        } catch (IOException ex) {
+            Logger.printWarning("TXD not found: " + objs.txdName);
+        }
+        // prepare texture native cache from resource manager
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
-        RpTextureDictionary texDic = txdCache.get(objs.txdName);
-        if (texDic == null) {
-            // load txd from resource
-            try (IArchiveEntry te = res.findEntry(objs.txdName, "txd");
-                    EntryStream ts = new EntryStream(te)) {
-                texDic = RpSection.loadRoot(ts, RpTextureDictionary.class);
-                for (RpTextureNative texData : texDic.textures) {
-                    texNavMap.put(texData.textureName.toLowerCase(), texData);
-                    String texName = texData.getMapperName();
-                    // register new texture when missing
-                    if (world.resource.findTexture(texName) == null) {
-                        RwTexture tex = new RwTexture(texName, texData);
-                        world.resource.register(tex);
-                        reg.texNames.add(texName);
-                    }
-                }
-                txdCache.put(objs.txdName, texDic);
-            } catch (IOException ex) {
-                Logger.printWarning("TXD not found: " + objs.txdName);
-            }
-        } else {
-            // load txd from cache
-            for (RpTextureNative texData : texDic.textures) {
+        for (ITexture tex : world.resource.getTextures()) {
+            if (tex instanceof RwTexture) {
+                RpTextureNative texData = ((RwTexture)tex).getTextureData();
                 texNavMap.put(texData.textureName.toLowerCase(), texData);
             }
         }
@@ -344,11 +329,11 @@ public final class WorldPanel extends PanelViewer {
                     for (short i = 0; i < geoData.materials.size(); i++) {
                         // material
                         RpMaterial matData = geoData.materials.get(i);
-                        RpTextureNative texData = texNavMap.get(matData.getTextureName().toLowerCase());
+                        RpTextureNative texNav = texNavMap.get(matData.getTextureName().toLowerCase());
                         String matName;
-                        if (texData != null) {
+                        if (texNav != null) {
                             // create material name by add "m"
-                            matName = texData.getMapperName()+"m";
+                            matName = texNav.getMapperName()+"m";
                             // if have alpha channel, add "a"
                             if (matData.isMasked() || matData.color.a < 255) {
                                 matName += "a";
@@ -359,7 +344,7 @@ public final class WorldPanel extends PanelViewer {
                         }
                         // register new material when missing
                         if (!world.resource.containsMaterial(matName)) {
-                            RwMaterial mat = new RwMaterial(matName, matData, texData);
+                            RwMaterial mat = new RwMaterial(matName, matData, texNav);
                             world.resource.register(mat);
                             reg.matNames.add(matName);
                         }
@@ -583,7 +568,6 @@ public final class WorldPanel extends PanelViewer {
     
     // world dispatcher for schedule push world data
     // when asynchronous loading thread done
-    private HashMap<String, RpTextureDictionary> txdCache;
     private ArrayList<INode> pendingNodes;
     
     // store all resource names used by groups,
@@ -592,7 +576,6 @@ public final class WorldPanel extends PanelViewer {
     
     void prepareDispatcher() {
         tblMap.setEnabled(false);
-        txdCache = new HashMap<>();
         pendingNodes = new ArrayList<>();
     }
     
@@ -607,7 +590,6 @@ public final class WorldPanel extends PanelViewer {
             }
         }
         pendingNodes = null;
-        txdCache = null;
         tblMap.setEnabled(true);
         System.gc();
         WorldFactory.focusTo(world);

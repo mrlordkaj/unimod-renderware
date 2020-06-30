@@ -131,7 +131,8 @@ public class RpTextureNative extends RpSection {
     public String getMapperName() {
         String texName = (hasAlpha && !maskName.isEmpty()) ?
                 maskName : textureName;
-        return texName.replaceAll("@", "a").replaceAll("\\s+", "_");
+        return texName.replaceAll("@", "a")
+                .replaceAll("\\s+", "_");
     }
     
     private byte getCompression(int fmt, int ext) {

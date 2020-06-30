@@ -26,20 +26,20 @@ import com.openitvn.engine.renderware.RpTextureNative;
  */
 public class RwMaterial extends IMaterial {
     
-    public RwMaterial(String matName, RpMaterial matData, RpTextureNative texData) {
+    public RwMaterial(String matName, RpMaterial matData, RpTextureNative texNav) {
         super(matName);
         // precomputed alpha
         color.a = matData.color.a / 255f;
         // enable alpha test when needed
-        if (matData.isMasked() || color.a < 1) {
+        boolean masked = (texNav != null && texNav.hasAlpha) || matData.isMasked(); // TODO: need optimize?
+        if (matData.textured && masked) {
+            alphaBlend = true;
+            cullFace = false;
+        } else if (color.a < 1) {
             alphaBlend = true;
             cullFace = false;
             alphaTest = color.a - 0.01f;
-        } else if (texData != null && texData.hasAlpha) {
-            alphaBlend = true;
-            cullFace = false;
         }
-        // shadingn factors
         ambientFactor = matData.ambient;
         diffuseFactor = matData.diffuse;
         specularFactor = matData.specular;
@@ -48,8 +48,8 @@ public class RwMaterial extends IMaterial {
             color.b = matData.color.b / 255f;
             color.g = matData.color.g / 255f;
             color.r = matData.color.r / 255f;
-        } else if (texData != null) {
-            diffuseTexture = texData.getMapperName();
+        } else if (texNav != null) {
+            diffuseTexture = texNav.getMapperName();
         }
     }
 }
