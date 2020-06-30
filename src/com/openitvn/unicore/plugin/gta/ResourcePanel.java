@@ -192,7 +192,7 @@ public final class ResourcePanel extends PanelViewer {
                 case "dff":
                     WorldFactory.unregister(viewer);
                     viewer = new RwModel(name);
-                    res.extractModel(viewer);
+                    res.extractModel(name, viewer, null);
                     viewer.construct(viewer.resource);
                     WorldFactory.register(viewer);
                     WorldFactory.focusTo(viewer);

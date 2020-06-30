@@ -86,8 +86,8 @@ public final class VehiclePanel extends PanelViewer {
                     vehicleWorld.resource.register(vehicleModel.comMatLib);
                     vehicleWorld.resource.register(vehicleModel.comModLib);
                     // load world from dff stream
-                    ResourceModel rm = ResourceModel.getInstance();
-                    rm.extractModel(vehicleWorld, nodes);
+                    ResourceModel res = ResourceModel.getInstance();
+                    res.extractModel(e.modName, vehicleWorld, nodes);
                     // create wheels
                     switch (e.type) {
                         case "car":

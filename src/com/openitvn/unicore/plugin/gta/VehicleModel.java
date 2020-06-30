@@ -55,7 +55,7 @@ public class VehicleModel extends AbstractTableModel {
             case GameConfig.ALIAS_III:
             case GameConfig.ALIAS_VC:
                 RwModel extraLib = new RwModel("wheels");
-                res.extractModel(extraLib);
+                res.extractModel("wheels", extraLib, null);
                 comTexLib.addAll(extraLib.resource.getTextures());
                 comMatLib.addAll(extraLib.resource.getMaterials());
                 comModLib.addAll(extraLib.resource.getModels());
@@ -84,8 +84,10 @@ public class VehicleModel extends AbstractTableModel {
                 switch (line) {
                     case "cars":
                         while ((args = ScriptHelper.parseLineByComma(br)) != null) {
-                            if (args.length >= 10)
-                                entries.add(new ItemCARS(args, alias));
+                            if (args.length >= 10) {
+                                ItemCARS cars = new ItemCARS(args, alias);
+                                entries.add(cars);
+                            }
                         }
                         break;
                 }

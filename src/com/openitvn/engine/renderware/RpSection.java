@@ -70,7 +70,7 @@ public class RpSection implements TreeNode {
     public static RpSection loadSection(DataStream ds, RpSection parent) {
         if (ds.remaining() >= 12) { // section below 12 bytes makes no sense
             int typeId = ds.getInt();
-            if (typeId > 0) { // file padding with 0
+            if (typeId != 0) { // file padding with 0
                 int size = ds.getInt();
                 int libId = ds.getInt();
                 RpType type = RpType.getType(typeId);

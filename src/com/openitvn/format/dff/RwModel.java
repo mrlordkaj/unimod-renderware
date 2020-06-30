@@ -136,7 +136,8 @@ public class RwModel extends IWorld {
                 break;
             }
         }
-        return frameMap.values(); // return for vehicle management
+        // return for vehicle management
+        return frameMap.values();
     }
     
     public void loadTexDic(DataStream ds) {

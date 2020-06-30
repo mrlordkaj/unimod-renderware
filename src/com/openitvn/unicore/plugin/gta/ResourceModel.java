@@ -176,23 +176,20 @@ public class ResourceModel extends AbstractTableModel {
         }
     }
     
-    void extractModel(RwModel mod) {
-        extractModel(mod, null);
-    }
-    
-    void extractModel(RwModel mod, ArrayList<INode> nodeList) {
-        String modName = mod.getName();
+    void extractModel(String modName, RwModel target, ArrayList<INode> nodeList) {
+        // try load dependency texDic
+        String txdName = dffTxdMap.get(modName.toLowerCase());
+        if (txdName == null) {
+            txdName = modName;
+        }
+        try (IArchiveEntry te = findEntry(txdName, "txd");
+                EntryStream ts = new EntryStream(te)) {
+            target.loadTexDic(ts);
+        } catch (IOException ex) { }
+        // try load model content
         try (IArchiveEntry me = findEntry(modName, "dff");
                 EntryStream ms = new EntryStream(me)) {
-            String txdName = dffTxdMap.get(modName.toLowerCase());
-            if (txdName == null) {
-                txdName = modName;
-            }
-            try (IArchiveEntry te = findEntry(txdName, "txd");
-                    EntryStream ts = new EntryStream(te)) {
-                mod.loadTexDic(ts);
-            }
-            Collection<INode> nodes = mod.fromData(ms, false);
+            Collection<INode> nodes = target.fromData(ms, false);
             // node list use in vehicle
             if (nodeList != null) {
                 nodeList.clear();
