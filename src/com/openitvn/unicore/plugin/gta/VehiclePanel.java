@@ -18,7 +18,7 @@ package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.format.dff.RwWorld;
-import com.openitvn.unicore.world.WorldFactory;
+import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.plugin.PanelViewer;
 import com.openitvn.unicore.plugin.gta.item.ItemCARS;
@@ -52,7 +52,7 @@ public final class VehiclePanel extends PanelViewer {
 
     @Override
     public boolean requestClose() {
-        WorldFactory.unregister(vehicleWorld);
+        Unicore.unregisterWorld(vehicleWorld);
         vehicleWorld = null;
         return true;
     }
@@ -78,7 +78,7 @@ public final class VehiclePanel extends PanelViewer {
                 int row = tblCar.getSelectedRow();
                 if (row >= 0 && !evt.getValueIsAdjusting()) {
                     // unregister current world
-                    WorldFactory.unregister(vehicleWorld);
+                    Unicore.unregisterWorld(vehicleWorld);
                     // create new world and pre-register libraries
                     int id = tblCar.convertRowIndexToModel(row);
                     ItemCARS e = vehicleModel.entries.get(id);
@@ -99,7 +99,7 @@ public final class VehiclePanel extends PanelViewer {
                     }
                     // update world
                     vehicleWorld.construct(vehicleWorld.resource);
-                    WorldFactory.focusTo(vehicleWorld);
+                    Unicore.focusToWorld(vehicleWorld);
                     updateVisibility();
                 }
             }

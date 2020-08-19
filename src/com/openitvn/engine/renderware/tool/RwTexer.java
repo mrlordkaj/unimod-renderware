@@ -80,7 +80,7 @@ public final class RwTexer extends javax.swing.JDialog {
                         int id = tableTexLib.convertRowIndexToModel(row);
                         texture = texLibModel.entries.get(id);
                         RpTextureNative texData = texture.getTextureData();
-                        lblFormat.setText(texData.getPixelFormat().toString());
+                        lblFormat.setText(texture.getPixelFormat().toString());
                         lblFormat.setToolTipText(String.format("Depth: %d bit", texData.colorDepth));
                         for (int i = 0; i < texture.getMipCount(); i++) {
                             Dimension size = ITexture.computeMipMapSize(texData.width, texData.height, i);

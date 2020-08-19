@@ -16,8 +16,6 @@
  */
 package com.openitvn.format.txd;
 
-import com.openitvn.unicore.world.resource.ICubeMap;
-import com.openitvn.unicore.world.resource.IPixelFormat;
 import com.openitvn.unicore.world.resource.ITexture;
 import com.openitvn.engine.renderware.RpTextureNative;
 import java.nio.ByteBuffer;
@@ -29,19 +27,26 @@ import java.nio.ByteBuffer;
 public class RwTexture extends ITexture {
     
     private final RpTextureNative texture;
-    private final byte[][] imageBuffers;
-    private byte[][] palette;
     
     public RwTexture(String name, RpTextureNative texture) {
         super(name);
         this.texture = texture;
+        width = texture.width;
+        height = texture.height;
+        numFaces = 1;
+        numMips = texture.mipCount;
+        uwrap = texture.getUWrap();
+        vwrap = texture.getVWrap();
+        format = texture.getPixelFormat();
+        // read palette
         ByteBuffer bb = texture.nativeData;
         bb.rewind();
-        // read palette
         switch (texture.getPixelFormat()) {
             case PALETTE4_RGBA8_OES:
             case PALETTE4_RGB8_OES:
-                bb.position(bb.position() + 32 * 2);
+                // TODO: build palette
+                int skip = 32 * 2;
+                bb.position(skip);
                 break;
                 
             case PALETTE8_RGBA8_OES:
@@ -56,11 +61,11 @@ public class RwTexture extends ITexture {
                 break;
         }
         // read image buffers
-        imageBuffers = new byte[texture.mipCount][];
+        imageBuffers = new byte[1][texture.mipCount][];
         for (int i = 0; i < texture.mipCount; i++) {
             int size = bb.getInt();
-            imageBuffers[i] = new byte[size];
-            bb.get(imageBuffers[i]);
+            imageBuffers[0][i] = new byte[size];
+            bb.get(imageBuffers[0][i]);
         }
     }
     
@@ -69,58 +74,8 @@ public class RwTexture extends ITexture {
     }
     
     @Override
-    public byte[] compileTexture(ITexture src) throws UnsupportedOperationException {
+    public byte[] compileTexture(ITexture src) {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
-    @Override
-    public byte[][] getPalette() {
-        return palette;
-    }
-    
-    @Override
-    public byte[] getImageBuffer(int faceId, int mipLevel) {
-        return imageBuffers[mipLevel];
-    }
-    
-    @Override
-    public int getWidth() {
-        return texture.width;
-    }
-    
-    @Override
-    public int getHeight() {
-        return texture.height;
-    }
-    
-    @Override
-    public int getFaceCount() {
-        return 1;
-    }
-    
-    @Override
-    public int getMipCount() {
-        return texture.mipCount;
-    }
-    
-    @Override
-    public int getUWrap() {
-        return texture.getUWrap();
-    }
-
-    @Override
-    public int getVWrap() {
-        return texture.getVWrap();
-    }
-    
-    @Override
-    public ICubeMap getCubeMapHeader() {
-        return null;
-    }
-    
-    @Override
-    public IPixelFormat getPixelFormat() {
-        return texture.getPixelFormat();
     }
     
     @Override

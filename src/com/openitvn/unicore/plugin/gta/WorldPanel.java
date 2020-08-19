@@ -29,7 +29,6 @@ import com.openitvn.format.dff.RwWorld;
 import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.Unicore;
-import com.openitvn.unicore.world.WorldFactory;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.data.EntryStream;
@@ -98,7 +97,7 @@ public final class WorldPanel extends PanelViewer {
         world.layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
         world.layers.add(new ILayer(LAYER_COLLISION, "Collision Map", false));
         world.layers.add(new ILayer(LAYER_CAR_PATH, "Vehicle Path", true));
-        WorldFactory.register(world);
+        Unicore.registerWorld(world);
 //        camera = Launcher.getWorldProcessor().getActiveCamera();
 //        updateTimer = new Timer("GTA World Updater");
 //        updateTimer.schedule(new TimerTask() {
@@ -121,7 +120,7 @@ public final class WorldPanel extends PanelViewer {
         modelLayerMap.clear();
         groupRegistryMap.clear();
         pendingNodes = null;
-        WorldFactory.unregister(world);
+        Unicore.unregisterWorld(world);
         return true;
     }
     
@@ -530,7 +529,7 @@ public final class WorldPanel extends PanelViewer {
             pendingNodes.add(group);
         } else {
             world.deleteNode(groupName);
-            WorldFactory.focusTo(world);
+            Unicore.focusToWorld(world);
         }
     }
     
@@ -549,7 +548,7 @@ public final class WorldPanel extends PanelViewer {
             pendingNodes.add(group);
         } else {
             world.deleteNode(groupName);
-            WorldFactory.focusTo(world);
+            Unicore.focusToWorld(world);
         }
     }
     
@@ -588,7 +587,7 @@ public final class WorldPanel extends PanelViewer {
         pendingNodes = null;
         tblMap.setEnabled(true);
         System.gc();
-        WorldFactory.focusTo(world);
+        Unicore.focusToWorld(world);
     }
     
     private void optimizePathData3() {
