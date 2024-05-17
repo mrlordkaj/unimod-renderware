@@ -23,15 +23,17 @@ import com.openitvn.unicore.data.DataStream;
  *
  * @author Thinh Pham
  */
-public class ColSphere {
-    
+public class TSphere {
     public float radius;
-    public Vector3 center;
-    public ColSurface surface;
+    public final Vector3 center = new Vector3();
     
-    public ColSphere(DataStream ds) {
-        radius = ds.getFloat();
-        center = new Vector3(ds.getFloat(), ds.getFloat(), ds.getFloat());
-        surface = new ColSurface(ds);
+    public void read(DataStream ds, int version) {
+        if (version >= 2) {
+            ds.getVector3(center);
+            radius = ds.getFloat();
+        } else {
+            radius = ds.getFloat();
+            ds.getVector3(center);
+        }
     }
 }

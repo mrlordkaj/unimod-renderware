@@ -16,6 +16,7 @@
  */
 package com.openitvn.format.img;
 
+import com.openitvn.engine.renderware.RpHelper;
 import com.openitvn.unicore.archive.IArchive;
 import com.openitvn.unicore.archive.ICompression;
 import com.openitvn.unicore.data.FileStream;
@@ -56,8 +57,8 @@ public final class RwArchive extends IArchive<IArchiveEntry> {
                     for (int i = 0; i < numEntries; i++) {
                         int offset = fs.getInt() * 2048;
                         int size = (fs.getUShort()) * 2048;
-                        int packed = fs.getShort(); // always 0
-                        String name = fs.readFixedString(24);
+                        fs.skip(2); // packed, always 0
+                        String name = RpHelper.readName(fs, 24);
                         IArchiveEntry entry = new IArchiveEntry(this, name, size, offset, size);
                         entries.add(entry);
                     }
@@ -74,7 +75,7 @@ public final class RwArchive extends IArchive<IArchiveEntry> {
                     while (fs.hasRemaining()) {
                         int offset = fs.getInt() * 2048;
                         int size = fs.getInt() * 2048;
-                        String name = fs.readFixedString(24);
+                        String name = RpHelper.readName(fs, 24);
                         IArchiveEntry entry = new IArchiveEntry(this, name, size, offset, size);
                         entries.add(entry);
                     }

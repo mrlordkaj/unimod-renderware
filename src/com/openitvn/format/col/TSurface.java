@@ -16,37 +16,23 @@
  */
 package com.openitvn.format.col;
 
-import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.data.DataStream;
 
 /**
  *
  * @author Thinh Pham
  */
-public class ColBox {
+public class TSurface {
     
-    public Vector3 min, max;
-    public ColSurface surface;
+    public short material; // uint8
+    public short flags; // unint8
+    public short brightness; // uint8
+    public short light; // uint8
     
-    public ColBox(DataStream ds) {
-        min = new Vector3(ds.getFloat(), ds.getFloat(), ds.getFloat());
-        max = new Vector3(ds.getFloat(), ds.getFloat(), ds.getFloat());
-        surface = new ColSurface(ds);
-    }
-    
-    public Vector3 getCenter() {
-        return new Vector3(
-                (max.x + min.x) * 0.5f,
-                (max.y + min.y) * 0.5f,
-                (max.z + min.z) * 0.5f
-        );
-    }
-    
-    public Vector3 getSize() {
-        return new Vector3(
-                Math.abs(max.x - min.x),
-                Math.abs(max.y - min.y),
-                Math.abs(max.z - min.z)
-        );
+    TSurface(DataStream ds) {
+        material = ds.getUByte();
+        flags = ds.getUByte();
+        brightness = ds.getUByte();
+        light = ds.getUByte();
     }
 }

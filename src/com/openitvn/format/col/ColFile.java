@@ -16,6 +16,8 @@
  */
 package com.openitvn.format.col;
 
+import com.badlogic.gdx.math.Vector3;
+import com.openitvn.engine.renderware.RpHelper;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.IVertex;
@@ -57,7 +59,7 @@ public class ColFile {
     public ColFile(int fourCC, DataStream ds) {
         long offset = ds.position();
         int size = ds.getInt();
-        objsName = ds.readFixedString(22);
+        objsName = RpHelper.readName(ds, 22);
         objsId = ds.getShort();
         ds.skip(40); // TODO: bounding
         int version = 1;
@@ -116,12 +118,10 @@ public class ColFile {
         // read spheres
         int numSpheres = ds.getInt();
         for (int i = 0; i < numSpheres; i++) {
-            float r = ds.getFloat();
-            float x = ds.getFloat();
-            float y = ds.getFloat();
-            float z = ds.getFloat();
+            TSphere sphere = new TSphere();
+            sphere.read(ds, 1);
             ds.skip(4); // surface
-            generateSphere(vertices, indices, x, y, z, r);
+            generateSphere(vertices, indices, sphere);
         }
         
         // unknow
@@ -129,26 +129,15 @@ public class ColFile {
         
         // read boxes
         int numBoxes = ds.getInt();
-        for (int i = 0; i < numBoxes; i++) {
-            float x1 = ds.getFloat();
-            float y1 = ds.getFloat();
-            float z1 = ds.getFloat();
-            float x2 = ds.getFloat();
-            float y2 = ds.getFloat();
-            float z2 = ds.getFloat();
-            ds.skip(4); // surface
-            generateBox(vertices, indices, x1, y1, z1, x2, y2, z2);
-        }
+        readBoxes(ds, vertices, indices, numBoxes);
         
         // update vertices offset
         short kv = (short)vertices.size();
         // read vertices
         int numVerts = ds.getInt();
         for (int i = 0; i < numVerts; i++) {
-            float x = ds.getFloat();
-            float y = ds.getFloat();
-            float z = ds.getFloat();
-            IVertex v = new IVertex(x, y, z);
+            IVertex v = new IVertex();
+            ds.getVector3(v);
             vertices.add(v);
         }
         // read faces
@@ -171,12 +160,10 @@ public class ColFile {
         if (header.numSpheres > 0) {
             ds.position(header.offsetSpheres);
             for (int i = 0; i < header.numSpheres; i++) {
-                float x = ds.getFloat();
-                float y = ds.getFloat();
-                float z = ds.getFloat();
-                float r = ds.getFloat();
+                TSphere sphere = new TSphere();
+                sphere.read(ds, 2);
                 ds.skip(4); // surface
-                generateSphere(vertices, indices, x, y, z, r);
+                generateSphere(vertices, indices, sphere);
             }
         }
         
@@ -187,16 +174,7 @@ public class ColFile {
         // read boxes
         if (header.numBoxes > 0) {
             ds.position(header.offsetBoxes);
-            for (int i = 0; i < header.numBoxes; i++) {
-                float x1 = ds.getFloat();
-                float y1 = ds.getFloat();
-                float z1 = ds.getFloat();
-                float x2 = ds.getFloat();
-                float y2 = ds.getFloat();
-                float z2 = ds.getFloat();
-                ds.skip(4); // surface
-                generateBox(vertices, indices, x1, y1, z1, x2, y2, z2);
-            }
+            readBoxes(ds, vertices, indices, header.numBoxes);
         }
         
         if (header.numFaces > 0) {
@@ -233,15 +211,16 @@ public class ColFile {
         }
     }
     
-    private void generateSphere(ArrayList<IVertex> vertices, ArrayList<Short> indices, float x, float y, float z, float r) {
+    private static void generateSphere(ArrayList<IVertex> vertices, ArrayList<Short> indices, TSphere sphere) {
         short kv = (short)vertices.size();
         // create vertices
         int k = 0;
         for (int j = 0; j < sphereVertices.length / 3; j++) {
-            float vx = sphereVertices[k++] * r + x;
-            float vy = sphereVertices[k++] * r + y;
-            float vz = sphereVertices[k++] * r + z;
-            IVertex v = new IVertex(vx, vy, vz);
+            IVertex v = new IVertex(
+                        sphereVertices[k++],
+                        sphereVertices[k++],
+                        sphereVertices[k++]);
+            v.scl(sphere.radius).add(sphere.center);
             vertices.add(v);
         }
         // create indices
@@ -250,29 +229,31 @@ public class ColFile {
             indices.add(ki);
         }
     }
-    
-    private void generateBox(ArrayList<IVertex> vertices, ArrayList<Short> indices, float x1, float y1, float z1, float x2, float y2, float z2) {
-        // update vertices offset
-        short kv = (short)vertices.size();
-        // create vertices
-        float cx = (x1 + x2) * 0.5f;
-        float cy = (y1 + y2) * 0.5f;
-        float cz = (z1 + z2) * 0.5f;
-        float sx = Math.abs(x2 - x1);
-        float sy = Math.abs(y2 - y1);
-        float sz = Math.abs(z2 - z1);
-        int k = 0;
-        for (int j = 0; j < boxVertices.length / 3; j++) {
-            float vx = boxVertices[k++] * sx + cx;
-            float vy = boxVertices[k++] * sy + cy;
-            float vz = boxVertices[k++] * sz + cz;
-            IVertex v = new IVertex(vx, vy, vz);
-            vertices.add(v);
-        }
-        // create indices
-        for (int j = 0; j < boxIndices.length; j++) {
-            short ki = (short)(boxIndices[j] + kv);
-            indices.add(ki);
+        
+    private static void readBoxes(DataStream ds, ArrayList<IVertex> vertices, ArrayList<Short> indices, int numBoxes) {
+        for (int i = 0; i < numBoxes; i++) {
+            TBox box = new TBox();
+            box.read(ds);
+            ds.skip(4); // surface
+            // update vertices offset
+            short kv = (short)vertices.size();
+            // create vertices
+            Vector3 pos = box.getCenter();
+            Vector3 scl = box.getScale();
+            int k = 0;
+            for (int j = 0; j < boxVertices.length / 3; j++) {
+                IVertex v = new IVertex(
+                        boxVertices[k++],
+                        boxVertices[k++],
+                        boxVertices[k++]);
+                v.scl(scl).add(pos);
+                vertices.add(v);
+            }
+            // create indices
+            for (int j = 0; j < boxIndices.length; j++) {
+                short ki = (short)(boxIndices[j] + kv);
+                indices.add(ki);
+            }
         }
     }
     

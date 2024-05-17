@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Thinh Pham
+ * Copyright (C) 2024 Thinh Pham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,23 +16,27 @@
  */
 package com.openitvn.format.col;
 
+import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.data.DataStream;
 
 /**
  *
  * @author Thinh Pham
  */
-public class ColSurface {
+public class TBox {
+    public final Vector3 min = new Vector3();
+    public final Vector3 max = new Vector3();
     
-    public short material; // uint8
-    public short flags; // unint8
-    public short brightness; // uint8
-    public short light; // uint8
+    public void read(DataStream ds) {
+        ds.getVector3(min);
+        ds.getVector3(max);
+    }
+     
+    public Vector3 getCenter() {
+        return min.cpy().add(max).scl(0.5f);
+    }
     
-    ColSurface(DataStream ds) {
-        material = ds.getUByte();
-        flags = ds.getUByte();
-        brightness = ds.getUByte();
-        light = ds.getUByte();
+    public Vector3 getScale() {
+        return max.cpy().sub(min);
     }
 }
