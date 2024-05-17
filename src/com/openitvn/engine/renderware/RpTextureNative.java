@@ -100,12 +100,8 @@ public class RpTextureNative extends RpSection {
         uWrap = (byte)((addressing & 0xf0) >> 4);
         vWrap = (byte) (addressing & 0x0f);
         bb.getShort(); // pad
-        char[] texName = new char[32];
-        char[] mskName = new char[32];
-        for (int i = 0; i < 32; i++) texName[i] = (char)bb.get();
-        for (int i = 0; i < 32; i++) mskName[i] = (char)bb.get();
-        textureName = String.copyValueOf(texName).trim();
-        maskName = String.copyValueOf(mskName).trim();
+        textureName = RpHelper.readName(bb, 32);
+        maskName = RpHelper.readName(bb, 32);
         // raster format
         int rasterFormat = bb.getInt();
         formatExt = rasterFormat & 0xf000;
@@ -129,10 +125,11 @@ public class RpTextureNative extends RpSection {
     }
     
     public String getMapperName() {
-        String texName = (hasAlpha && !maskName.isEmpty()) ?
-                maskName : textureName;
-        return texName.replaceAll("@", "a")
-                .replaceAll("\\s+", "_");
+//        String texName = (hasAlpha && !maskName.isEmpty()) ?
+//                maskName : textureName;
+//        return texName.replaceAll("@", "a")
+//                .replaceAll("\\s+", "_");
+        return (hasAlpha && !maskName.isEmpty()) ? maskName : textureName;
     }
     
     private byte getCompression(int fmt, int ext) {

@@ -17,6 +17,7 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Matrix4;
+import com.openitvn.control.UCFileChooser;
 import com.openitvn.control.table.UCBooleanCellRenderer;
 import com.openitvn.engine.renderware.RpClump;
 import com.openitvn.engine.renderware.RpGeometry;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.JFileChooser;
 import javax.swing.RowFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -96,7 +98,7 @@ public final class WorldPanel extends PanelViewer {
         world.layers.add(new ILayer(LAYER_NORMAL, "Normal Map", true));
         world.layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
         world.layers.add(new ILayer(LAYER_COLLISION, "Collision Map", false));
-        world.layers.add(new ILayer(LAYER_CAR_PATH, "Vehicle Path", true));
+        world.layers.add(new ILayer(LAYER_CAR_PATH, "Vehicle Path", false));
         Unicore.registerWorld(world);
 //        camera = Launcher.getWorldProcessor().getActiveCamera();
 //        updateTimer = new Timer("GTA World Updater");
@@ -135,9 +137,10 @@ public final class WorldPanel extends PanelViewer {
     private void initComponents() {
 
         groupType = new javax.swing.ButtonGroup();
-        rdoIDE = new javax.swing.JRadioButton();
-        rdoIPL = new javax.swing.JRadioButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        javax.swing.JRadioButton rdoIDE = new javax.swing.JRadioButton();
+        javax.swing.JRadioButton rdoIPL = new javax.swing.JRadioButton();
+        javax.swing.JRadioButton rdoAll = new javax.swing.JRadioButton();
+        javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         tblMap = new javax.swing.JTable() {
             public String getToolTipText(MouseEvent evt) {
                 int row = tblMap.rowAtPoint(evt.getPoint());
@@ -149,9 +152,6 @@ public final class WorldPanel extends PanelViewer {
                 return null;
             }
         };
-        rdoAll = new javax.swing.JRadioButton();
-        btnExportPath = new javax.swing.JButton();
-        btnOptimizePath = new javax.swing.JButton();
 
         setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 4, 4, 4));
         setName("World"); // NOI18N
@@ -159,6 +159,7 @@ public final class WorldPanel extends PanelViewer {
         groupType.add(rdoIDE);
         rdoIDE.setText("IDE");
         rdoIDE.setToolTipText("Item Definition");
+        rdoIDE.setActionCommand("^IDE$");
         rdoIDE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 refineWorldTable(evt);
@@ -169,7 +170,18 @@ public final class WorldPanel extends PanelViewer {
         rdoIPL.setSelected(true);
         rdoIPL.setText("IPL");
         rdoIPL.setToolTipText("Item Placement");
+        rdoIPL.setActionCommand("^IPL$");
         rdoIPL.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                refineWorldTable(evt);
+            }
+        });
+
+        groupType.add(rdoAll);
+        rdoAll.setText("ALL");
+        rdoAll.setToolTipText("All Definitions");
+        rdoAll.setActionCommand("");
+        rdoAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 refineWorldTable(evt);
             }
@@ -184,47 +196,18 @@ public final class WorldPanel extends PanelViewer {
         tblMap.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(tblMap);
 
-        groupType.add(rdoAll);
-        rdoAll.setText("ALL");
-        rdoAll.setToolTipText("All Definitions");
-        rdoAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                refineWorldTable(evt);
-            }
-        });
-
-        btnExportPath.setText("Export Path");
-        btnExportPath.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnExportPathActionPerformed(evt);
-            }
-        });
-
-        btnOptimizePath.setText("Optimize Path");
-        btnOptimizePath.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnOptimizePathActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(rdoIPL)
-                        .addGap(18, 18, 18)
-                        .addComponent(rdoIDE)
-                        .addGap(18, 18, 18)
-                        .addComponent(rdoAll))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnOptimizePath)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnExportPath)))
-                .addGap(0, 38, Short.MAX_VALUE))
+                .addComponent(rdoIPL)
+                .addGap(18, 18, 18)
+                .addComponent(rdoIDE)
+                .addGap(18, 18, 18)
+                .addComponent(rdoAll)
+                .addGap(0, 67, Short.MAX_VALUE))
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {rdoIDE, rdoIPL});
@@ -237,62 +220,18 @@ public final class WorldPanel extends PanelViewer {
                     .addComponent(rdoIDE)
                     .addComponent(rdoAll))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnExportPath)
-                    .addComponent(btnOptimizePath)))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 229, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void refineWorldTable(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_refineWorldTable
-        String regex;
-        if (rdoIDE.isSelected())
-            regex = "^IDE$";
-        else if (rdoIPL.isSelected())
-            regex = "^IPL$";
-        else
-            regex = "";
+        String regex = (evt == null) ? "^IPL$" : evt.getActionCommand();
         TableRowSorter sorter = (TableRowSorter) tblMap.getRowSorter();
         sorter.setRowFilter(RowFilter.regexFilter(regex, WorldScriptModel.COL_TYPE));
     }//GEN-LAST:event_refineWorldTable
-
-    private void btnExportPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportPathActionPerformed
-        JFileChooser fc = new JFileChooser();
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setDialogType(JFileChooser.OPEN_DIALOG);
-        fc.setApproveButtonText("Export");
-        if (fc.showOpenDialog(Unicore.getMainFrame()) == JFileChooser.APPROVE_OPTION) {
-            String dir = fc.getSelectedFile().getAbsolutePath();
-            for (INode group : world.getChildrenByClass(INode.class, false)) {
-                String name = group.getName();
-                name = name.substring(0, name.length() - 4);
-                File out = new File(dir + "/" + name + ".road");
-                try (FileOutputStream os = new FileOutputStream(out, false);
-                        PrintStream ps = new PrintStream(os)) {
-                    for (PathSegment seg : group.getChildrenByClass(PathSegment.class)) {
-                        seg.exportData(ps);
-                    }
-                    Logger.printNormal("Data exported: %s", out);
-                } catch (IOException ex) {
-                    Logger.showErrorDialog(ex);
-                }
-            }
-        }
-    }//GEN-LAST:event_btnExportPathActionPerformed
-
-    private void btnOptimizePathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOptimizePathActionPerformed
-        optimizePathData3();
-    }//GEN-LAST:event_btnOptimizePathActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnExportPath;
-    private javax.swing.JButton btnOptimizePath;
     private javax.swing.ButtonGroup groupType;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JRadioButton rdoAll;
-    private javax.swing.JRadioButton rdoIDE;
-    private javax.swing.JRadioButton rdoIPL;
     private javax.swing.JTable tblMap;
     // End of variables declaration//GEN-END:variables
     
@@ -309,7 +248,12 @@ public final class WorldPanel extends PanelViewer {
         for (ITexture tex : world.resource.getTextures()) {
             if (tex instanceof RwTexture) {
                 RpTextureNative texData = ((RwTexture)tex).getTextureData();
-                texNavMap.put(texData.textureName.toLowerCase(), texData);
+                if (!texData.textureName.isEmpty()) {
+                    texNavMap.put(texData.textureName.toLowerCase(), texData);
+                }
+                if (!texData.maskName.isEmpty()) {
+                    texNavMap.put(texData.maskName.toLowerCase(), texData);
+                }
             }
         }
         // load model
@@ -323,20 +267,23 @@ public final class WorldPanel extends PanelViewer {
                     reg.modNames.add(objs.modName);
                     // meshes = materials
                     for (short i = 0; i < geoData.materials.size(); i++) {
-                        // material
                         RpMaterial matData = geoData.materials.get(i);
-                        RpTextureNative texNav = texNavMap.get(matData.getTextureName().toLowerCase());
-                        String matName;
-                        if (texNav != null) {
-                            // create material name by add "m"
-                            matName = texNav.getMapperName()+"m";
-                            // if have alpha channel, add "a"
-                            if (matData.isMasked() || matData.color.a < 255) {
-                                matName += "a";
-                            }
+                        // search texture by name which defined in material
+                        String texName = matData.getMaskName();
+                        RpTextureNative texNav = texNavMap.get(texName.toLowerCase());
+                        if (texNav == null) {
+                            texName = matData.getTextureName();
+                            texNav = texNavMap.get(texName.toLowerCase());
+                        }
+                        // create material
+                        String matName = "M_";
+                        if (texName.isEmpty()) {
+                            matName += "Blank";
                         } else {
-                            // default if texture not found
-                            matName = objs.modName + "_untex" + i;
+                            matName += texName;
+                            if (texNav == null) {
+                                Logger.printWarning("Texture not found: %s (%s.txd)", texName, objs.txdName);
+                            }
                         }
                         // register new material when missing
                         if (!world.resource.containsMaterial(matName)) {
@@ -378,38 +325,12 @@ public final class WorldPanel extends PanelViewer {
         }*/
         
         // add collision
-        ColFile col = collisionMap.get(inst.modName);
+        ColFile col = collisionMap.get(modName);
         if (col != null) {
-//            System.out.printf("%s, %f, %f, %f, %f, %f, %f, %f\n",
-//                    inst.modName,
-//                    inst.posX, -inst.posY, inst.posZ,
-//                    inst.rotX, -inst.rotY, inst.rotZ, inst.rotW);
-            // collision mesh
-            if (col.model != null) {
-                IGeometry geo = new IGeometry(col.model.getName());
-                geo.transform.localMatrix.set(transform);
-                geo.setLayerIndex(LAYER_COLLISION);
-                geo.attach(group);
-//                System.out.println("1, CLM_" + inst.modName);
-            }
-//            // collision box
-//            for (ColBox box : col.boxes) {
-//                Vector3 center = box.getCenter();
-//                Vector3 size = box.getSize();
-//                System.out.printf("2, %f, %f, %f, %f, %f, %f\n",
-//                        center.x, -center.y, center.z,
-//                        size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
-//            }
-//            // collision sphere
-//            for (ColSphere sphere : col.spheres) {
-//                System.out.printf("3, %f, %f, %f, %f\n",
-//                        sphere.center.x,
-//                        -sphere.center.y,
-//                        sphere.center.z,
-//                        sphere.radius);
-//            }
-//            // done
-//            System.out.println("break");
+            IGeometry geo = new IGeometry(col.model.getName());
+            geo.transform.localMatrix.set(transform);
+            geo.setLayerIndex(LAYER_COLLISION);
+            geo.attach(group);
         }
         
         // add paths (only GTA III for now)
@@ -579,7 +500,9 @@ public final class WorldPanel extends PanelViewer {
             node.attach(world);
             node.construct(world.resource);
             node.update(true);
-            for (PathSegment seg : node.getChildrenByClass(PathSegment.class)) {
+            ArrayList<PathSegment> segments = new ArrayList<>();
+            node.getChildrenByClass(PathSegment.class, segments);
+            for (PathSegment seg : segments) {
                 seg.compileData();
                 seg.rebuildModel();
             }
@@ -591,12 +514,15 @@ public final class WorldPanel extends PanelViewer {
     }
     
     private void optimizePathData3() {
-        ArrayList<INode> groups = world.getChildrenByClass(INode.class, false);
+        ArrayList<INode> groups = new ArrayList<>();
+        world.getChildrenByClass(INode.class, groups, false);
         ArrayList<PathNode> allPorts = new ArrayList<>();
         // STEP: merge all possible segments
         for (INode group : groups) {
             ArrayList<PathNode> straightPorts = new ArrayList<>();
-            for (PathSegment seg : group.getChildrenByClass(PathSegment.class)) {
+            ArrayList<PathSegment> segments = new ArrayList<>();
+            group.getChildrenByClass(PathSegment.class, segments);
+            for (PathSegment seg : segments) {
                 ArrayList<PathNode> segPorts = seg.getPorts();
                 if (!seg.isCross()) {
                     straightPorts.addAll(segPorts);
@@ -678,7 +604,9 @@ public final class WorldPanel extends PanelViewer {
         // STEP: 
         // FINAL: optimize data and rebuild models
         for (INode group : groups) {
-            for (PathSegment seg : group.getChildrenByClass(PathSegment.class)) {
+            ArrayList<PathSegment> segments = new ArrayList<>();
+            group.getChildrenByClass(PathSegment.class, segments);
+            for (PathSegment seg : segments) {
                 seg.optimizeData();
                 seg.rebuildModel();
             }
@@ -692,5 +620,33 @@ public final class WorldPanel extends PanelViewer {
             return true;
         }
         return false;
+    }
+    
+    private void exportPathData3() {
+        JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fc.setDialogType(JFileChooser.OPEN_DIALOG);
+        fc.setApproveButtonText("Export");
+        if (fc.showOpenDialog(Unicore.getMainFrame()) == JFileChooser.APPROVE_OPTION) {
+            String dir = fc.getSelectedFile().getAbsolutePath();
+            ArrayList<INode> nodes = new ArrayList<>();
+            world.getChildrenByClass(INode.class, nodes, false);
+            for (INode group : nodes) {
+                String name = group.getName();
+                name = name.substring(0, name.length() - 4);
+                File out = new File(dir + "/" + name + ".road");
+                try (FileOutputStream os = new FileOutputStream(out, false);
+                        PrintStream ps = new PrintStream(os)) {
+                    ArrayList<PathSegment> segments = new ArrayList<>();
+                    group.getChildrenByClass(PathSegment.class, segments);
+                    for (PathSegment seg : segments) {
+                        seg.exportData(ps);
+                    }
+                    Logger.printNormal("Data exported: %s", out);
+                } catch (IOException ex) {
+                    Logger.showErrorDialog(ex);
+                }
+            }
+        }
     }
 }

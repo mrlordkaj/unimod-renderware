@@ -81,18 +81,18 @@ class WorldScriptModel extends AbstractTableModel {
         return rs;
     }
     
-    private void executeStreamScript(WorldScriptEntry group, boolean active) {
-        if (group.type == WorldScriptType.IPL) {
+    private void executeStreamScript(WorldScriptEntry script, boolean bActive) {
+        if (script.type == WorldScriptType.IPL) {
             // for SA only, IPLs may have extra streamed data inside archive
-            String name = group.getName();
-            String prefix = name.toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
+            String prefix = script.getName().toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
             ResourceModel res = ResourceModel.getInstance();
             int i = 0;
             while (true) {
                 try (EntryStream ds = res.getEntryStream(prefix + i, "ipl")) {
-                    String entryName = ds.getLastPath();
-                    app.executeINSTGroup(entryName, ds, active);
-                    Logger.printNotice("IPL executed: %1$s", entryName);
+                    String name = ds.getLastPath();
+                    String state = bActive ? "on" : "off";
+                    Logger.printNotice("IPL triggered: %s [%s]", name, state);
+                    app.executeINSTGroup(name, ds, bActive);
                     i++;
                 } catch (IOException ex) {
                     break;
@@ -101,10 +101,11 @@ class WorldScriptModel extends AbstractTableModel {
         }
     }
     
-    private void executeScript(WorldScriptEntry script, boolean active) {
-        if (script != null && script.isActive != active) {
+    private void executeScript(WorldScriptEntry script, boolean bActive) {
+        if (script != null && script.isActive != bActive) {
             String name = script.getName();
-            String state = active ? "on" : "off";
+            String state = bActive ? "on" : "off";
+            Logger.printNotice("%s triggered: %s [%s]", script.type, name, state);
             try (InputStream is = new FileInputStream(script.file);
                 InputStreamReader isr = new InputStreamReader(is);
                 BufferedReader br = new BufferedReader(isr)) {
@@ -113,15 +114,15 @@ class WorldScriptModel extends AbstractTableModel {
                     switch (line) {
                         case "objs":
                         case "tobj":
-                            app.executeOBJSGroup(name, br, active);
+                            app.executeOBJSGroup(name, br, bActive);
                             break;
                             
                         case "inst":
-                            app.executeINSTGroup(name, br, active);
+                            app.executeINSTGroup(name, br, bActive);
                             break;
                             
                         case "path":
-                            app.executePATHGroup(name, br, active);
+                            app.executePATHGroup(name, br, bActive);
                             break;
                     }
                 }
@@ -129,9 +130,8 @@ class WorldScriptModel extends AbstractTableModel {
                 Logger.printError("%1$s failed: %2$s [%3$s]", script.type, name, state);
                 return;
             }
-            Logger.printNotice("%1$s executed: %2$s [%3$s]", script.type, name, state);
-            executeStreamScript(script, active);
-            script.isActive = active;
+            executeStreamScript(script, bActive);
+            script.isActive = bActive;
             System.gc();
         }
     }

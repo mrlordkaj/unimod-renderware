@@ -24,7 +24,7 @@ import java.io.File;
  */
 public class WorldScriptEntry {
     
-    final String path;
+    public final String path;
     final File file;
     final WorldScriptType type;
     boolean isActive = false;

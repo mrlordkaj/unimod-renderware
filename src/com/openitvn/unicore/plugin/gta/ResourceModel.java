@@ -65,6 +65,15 @@ public class ResourceModel extends AbstractTableModel {
         dffTxdMap = new HashMap<>();
     }
     
+    private boolean isScriptAbsent(String name) {
+        for (WorldScriptEntry e : scripts) {
+            if (e.path.equals(name)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     void load(Workspace space) {
         entries.clear();
         scripts.clear();
@@ -90,13 +99,17 @@ public class ResourceModel extends AbstractTableModel {
                     String[] args = line.replaceAll("#.*$", "").trim().split("\\s+");
                     switch (args[0]) {
                         case "IDE":
-                            WorldScriptEntry script = new WorldScriptEntry(args[1], WorldScriptType.IDE);
-                            parseDffTxdMap(script.file);
-                            scripts.add(script);
+                            if (isScriptAbsent(args[1])) {
+                                WorldScriptEntry script = new WorldScriptEntry(args[1], WorldScriptType.IDE);
+                                parseDffTxdMap(script.file);
+                                scripts.add(script);
+                            }
                             break;
                             
                         case "IPL":
-                            scripts.add(new WorldScriptEntry(args[1], WorldScriptType.IPL));
+                            if (isScriptAbsent(args[1])) {
+                                scripts.add(new WorldScriptEntry(args[1], WorldScriptType.IPL));
+                            }
                             break;
                             
                         case "IMG":

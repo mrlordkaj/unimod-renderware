@@ -32,7 +32,7 @@ public class RwMaterial extends IMaterial {
         color.a = matData.color.a / 255f;
         // enable alpha test when needed
         boolean masked = (texNav != null && texNav.hasAlpha) || matData.isMasked(); // TODO: need optimize?
-        if (matData.textured && masked) {
+        if (matData.bTextured && masked) {
             alphaBlend = true;
             cullFace = false;
         } else if (color.a < 1) {
@@ -44,7 +44,7 @@ public class RwMaterial extends IMaterial {
         diffuseFactor = matData.diffuse;
         specularFactor = matData.specular;
         // texture or color
-        if (!matData.textured) {
+        if (!matData.bTextured) {
             color.b = matData.color.b / 255f;
             color.g = matData.color.g / 255f;
             color.r = matData.color.r / 255f;

@@ -29,6 +29,7 @@ import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.engine.renderware.struct.RpFrame;
 import com.openitvn.format.txd.RwTexture;
+import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.INode;
 import com.openitvn.unicore.world.IWorldUnit;
@@ -70,7 +71,12 @@ public class RwWorld extends IWorld {
         for (ITexture tex : resource.getTextures()) {
             if (tex instanceof RwTexture) {
                 RpTextureNative texData = ((RwTexture)tex).getTextureData();
-                texNavMap.put(texData.textureName.toLowerCase(), texData);
+                if (!texData.textureName.isEmpty()) {
+                    texNavMap.put(texData.textureName.toLowerCase(), texData);
+                }
+                if (!texData.maskName.isEmpty()) {
+                    texNavMap.put(texData.maskName.toLowerCase(), texData);
+                }
             }
         }
         // load model data from stream
@@ -96,24 +102,23 @@ public class RwWorld extends IWorld {
                     IModel mod = new IModel(frmData.name);
                     // meshes = materials
                     for (short i = 0; i < geoData.materials.size(); i++) {
-                        // material
                         RpMaterial matData = geoData.materials.get(i);
-                        RpTextureNative texNav = texNavMap.get(matData.getTextureName().toLowerCase());
-                        String matName;
-                        if (texNav != null) {
-                            // create material name by add "m"
-                            matName = texNav.getMapperName()+"m";
-                            // if have alpha channel, add "a"
-                            if (matData.isMasked() || matData.color.a < 255) {
-                                matName += "a";
-                            }
-                        } else {
-                            // default if texture not found
-                            matName = frmData.name + "_untex" + i;
+                        // search texture by name which defined in material
+                        String texName = matData.getMaskName();
+                        RpTextureNative texNav = texNavMap.get(texName.toLowerCase());
+                        if (texNav == null) {
+                            texName = matData.getTextureName();
+                            texNav = texNavMap.get(texName.toLowerCase());
                         }
-                        if (!resource.containsMaterial(matName)) {
-                            RwMaterial mat = new RwMaterial(matName, matData, texNav);
-                            resource.register(mat);
+                        // create material
+                        String matName = "M_";
+                        if (texName.isEmpty()) {
+                            matName += "Blank";
+                        } else {
+                            matName += texName;
+                            if (texNav == null) {
+                                Logger.printWarning("Texture not found: %s", texName);
+                            }
                         }
                         // mesh
                         IMesh mesh = new IMesh();

@@ -30,7 +30,7 @@ public class RpMaterial extends RpSection {
     
     // data
     public RpColor color;
-    public boolean textured;
+    public boolean bTextured;
     public float ambient;
     public float specular;
     public float diffuse;
@@ -41,11 +41,11 @@ public class RpMaterial extends RpSection {
     public RpMaterial(int size, int libId, RpSection parent, DataStream ds) {
         super(RpType.Material, size, libId, parent, ds);
         ByteBuffer bb = getStruct();
-        int flags = bb.getInt();
+        bb.getInt(); // flags
         color = new RpColor(bb);
-        int unused = bb.getInt();
-        textured = bb.getInt() != 0;
-        if (textured) {
+        bb.getInt(); // unused
+        bTextured = bb.getInt() != 0;
+        if (bTextured) {
             texture = getFirstChild(RpTexture.class);
         }
         if (version > 0x30400) {
@@ -57,10 +57,14 @@ public class RpMaterial extends RpSection {
     }
     
     public boolean isMasked() {
-        return textured && !texture.maskName.isEmpty();
+        return bTextured && !texture.maskName.isEmpty();
     }
     
     public String getTextureName() {
-        return textured ? texture.textureName : "";
+        return bTextured ? texture.textureName : "";
+    }
+    
+    public String getMaskName() {
+        return bTextured ? texture.maskName : "";
     }
 }

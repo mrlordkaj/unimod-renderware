@@ -51,16 +51,7 @@ public class RpTexture extends RpSection {
     
     public RpTexture(int size, int libId, RpSection parent, DataStream ds) {
         super(RpType.Texture, size, libId, parent, ds);
-        textureName = bufferToString(children.get(1).data);
-        maskName = bufferToString(children.get(2).data);
-    }
-    
-    private static String bufferToString(ByteBuffer bb) {
-        StringBuilder sb = new StringBuilder();
-        byte c;
-        while (bb.hasRemaining() && (c = bb.get()) != 0) {
-            sb.append((char)c);
-        }
-        return sb.toString();
+        textureName = RpHelper.readName(children.get(1).data);
+        maskName = RpHelper.readName(children.get(2).data);
     }
 }

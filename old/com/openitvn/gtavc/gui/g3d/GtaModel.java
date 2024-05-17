@@ -113,7 +113,7 @@ public class GtaModel {
         // cleanup unused textures
         for (RpGeometry rGeo : getGeometries()) {
             for (RpMaterial rMat : rGeo.getFirstChild(RpType.MaterialList).getChildren(RpMaterial.class)) {
-                if (rMat.textured) {
+                if (rMat.bTextured) {
                     String texName = rMat.getTextureName();
                     GtaTextureManager.detach(txdName, texName, this);
                 }
@@ -158,7 +158,7 @@ public class GtaModel {
                 RpMaterial rMat = rMats.get(i);
                 Material mat = new Material();
                 boolean hasAlpha;
-                if (rMat.textured) {
+                if (rMat.bTextured) {
                     String texName = rMat.getTextureName();
                     Texture tex = GtaTextureManager.attach(gMod.txdName, texName, gMod);
                     mat.set(TextureAttribute.createDiffuse(tex));
@@ -168,7 +168,7 @@ public class GtaModel {
                         RpTextureNative rTex = rTexDic.findTexture(texName);
                         hasAlpha = rTex != null && rTex.hasAlpha;
                     } catch (NullPointerException ex) {
-                        hasAlpha = rMat.textured && rMat.isMasked();
+                        hasAlpha = rMat.bTextured && rMat.isMasked();
                     }
                 } else {
                     hasAlpha = rMat.color.a < 255;
