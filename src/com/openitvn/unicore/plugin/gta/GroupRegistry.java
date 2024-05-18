@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Thinh Pham
+ * Copyright (C) 2024 Thinh Pham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,17 @@
  */
 package com.openitvn.unicore.plugin.gta;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author Thinh Pham
  */
-public enum WorldScriptType {
-    IDE, IPL
+public class GroupRegistry {
+    // registry for world resource
+    public final ArrayList<String> modNames = new ArrayList<>();
+    public final ArrayList<String> matNames = new ArrayList<>();
+    public final ArrayList<String> texNames = new ArrayList<>();
+    // registry for collisionMap
+    public final ArrayList<String> colNames = new ArrayList<>();
 }

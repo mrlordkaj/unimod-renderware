@@ -19,7 +19,7 @@ package com.openitvn.gtavc.gui;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.unicore.plugin.gta.item.ItemType;
 import com.openitvn.unicore.plugin.gta.ScriptHelper;
-import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
+import com.openitvn.unicore.plugin.gta.WorldScript;
 import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
@@ -42,10 +42,10 @@ public class ScriptItemModel extends AbstractTableModel {
     
     public final ArrayList<ItemNULL> entries = new ArrayList<>();
     
-    public void bind(ArrayList<WorldScriptEntry> scripts) {
+    public void bind(ArrayList<WorldScript> scripts) {
         entries.clear();
         if (scripts != null) {
-            for (WorldScriptEntry script : scripts) {
+            for (WorldScript script : scripts) {
                 String filePath = script.getAbsolutePath();
                 defineFromFile(filePath, script.getIndex());
             }

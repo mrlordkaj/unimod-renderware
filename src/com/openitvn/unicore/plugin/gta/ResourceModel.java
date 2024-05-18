@@ -56,7 +56,7 @@ public class ResourceModel extends AbstractTableModel {
     }
     
     final ArrayList<IArchiveEntry> entries;
-    final ArrayList<WorldScriptEntry> scripts;
+    final ArrayList<WorldScript> scripts;
     final HashMap<String, String> dffTxdMap;
     
     private ResourceModel() {
@@ -66,7 +66,7 @@ public class ResourceModel extends AbstractTableModel {
     }
     
     private boolean isScriptAbsent(String name) {
-        for (WorldScriptEntry e : scripts) {
+        for (WorldScript e : scripts) {
             if (e.path.equals(name)) {
                 return false;
             }
@@ -100,7 +100,7 @@ public class ResourceModel extends AbstractTableModel {
                     switch (args[0]) {
                         case "IDE":
                             if (isScriptAbsent(args[1])) {
-                                WorldScriptEntry script = new WorldScriptEntry(args[1], WorldScriptType.IDE);
+                                WorldScript script = new WorldScript(args[1], WorldScript.Type.IDE);
                                 parseDffTxdMap(script.file);
                                 scripts.add(script);
                             }
@@ -108,7 +108,7 @@ public class ResourceModel extends AbstractTableModel {
                             
                         case "IPL":
                             if (isScriptAbsent(args[1])) {
-                                scripts.add(new WorldScriptEntry(args[1], WorldScriptType.IPL));
+                                scripts.add(new WorldScript(args[1], WorldScript.Type.IPL));
                             }
                             break;
                             

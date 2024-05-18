@@ -39,7 +39,7 @@ class WorldScriptModel extends AbstractTableModel {
     public static final int COL_NAME = 1;
     public static final int COL_TYPE = 2;
     
-    private ArrayList<WorldScriptEntry> scripts = new ArrayList<>();
+    private ArrayList<WorldScript> scripts = new ArrayList<>();
     private WorldPanel app;
     
     void bind(WorldPanel app, ResourceModel res) {
@@ -48,7 +48,7 @@ class WorldScriptModel extends AbstractTableModel {
         // active default dependencies
         app.prepareDispatcher();
         for (String dep : GameConfig.getDependencies()) {
-            for (WorldScriptEntry e : scripts) {
+            for (WorldScript e : scripts) {
                 if (dep.equalsIgnoreCase(e.getName())) {
                     executeScript(e, true);
                     break;
@@ -59,30 +59,30 @@ class WorldScriptModel extends AbstractTableModel {
         fireTableDataChanged();
     }
     
-    WorldScriptEntry findScript(String name) {
-        for (WorldScriptEntry e : scripts) {
+    WorldScript findScript(String name) {
+        for (WorldScript e : scripts) {
             if (e.getName().equalsIgnoreCase(name))
                 return e;
         }
         return null;
     }
     
-    WorldScriptEntry getScript(int id) {
+    WorldScript getScript(int id) {
         return scripts.get(id);
     }
     
     //<editor-fold defaultstate="collapsed" desc="Active / Deactive">
-    private ArrayList<String> getActivatedGroups(WorldScriptType type) {
+    private ArrayList<String> getActivatedGroups(WorldScript.Type type) {
         ArrayList<String> rs = new ArrayList<>();
-        for (WorldScriptEntry e : scripts) {
+        for (WorldScript e : scripts) {
             if (e.type == type && e.isActive)
                 rs.add(e.getName().toLowerCase());
         }
         return rs;
     }
     
-    private void executeStreamScript(WorldScriptEntry script, boolean bActive) {
-        if (script.type == WorldScriptType.IPL) {
+    private void executeStreamScript(WorldScript script, boolean bActive) {
+        if (script.type == WorldScript.Type.IPL) {
             // for SA only, IPLs may have extra streamed data inside archive
             String prefix = script.getName().toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
             ResourceModel res = ResourceModel.getInstance();
@@ -101,7 +101,7 @@ class WorldScriptModel extends AbstractTableModel {
         }
     }
     
-    private void executeScript(WorldScriptEntry script, boolean bActive) {
+    private void executeScript(WorldScript script, boolean bActive) {
         if (script != null && script.isActive != bActive) {
             String name = script.getName();
             String state = bActive ? "on" : "off";
@@ -183,13 +183,13 @@ class WorldScriptModel extends AbstractTableModel {
     
     @Override
     public boolean isCellEditable(int row, int col) {
-        return (col == COL_ACTIVE) && scripts.get(row).type.equals(WorldScriptType.IPL);
+        return (col == COL_ACTIVE) && scripts.get(row).type.equals(WorldScript.Type.IPL);
     }
     
     @Override
     public void setValueAt(Object value, int row, int col) {
         boolean active = (boolean) value;
-        WorldScriptEntry e = scripts.get(row);
+        WorldScript e = scripts.get(row);
         if (e.isActive != active) {
             String name = e.getName();
             if (active) {
@@ -224,8 +224,8 @@ class WorldScriptModel extends AbstractTableModel {
                 // deactive target
                 executeScript(findScript(name), false);
                 // deactive no longer required dependencies
-                ArrayList<String> ipls = getActivatedGroups(WorldScriptType.IPL);
-                ArrayList<String> ides = getActivatedGroups(WorldScriptType.IDE);
+                ArrayList<String> ipls = getActivatedGroups(WorldScript.Type.IPL);
+                ArrayList<String> ides = getActivatedGroups(WorldScript.Type.IDE);
                 ArrayList<String> keeps = GameConfig.getDependencies(ipls);
                 keeps.addAll(GameConfig.getDependencies());
                 for (String ide : ides) {

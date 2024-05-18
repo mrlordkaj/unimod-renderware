@@ -131,8 +131,11 @@
               <TableHeader reorderingAllowed="false" resizingAllowed="true"/>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="tblMapMouseClicked"/>
+          </Events>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable() {&#xa;    public String getToolTipText(MouseEvent evt) {&#xa;        int row = tblMap.rowAtPoint(evt.getPoint());&#xa;        if (row &gt;= 0) {&#xa;            row = tblMap.convertRowIndexToModel(row);&#xa;            com.openitvn.unicore.plugin.gta.WorldScriptEntry e = scriptModel.getScript(row);&#xa;            return e.path;&#xa;        }&#xa;        return null;&#xa;    }&#xa;}"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable() {&#xa;    public String getToolTipText(MouseEvent evt) {&#xa;        int row = tblMap.rowAtPoint(evt.getPoint());&#xa;        if (row &gt;= 0) {&#xa;            row = tblMap.convertRowIndexToModel(row);&#xa;            com.openitvn.unicore.plugin.gta.WorldScript e = scriptModel.getScript(row);&#xa;            return e.path;&#xa;        }&#xa;        return null;&#xa;    }&#xa;}"/>
           </AuxValues>
         </Component>
       </SubComponents>

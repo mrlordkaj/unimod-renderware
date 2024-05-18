@@ -78,4 +78,8 @@ public class ItemOBJS extends ItemNULL {
     public String toString() {
         return String.format("[%1$04d] %2$s", modId, modName);
     }
+    
+    public boolean isLOD() {
+        return (dd1 > 300 || modName.toLowerCase().contains("lod"));
+    }
 }

@@ -17,45 +17,30 @@
 package com.openitvn.unicore.plugin.gta;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.openitvn.control.UCFileChooser;
 import com.openitvn.control.table.UCBooleanCellRenderer;
-import com.openitvn.engine.renderware.RpClump;
-import com.openitvn.engine.renderware.RpGeometry;
-import com.openitvn.engine.renderware.RpMaterial;
-import com.openitvn.engine.renderware.RpSection;
-import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.col.ColFile;
-import com.openitvn.format.dff.RwMaterial;
-import com.openitvn.format.dff.RwWorld;
-import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.Unicore;
 import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.data.DataStream;
-import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.PanelViewer;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
-import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import com.openitvn.unicore.plugin.gta.item.ItemPATHSegment;
 import com.openitvn.unicore.world.IGeometry;
-import com.openitvn.unicore.world.ILayer;
-import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.INode;
-import com.openitvn.unicore.world.IWorldCoord;
-import com.openitvn.unicore.world.IWorldUnit;
-import com.openitvn.unicore.world.resource.IModel;
-import com.openitvn.unicore.world.resource.ITexture;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map.Entry;
 import javax.swing.JFileChooser;
 import javax.swing.RowFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -65,18 +50,10 @@ import javax.swing.table.TableRowSorter;
  */
 public final class WorldPanel extends PanelViewer {
     
-    private static final int    LAYER_NORMAL = 0,
-                                LAYER_DISTANCE = 1,
-                                LAYER_COLLISION = 2,
-                                LAYER_CAR_PATH = 3;
-    
-    private final HashMap<Integer, String> modelNameMap = new HashMap<>(); // inst find
-    private final HashMap<String, ColFile> collisionMap = new HashMap<>(); // inst find
-    private final HashMap<String, ItemPATHSegment> pathMap = new HashMap<>(); // inst find
-    private final HashMap<Integer, Integer> modelLayerMap = new HashMap<>(); // layer find - objs.id, layer.id
     private final WorldScriptModel scriptModel = new WorldScriptModel();
     
-    private final RwWorld world;
+    private GWorld ideWorld;
+    private final GWorld bigWorld = new GWorld("GTA World");
 //    private final Camera camera;
 //    private final Vector3 prevPos = new Vector3();
 //    private final Vector3 prevDir = new Vector3();
@@ -92,14 +69,8 @@ public final class WorldPanel extends PanelViewer {
         cm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
         refineWorldTable(null);
         tblMap.setDefaultRenderer(Boolean.class, new UCBooleanCellRenderer());
-        // prepare world world
-        world = new RwWorld("GTA World");
-        world.setCoordinate(IWorldCoord.Zup, IWorldUnit.Meters);
-        world.layers.add(new ILayer(LAYER_NORMAL, "Normal Map", true));
-        world.layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
-        world.layers.add(new ILayer(LAYER_COLLISION, "Collision Map", false));
-        world.layers.add(new ILayer(LAYER_CAR_PATH, "Vehicle Path", false));
-        Unicore.registerWorld(world);
+        // register worlds
+        Unicore.registerWorld(bigWorld);
 //        camera = Launcher.getWorldProcessor().getActiveCamera();
 //        updateTimer = new Timer("GTA World Updater");
 //        updateTimer.schedule(new TimerTask() {
@@ -117,12 +88,9 @@ public final class WorldPanel extends PanelViewer {
     @Override
     public boolean requestClose() {
 //        updateTimer.cancel();
-        modelNameMap.clear();
-        collisionMap.clear();
-        modelLayerMap.clear();
-        groupRegistryMap.clear();
         pendingNodes = null;
-        Unicore.unregisterWorld(world);
+        Unicore.unregisterWorld(ideWorld);
+        Unicore.unregisterWorld(bigWorld);
         return true;
     }
     
@@ -146,7 +114,7 @@ public final class WorldPanel extends PanelViewer {
                 int row = tblMap.rowAtPoint(evt.getPoint());
                 if (row >= 0) {
                     row = tblMap.convertRowIndexToModel(row);
-                    com.openitvn.unicore.plugin.gta.WorldScriptEntry e = scriptModel.getScript(row);
+                    com.openitvn.unicore.plugin.gta.WorldScript e = scriptModel.getScript(row);
                     return e.path;
                 }
                 return null;
@@ -194,6 +162,11 @@ public final class WorldPanel extends PanelViewer {
         tblMap.setShowHorizontalLines(false);
         tblMap.setShowVerticalLines(false);
         tblMap.getTableHeader().setReorderingAllowed(false);
+        tblMap.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblMapMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tblMap);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -229,193 +202,111 @@ public final class WorldPanel extends PanelViewer {
         TableRowSorter sorter = (TableRowSorter) tblMap.getRowSorter();
         sorter.setRowFilter(RowFilter.regexFilter(regex, WorldScriptModel.COL_TYPE));
     }//GEN-LAST:event_refineWorldTable
+
+    private void tblMapMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMapMouseClicked
+        if (evt.getButton() == MouseEvent.BUTTON1 && evt.getClickCount() >= 2) {
+            evt.consume();
+            int i = tblMap.convertRowIndexToModel(tblMap.getSelectedRow());
+            WorldScript script = scriptModel.getScript(i);
+            if (script.type == WorldScript.Type.IDE) {
+                String scriptName = script.getName();
+                // destroy previously world
+                Unicore.unregisterWorld(ideWorld);
+                // build new world
+                ideWorld = new GWorld(scriptName);
+                Unicore.registerWorld(ideWorld);
+                // read objects from script
+                try (InputStream is = new FileInputStream(script.file);
+                    InputStreamReader isr = new InputStreamReader(is);
+                    BufferedReader br = new BufferedReader(isr)) {
+                    String line;
+                    while ((line = ScriptHelper.readLine(br)) != null) {
+                        switch (line) {
+                            case "objs":
+                            case "tobj":
+                                ideWorld.executeOBJSGroup(scriptName, br, true);
+                                break;
+                        }
+                    }
+                } catch (IOException ex) {
+//                    Logger.printError("%1$s failed: %2$s [%3$s]", script.type, name, state);
+                }
+                // add geometries to the world
+                for (Entry<Integer, Integer> layerEntry : ideWorld.modelLayerMap.entrySet()) {
+                    int modId = layerEntry.getKey();
+                    int layer = layerEntry.getValue();
+                    String modName = ideWorld.modelNameMap.get(modId);
+                    if (modName != null) {
+                        // add model
+                        IGeometry geo = new IGeometry(modName);
+                        geo.setLayerIndex(layer);
+                        geo.attach(ideWorld);
+                        geo.construct(ideWorld.resource);
+                        geo.update(true);
+                        // add collision
+                        ColFile col = ideWorld.collisionMap.get(modName);
+                        if (col != null) {
+                            geo = new IGeometry(col.model.getName());
+                            geo.setLayerIndex(GWorld.LAYER_COLLISION);
+                            geo.attach(ideWorld);
+                            geo.construct(ideWorld.resource);
+                            geo.update(true);
+                        }
+                    } else {
+                        Logger.printWarning("Model not found: %d", modId);
+                    }
+                }
+                Unicore.focusToWorld(ideWorld);
+            }
+        }
+    }//GEN-LAST:event_tblMapMouseClicked
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup groupType;
     private javax.swing.JTable tblMap;
     // End of variables declaration//GEN-END:variables
     
-    private void addOBJS(ItemOBJS objs, GroupRegistry reg) {
-        ResourceModel res = ResourceModel.getInstance();
-        // load textures
-        try (EntryStream ts = res.getEntryStream(objs.txdName, "txd")) {
-            world.loadTexDic(ts);
-        } catch (IOException ex) {
-            Logger.printWarning("TXD not found: " + objs.txdName);
-        }
-        // prepare texture native cache from resource manager
-        HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
-        for (ITexture tex : world.resource.getTextures()) {
-            if (tex instanceof RwTexture) {
-                RpTextureNative texData = ((RwTexture)tex).getTextureData();
-                if (!texData.textureName.isEmpty()) {
-                    texNavMap.put(texData.textureName.toLowerCase(), texData);
-                }
-                if (!texData.maskName.isEmpty()) {
-                    texNavMap.put(texData.maskName.toLowerCase(), texData);
-                }
-            }
-        }
-        // load model
-        try (EntryStream ms = res.getEntryStream(objs.modName, "dff")) {
-            RpClump clump = RpSection.loadRoot(ms, RpClump.class);
-            if (clump != null) {
-                // only load root geometry as model
-                RpGeometry geoData = clump.getRootGeometry();
-                if (geoData != null) {
-                    IModel mod = new IModel(objs.modName);
-                    reg.modNames.add(objs.modName);
-                    // meshes = materials
-                    for (short i = 0; i < geoData.materials.size(); i++) {
-                        RpMaterial matData = geoData.materials.get(i);
-                        // search texture by name which defined in material
-                        String texName = matData.getMaskName();
-                        RpTextureNative texNav = texNavMap.get(texName.toLowerCase());
-                        if (texNav == null) {
-                            texName = matData.getTextureName();
-                            texNav = texNavMap.get(texName.toLowerCase());
-                        }
-                        // create material
-                        String matName = "M_";
-                        if (texName.isEmpty()) {
-                            matName += "Blank";
-                        } else {
-                            matName += texName;
-                            if (texNav == null) {
-                                Logger.printWarning("Texture not found: %s (%s.txd)", texName, objs.txdName);
-                            }
-                        }
-                        // register new material when missing
-                        if (!world.resource.containsMaterial(matName)) {
-                            RwMaterial mat = new RwMaterial(matName, matData, texNav);
-                            world.resource.register(mat);
-                            reg.matNames.add(matName);
-                        }
-                        // mesh
-                        IMesh mesh = new IMesh();
-                        mesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
-                        mesh.setIndices(geoData.indexMap.get(i));
-                        mesh.materialName = matName;
-                        mod.meshes.add(mesh);
-                    }
-                    world.resource.register(mod);
-                    modelNameMap.put(objs.modId, objs.modName);
-                }
-            }
-        } catch (IOException ex) {
-            Logger.printWarning("DFF not found: " + objs.modName);
-        }
-    }
-    
     private void addINST(INode group, ItemINST inst) {
         Matrix4 transform = new Matrix4().translate(inst.posX, inst.posY, inst.posZ)
                     .rotateRad(inst.rotX, inst.rotY, inst.rotZ, -2*(float)Math.acos(inst.rotW))
-                    /*.scale(inst.sclX, inst.sclY, inst.sclZ)*/;
-        
+                    .scale(inst.sclX, inst.sclY, inst.sclZ);
         // add model
-        String modName = modelNameMap.get(inst.modId);
+        String modName = bigWorld.modelNameMap.get(inst.modId);
         if (modName != null) {
             IGeometry geo = new IGeometry(modName);
             geo.transform.localMatrix.set(transform);
-            geo.setLayerIndex(modelLayerMap.get(inst.modId));
+            geo.setLayerIndex(bigWorld.modelLayerMap.get(inst.modId));
             geo.attach(group);
-            
-        }/* else {
-            Logger.printWarning("Missing OBJS: %1$d, %2$s", inst.objsId, inst.objsName);
-        }*/
-        
+        } else {
+            Logger.printWarning("Model not found: %s (%d)", inst.modName, inst.modId);
+        }
         // add collision
-        ColFile col = collisionMap.get(modName);
+        ColFile col = bigWorld.collisionMap.get(modName);
         if (col != null) {
             IGeometry geo = new IGeometry(col.model.getName());
             geo.transform.localMatrix.set(transform);
-            geo.setLayerIndex(LAYER_COLLISION);
+            geo.setLayerIndex(GWorld.LAYER_COLLISION);
             geo.attach(group);
         }
-        
         // add paths (only GTA III for now)
-        ItemPATHSegment path = pathMap.get(inst.modName);
+        ItemPATHSegment path = bigWorld.pathMap.get(inst.modName);
         if (path != null) {
             PathSegment seg = new PathSegment(path);
             seg.transform.localMatrix.set(transform);
-            seg.setLayerIndex(LAYER_CAR_PATH);
+            seg.setLayerIndex(GWorld.LAYER_CAR_PATH);
             seg.attach(group);
         }
     }
       
-    void executeOBJSGroup(String groupName, BufferedReader br, boolean active) throws IOException {
-        GroupRegistry reg = groupRegistryMap.get(groupName);
-        if (active) {
-            // register new reg for this group
-            if (reg == null) {
-                reg = new GroupRegistry();
-                groupRegistryMap.put(groupName, reg);
-            }
-            
-            // parse collision list
-            // TODO: current support collsion mesh only,
-            // need implement primitive collision in future
-            ResourceModel res = ResourceModel.getInstance();
-            String colFile = groupName.substring(0, groupName.length() - 4);
-            try (EntryStream cs = res.getEntryStream(colFile, "col")) {
-                int fourCC;
-                while (cs.remaining() > 4 && (fourCC = cs.getInt()) != 0) {
-                    ColFile col = new ColFile(fourCC, cs);
-                    if (col.model != null) {
-                        world.resource.register(col.model);
-                        reg.modNames.add(col.model.getName());
-                        collisionMap.put(col.objsName, col);
-                        reg.colNames.add(col.objsName);
-                    }
-                }
-            } catch (IOException ex) { }
-            
-            // parse objs list
-            String[] args;
-            while ((args = ScriptHelper.parseLineByComma(br)) != null) {
-                try {
-                    ItemOBJS objs = new ItemOBJS(args);
-                    // cancel special objects
-                    switch (GameConfig.getAlias()) {
-                        case GameConfig.ALIAS_III:
-                            if ((160 <= objs.modId && objs.modId <= 169) || // wheels
-                                (170 <= objs.modId && objs.modId <= 184) || // weapons
-                                (196 <= objs.modId && objs.modId <= 199)) { // misc
-                                continue;
-                            }
-                            break;
-                            
-                        case GameConfig.ALIAS_VC:
-                            if ((130 <= objs.modId && objs.modId <= 239) || // vehicles
-                                (250 <= objs.modId && objs.modId <= 257)) { // wheels
-                                continue;
-                            }
-                            break;
-                    }
-                    addOBJS(objs, reg);
-                    String norName = objs.modName.toLowerCase();
-                    int layer = objs.dd1 <= 300 && !norName.contains("lod") ?
-                            LAYER_NORMAL : LAYER_DISTANCE;
-                    modelLayerMap.put(objs.modId, layer);
-                } catch (IllegalArgumentException ex) { }
-            }
-        } else if (reg != null) {
-            // null registry means the group already unregistered
-            world.resource.deleteModels(reg.modNames, true);
-            world.resource.deleteMaterials(reg.matNames, true);
-            world.resource.deleteTextures(reg.texNames, true);
-            for (String colName : reg.colNames) {
-                collisionMap.remove(colName);
-            }
-            groupRegistryMap.remove(groupName);
-        }
+    void executeOBJSGroup(String groupName, BufferedReader br, boolean bActive) {
+        bigWorld.executeOBJSGroup(groupName, br, bActive);
     }
     
     /**
      * Parse text PATH, for III and VC.
      */
-    void executePATHGroup(String groupName, BufferedReader br, boolean active) throws IOException {
-        if (active) {
+    void executePATHGroup(String groupName, BufferedReader br, boolean bActive) throws IOException {
+        if (bActive) {
             String[] args;
             while ((args = ScriptHelper.parseLineByComma(br)) != null) {
                 int segmentType = args[0].equals("car") ? ItemPATHSegment.TYPE_CAR : ItemPATHSegment.TYPE_PED;
@@ -423,7 +314,7 @@ public final class WorldPanel extends PanelViewer {
                 String modName = args[2];
                 if (segmentType == ItemPATHSegment.TYPE_CAR) {
                     ItemPATHSegment entry = new ItemPATHSegment(segmentType, modId, modName, br);
-                    pathMap.put(modName, entry);
+                    bigWorld.pathMap.put(modName, entry);
                 } else {
                     // skip ped
                     for (int i = 0; i < 12; i++) {
@@ -449,8 +340,8 @@ public final class WorldPanel extends PanelViewer {
             }
             pendingNodes.add(group);
         } else {
-            world.deleteNode(groupName);
-            Unicore.focusToWorld(world);
+            bigWorld.deleteNode(groupName);
+            Unicore.focusToWorld(bigWorld);
         }
     }
     
@@ -468,27 +359,14 @@ public final class WorldPanel extends PanelViewer {
             }
             pendingNodes.add(group);
         } else {
-            world.deleteNode(groupName);
-            Unicore.focusToWorld(world);
+            bigWorld.deleteNode(groupName);
+            Unicore.focusToWorld(bigWorld);
         }
-    }
-    
-    private class GroupRegistry {
-        // registry for world resource
-        private final ArrayList<String> modNames = new ArrayList<>();
-        private final ArrayList<String> matNames = new ArrayList<>();
-        private final ArrayList<String> texNames = new ArrayList<>();
-        // registry for collisionMap
-        private final ArrayList<String> colNames = new ArrayList<>();
     }
     
     // world dispatcher for schedule push world data
     // when asynchronous loading thread done
     private ArrayList<INode> pendingNodes;
-    
-    // store all resource names used by groups,
-    // for quickly delete when deactive a group
-    private final HashMap<String, GroupRegistry> groupRegistryMap = new HashMap<>(); // groupName, registry
     
     void prepareDispatcher() {
         tblMap.setEnabled(false);
@@ -497,8 +375,8 @@ public final class WorldPanel extends PanelViewer {
     
     void executeDispatcher() {
         for (INode node : pendingNodes) {
-            node.attach(world);
-            node.construct(world.resource);
+            node.attach(bigWorld);
+            node.construct(bigWorld.resource);
             node.update(true);
             ArrayList<PathSegment> segments = new ArrayList<>();
             node.getChildrenByClass(PathSegment.class, segments);
@@ -509,13 +387,12 @@ public final class WorldPanel extends PanelViewer {
         }
         pendingNodes = null;
         tblMap.setEnabled(true);
-        System.gc();
-        Unicore.focusToWorld(world);
+        Unicore.focusToWorld(bigWorld);
     }
     
     private void optimizePathData3() {
         ArrayList<INode> groups = new ArrayList<>();
-        world.getChildrenByClass(INode.class, groups, false);
+        bigWorld.getChildrenByClass(INode.class, groups, false);
         ArrayList<PathNode> allPorts = new ArrayList<>();
         // STEP: merge all possible segments
         for (INode group : groups) {
@@ -630,7 +507,7 @@ public final class WorldPanel extends PanelViewer {
         if (fc.showOpenDialog(Unicore.getMainFrame()) == JFileChooser.APPROVE_OPTION) {
             String dir = fc.getSelectedFile().getAbsolutePath();
             ArrayList<INode> nodes = new ArrayList<>();
-            world.getChildrenByClass(INode.class, nodes, false);
+            bigWorld.getChildrenByClass(INode.class, nodes, false);
             for (INode group : nodes) {
                 String name = group.getName();
                 name = name.substring(0, name.length() - 4);

@@ -22,14 +22,16 @@ import java.io.File;
  *
  * @author Thinh Pham
  */
-public class WorldScriptEntry {
+public class WorldScript {
+    
+    public enum Type { IDE, IPL }
     
     public final String path;
     final File file;
-    final WorldScriptType type;
+    final Type type;
     boolean isActive = false;
 
-    WorldScriptEntry(String path, WorldScriptType type) {
+    WorldScript(String path, Type type) {
         this.path = path;
         this.type = type;
         this.file = new File(GameConfig.getDirectory() + "/" + path);
@@ -43,7 +45,7 @@ public class WorldScriptEntry {
     private int index;
     
     @Deprecated
-    public WorldScriptEntry(int index, String path, WorldScriptType type) {
+    public WorldScript(int index, String path, Type type) {
         this(path, type);
         this.index = index;
     }
@@ -69,7 +71,7 @@ public class WorldScriptEntry {
     }
     
     @Deprecated
-    public WorldScriptType getType() {
+    public Type getType() {
         return type;
     }
 }

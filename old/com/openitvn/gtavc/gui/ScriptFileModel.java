@@ -24,8 +24,7 @@ import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
-import com.openitvn.unicore.plugin.gta.WorldScriptEntry;
-import com.openitvn.unicore.plugin.gta.WorldScriptType;
+import com.openitvn.unicore.plugin.gta.WorldScript;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.io.BufferedReader;
@@ -49,7 +48,7 @@ public class ScriptFileModel extends AbstractTableModel {
     public static final int COL_TYPE = 3;
     
     private final ScriptItemModel scriptItemModel = new ScriptItemModel();
-    private final ArrayList<WorldScriptEntry> entries = new ArrayList<>();
+    private final ArrayList<WorldScript> entries = new ArrayList<>();
     
     //<editor-fold defaultstate="collapsed" desc="JTable Model">
     
@@ -104,14 +103,14 @@ public class ScriptFileModel extends AbstractTableModel {
     
     @Override
     public boolean isCellEditable(int row, int col) {
-        return (col == COL_ACTIVE) && entries.get(row).getType().equals(WorldScriptType.IPL);
+        return (col == COL_ACTIVE) && entries.get(row).getType().equals(WorldScript.Type.IPL);
     }
     
     @Override
     public void setValueAt(Object value, int row, int col) {
         if (col == COL_ACTIVE) {
             boolean active = (boolean)value;
-            WorldScriptEntry entry = entries.get(row);
+            WorldScript entry = entries.get(row);
             if (entry.isActive() != active) {
                 if (active) activeIPL(entry.getName());
                 else deactiveIPL(entry.getName());
@@ -137,11 +136,11 @@ public class ScriptFileModel extends AbstractTableModel {
                     String[] args = line.replaceAll("#.*$", "").trim().split("\\s+");
                     switch (args[0]) {
                         case "IDE":
-                            entries.add(new WorldScriptEntry(entries.size(), args[1], WorldScriptType.IDE));
+                            entries.add(new WorldScript(entries.size(), args[1], WorldScript.Type.IDE));
                             break;
                             
                         case "IPL":
-                            entries.add(new WorldScriptEntry(entries.size(), args[1], WorldScriptType.IPL));
+                            entries.add(new WorldScript(entries.size(), args[1], WorldScript.Type.IPL));
                             break;
                             
                         default:
@@ -174,16 +173,16 @@ public class ScriptFileModel extends AbstractTableModel {
         return sb.toString();
     }
     
-    public ArrayList<WorldScriptEntry> getEntries() {
+    public ArrayList<WorldScript> getEntries() {
         return entries;
     }
     
-    public WorldScriptEntry getEntry(int groupId) {
+    public WorldScript getEntry(int groupId) {
         return (groupId < 0 || groupId >= entries.size()) ? null : entries.get(groupId);
     }
     
-    public WorldScriptEntry getEntry(String entryName) {
-        for (WorldScriptEntry e : entries) {
+    public WorldScript getEntry(String entryName) {
+        for (WorldScript e : entries) {
             if (e.getName().equalsIgnoreCase(entryName)) {
                 return e;
             }
@@ -191,9 +190,9 @@ public class ScriptFileModel extends AbstractTableModel {
         return null;
     }
     
-    private ArrayList<String> getActiveGroups(WorldScriptType type) {
+    private ArrayList<String> getActiveGroups(WorldScript.Type type) {
         ArrayList<String> rs = new ArrayList<>();
-        for (WorldScriptEntry e : entries) {
+        for (WorldScript e : entries) {
             if (e.getType() == type && e.isActive()) {
                 rs.add(e.getName().toLowerCase());
             }
@@ -210,7 +209,7 @@ public class ScriptFileModel extends AbstractTableModel {
 //        try {
             ArrayList<ItemNULL> items = scriptItemModel.entries;
             ResourceModel res = ResourceModel.getInstance();
-            for (WorldScriptEntry group : entries) {
+            for (WorldScript group : entries) {
                 if (group.getName().toLowerCase().endsWith(".ipl")) {
                     String name = group.getName();
                     String prefix = name.substring(0, name.length() - 4).concat("_stream");
@@ -260,7 +259,7 @@ public class ScriptFileModel extends AbstractTableModel {
         activeGroup(getEntry(ipl));
     }
     
-    private void activeGroup(WorldScriptEntry g) {
+    private void activeGroup(WorldScript g) {
         if (g != null && !g.isActive()) {
             ViewportApp app = ViewportApp.getInstance();
             for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
@@ -288,16 +287,16 @@ public class ScriptFileModel extends AbstractTableModel {
         // deactive target
         deactiveGroup(getEntry(ipl));
         // deactive no longer required dependencies
-        ArrayList<String> keeps = GameConfig.getDependencies(getActiveGroups(WorldScriptType.IPL));
+        ArrayList<String> keeps = GameConfig.getDependencies(getActiveGroups(WorldScript.Type.IPL));
         keeps.addAll(GameConfig.getDependencies());
-        for (String ide : getActiveGroups(WorldScriptType.IDE)) {
+        for (String ide : getActiveGroups(WorldScript.Type.IDE)) {
             if (!keeps.contains(ide))
                 deactiveGroup(getEntry(ide));
         }
         System.gc();
     }
     
-    private void deactiveGroup(WorldScriptEntry g) {
+    private void deactiveGroup(WorldScript g) {
         if (g != null && g.isActive()) {
             ViewportApp app = ViewportApp.getInstance();
             for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
