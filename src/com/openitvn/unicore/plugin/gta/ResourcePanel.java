@@ -192,7 +192,7 @@ public final class ResourcePanel extends PanelViewer {
                     Unicore.unregisterWorld(viewer);
                     viewer = new RwWorld(name);
                     res.extractModel(name, viewer);
-                    viewer.construct(viewer.resource);
+                    viewer.construct();
                     Unicore.registerWorld(viewer);
                     Unicore.focusToWorld(viewer);
                     break;

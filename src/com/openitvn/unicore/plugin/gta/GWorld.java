@@ -42,10 +42,10 @@ import java.util.HashMap;
  * @author Thinh Pham
  */
 public class GWorld extends RwWorld {
-    public static final int    LAYER_NORMAL = 0,
-                                LAYER_DISTANCE = 1,
-                                LAYER_COLLISION = 2,
-                                LAYER_CAR_PATH = 3;
+    public static final int LAYER_NORMAL = 0,
+                            LAYER_DISTANCE = 1,
+                            LAYER_COLLISION = 2,
+                            LAYER_CAR_PATH = 3;
     
     public final HashMap<Integer, String> modelNameMap = new HashMap<>(); // inst find
     public final HashMap<String, ColFile> collisionMap = new HashMap<>(); // inst find
@@ -101,9 +101,10 @@ public class GWorld extends RwWorld {
                 // only load root geometry as model
                 RpGeometry geoData = clump.getRootGeometry();
                 if (geoData != null) {
-                    IModel mod = new IModel(objs.modName);
+                    IModel mod = new IModel("SM_"+objs.modName);
                     reg.modNames.add(objs.modName);
                     // meshes = materials
+                    int k = 1;
                     for (short i = 0; i < geoData.materials.size(); i++) {
                         RpMaterial matData = geoData.materials.get(i);
                         // search texture by name which defined in material
@@ -116,7 +117,7 @@ public class GWorld extends RwWorld {
                         // create material
                         String matName = "M_";
                         if (texName.isEmpty()) {
-                            matName += "Blank";
+                            matName += objs.modName+"_null"+(k++);
                         } else {
                             matName += texName;
                             if (texNav == null) {
@@ -191,7 +192,7 @@ public class GWorld extends RwWorld {
                             break;
                     }
                     addOBJS(objs, reg);
-                    int layer = objs.isLOD() ? GWorld.LAYER_DISTANCE : GWorld.LAYER_NORMAL;
+                    int layer = objs.isLOD() ? LAYER_DISTANCE : LAYER_NORMAL;
                     modelLayerMap.put(objs.modId, layer);
                 } catch (IllegalArgumentException ex) { }
             }
@@ -205,5 +206,9 @@ public class GWorld extends RwWorld {
             }
             groupRegistryMap.remove(groupName);
         }
+    }
+    
+    public String getModNameById(int id) {
+        return modelNameMap.get(id);
     }
 }

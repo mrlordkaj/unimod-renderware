@@ -59,7 +59,7 @@ public class ColFile {
     public ColFile(int fourCC, DataStream ds) {
         long offset = ds.position();
         int size = ds.getInt();
-        objsName = RpHelper.readName(ds, 22);
+        objsName = ds.readString(22);
         objsId = ds.getShort();
         ds.skip(40); // TODO: bounding
         int version = 1;
@@ -271,6 +271,7 @@ public class ColFile {
                 indexData[i] = indices.get(i);
             }
             mesh.setIndices(indexData);
+            mesh.materialName = "M_Blank";
             model.meshes.add(mesh);
         }
     }

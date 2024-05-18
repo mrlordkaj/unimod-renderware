@@ -235,13 +235,13 @@ public final class WorldPanel extends PanelViewer {
                 for (Entry<Integer, Integer> layerEntry : ideWorld.modelLayerMap.entrySet()) {
                     int modId = layerEntry.getKey();
                     int layer = layerEntry.getValue();
-                    String modName = ideWorld.modelNameMap.get(modId);
+                    String modName = ideWorld.getModNameById(modId);
                     if (modName != null) {
                         // add model
-                        IGeometry geo = new IGeometry(modName);
+                        IGeometry geo = new IGeometry("SM_"+modName);
                         geo.setLayerIndex(layer);
                         geo.attach(ideWorld);
-                        geo.construct(ideWorld.resource);
+                        geo.construct();
                         geo.update(true);
                         // add collision
                         ColFile col = ideWorld.collisionMap.get(modName);
@@ -249,7 +249,7 @@ public final class WorldPanel extends PanelViewer {
                             geo = new IGeometry(col.model.getName());
                             geo.setLayerIndex(GWorld.LAYER_COLLISION);
                             geo.attach(ideWorld);
-                            geo.construct(ideWorld.resource);
+                            geo.construct();
                             geo.update(true);
                         }
                     } else {
@@ -271,9 +271,9 @@ public final class WorldPanel extends PanelViewer {
                     .rotateRad(inst.rotX, inst.rotY, inst.rotZ, -2*(float)Math.acos(inst.rotW))
                     .scale(inst.sclX, inst.sclY, inst.sclZ);
         // add model
-        String modName = bigWorld.modelNameMap.get(inst.modId);
+        String modName = bigWorld.getModNameById(inst.modId);
         if (modName != null) {
-            IGeometry geo = new IGeometry(modName);
+            IGeometry geo = new IGeometry("SM_"+modName);
             geo.transform.localMatrix.set(transform);
             geo.setLayerIndex(bigWorld.modelLayerMap.get(inst.modId));
             geo.attach(group);
@@ -376,7 +376,7 @@ public final class WorldPanel extends PanelViewer {
     void executeDispatcher() {
         for (INode node : pendingNodes) {
             node.attach(bigWorld);
-            node.construct(bigWorld.resource);
+            node.construct();
             node.update(true);
             ArrayList<PathSegment> segments = new ArrayList<>();
             node.getChildrenByClass(PathSegment.class, segments);

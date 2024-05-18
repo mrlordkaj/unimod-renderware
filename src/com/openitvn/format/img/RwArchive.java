@@ -58,7 +58,7 @@ public final class RwArchive extends IArchive<IArchiveEntry> {
                         int offset = fs.getInt() * 2048;
                         int size = (fs.getUShort()) * 2048;
                         fs.skip(2); // packed, always 0
-                        String name = RpHelper.readName(fs, 24);
+                        String name = fs.readString(24);
                         IArchiveEntry entry = new IArchiveEntry(this, name, size, offset, size);
                         entries.add(entry);
                     }
@@ -75,7 +75,7 @@ public final class RwArchive extends IArchive<IArchiveEntry> {
                     while (fs.hasRemaining()) {
                         int offset = fs.getInt() * 2048;
                         int size = fs.getInt() * 2048;
-                        String name = RpHelper.readName(fs, 24);
+                        String name = fs.readString(24);
                         IArchiveEntry entry = new IArchiveEntry(this, name, size, offset, size);
                         entries.add(entry);
                     }

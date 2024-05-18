@@ -98,7 +98,7 @@ public final class VehiclePanel extends PanelViewer {
                             break;
                     }
                     // update world
-                    vehicleWorld.construct(vehicleWorld.resource);
+                    vehicleWorld.construct();
                     Unicore.focusToWorld(vehicleWorld);
                     updateVisibility();
                 }

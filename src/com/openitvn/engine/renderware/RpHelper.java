@@ -16,7 +16,6 @@
  */
 package com.openitvn.engine.renderware;
 
-import com.openitvn.unicore.data.DataStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -24,18 +23,6 @@ import java.nio.ByteBuffer;
  * @author Thinh Pham
  */
 public abstract class RpHelper {
-    
-    public static String readName(DataStream ds, int length) {
-        StringBuilder sb = new StringBuilder();
-        for (int c, j = 0; j < length; j++) {
-            if ((c = ds.get()) == 0) {
-                ds.skip(length - 1 - j);
-                break;
-            }
-            sb.append((char)c);
-        }
-        return sb.toString();
-    }
     
     public static String readName(ByteBuffer bb) {
         return readName(bb, -1);
@@ -53,15 +40,6 @@ public abstract class RpHelper {
                 case 0:
                     bb.position(bb.position() + length - i - 1);
                     break mainLoop;
-                    
-                case '@':
-                    sb.append('a');
-                    break;
-                    
-                case ' ':
-                case '-':
-                    sb.append('_');
-                    break;
                     
                 default:
                     sb.append((char)b);
