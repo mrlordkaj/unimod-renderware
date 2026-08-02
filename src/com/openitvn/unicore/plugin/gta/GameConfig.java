@@ -33,10 +33,10 @@ public abstract class GameConfig {
     
     private static Workspace workspace;
     
-    public static void setWorkspace(Workspace space) {
-        if (space != workspace) {
-            workspace = space;
-            ResourceModel.getInstance().load(space);
+    public static void setWorkspace(Workspace newWorkspace) {
+        if (newWorkspace != workspace) {
+            workspace = newWorkspace;
+            ResourceModel.getInstance().load(newWorkspace);
         }
     }
     
@@ -183,6 +183,14 @@ public abstract class GameConfig {
                 break;
         }
         return rs;
+    }
+    
+    public static String getWorldIgnorePattern() {
+        switch (workspace.name) {
+            case ALIAS_III:
+                return "(shad)|(null)";
+        }
+        return null;
     }
     
     @Deprecated

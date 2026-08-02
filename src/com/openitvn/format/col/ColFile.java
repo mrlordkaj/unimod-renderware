@@ -17,7 +17,6 @@
 package com.openitvn.format.col;
 
 import com.badlogic.gdx.math.Vector3;
-import com.openitvn.engine.renderware.RpHelper;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.IVertex;

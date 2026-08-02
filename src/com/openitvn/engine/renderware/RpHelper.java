@@ -28,22 +28,18 @@ public abstract class RpHelper {
         return readName(bb, -1);
     }
     
-    public static String readName(ByteBuffer bb, int length) {
-        if (length < 0) {
-            length = bb.remaining();
+    public static String readName(ByteBuffer bb, int len) {
+        if (len < 0) {
+            len = bb.remaining();
         }
         StringBuilder sb = new StringBuilder();
-        mainLoop:
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < len; i++) {
             byte b = bb.get();
-            switch (b) {
-                case 0:
-                    bb.position(bb.position() + length - i - 1);
-                    break mainLoop;
-                    
-                default:
-                    sb.append((char)b);
+            if (b == 0) {
+                bb.position(bb.position() + len - i - 1);
+                break;
             }
+            sb.append((char)b);
         }
         return sb.toString().trim();
     }

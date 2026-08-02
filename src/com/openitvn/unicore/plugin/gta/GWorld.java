@@ -29,13 +29,14 @@ import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import com.openitvn.unicore.plugin.gta.item.ItemPATHSegment;
-import com.openitvn.unicore.world.ILayer;
 import com.openitvn.unicore.world.IMesh;
+import com.openitvn.unicore.world.resource.IMaterial;
 import com.openitvn.unicore.world.resource.IModel;
 import com.openitvn.unicore.world.resource.ITexture;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -49,7 +50,6 @@ public class GWorld extends RwWorld {
     
     public final HashMap<Integer, String> modelNameMap = new HashMap<>(); // inst find
     public final HashMap<String, ColFile> collisionMap = new HashMap<>(); // inst find
-    public final HashMap<String, ItemPATHSegment> pathMap = new HashMap<>(); // inst find
     public final HashMap<Integer, Integer> modelLayerMap = new HashMap<>(); // layer find - objs.id, layer.id
     
     // store all resource names used by groups,
@@ -58,10 +58,13 @@ public class GWorld extends RwWorld {
     
     public GWorld(String name) {
         super(name);
-        layers.add(new ILayer(LAYER_NORMAL, "Normal Map", true));
-        layers.add(new ILayer(LAYER_DISTANCE, "Distance Map", false));
-        layers.add(new ILayer(LAYER_COLLISION, "Collision Map", true));
-        layers.add(new ILayer(LAYER_CAR_PATH, "Vehicle Path", false));
+        addLayer(LAYER_NORMAL, "Normal Map");
+        addLayer(LAYER_DISTANCE, "Distance Map", false);
+        addLayer(LAYER_COLLISION, "Collision Map", false);
+        addLayer(LAYER_CAR_PATH, "Vehicle Path", false);
+        // add blank material for default
+        IMaterial mat = new IMaterial("M_Blank");
+        resource.register(mat);
     }
     
     @Override
@@ -74,6 +77,15 @@ public class GWorld extends RwWorld {
     }
     
     public void addOBJS(ItemOBJS objs, GroupRegistry reg) {
+        // check ignore pattern
+        String regex = GameConfig.getWorldIgnorePattern();
+        if (regex != null) {
+            Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+            if (pattern.matcher(objs.modName).find()) {
+                return;
+            }
+        }
+        
         ResourceModel res = ResourceModel.getInstance();
         // load textures
         try (EntryStream ts = res.getEntryStream(objs.txdName, "txd")) {
@@ -117,7 +129,8 @@ public class GWorld extends RwWorld {
                         // create material
                         String matName = "M_";
                         if (texName.isEmpty()) {
-                            matName += objs.modName+"_null"+(k++);
+                            matName += objs.modName + k;
+                            k++;
                         } else {
                             matName += texName;
                             if (texNav == null) {

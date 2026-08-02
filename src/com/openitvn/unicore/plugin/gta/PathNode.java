@@ -55,37 +55,37 @@ class PathNode {
     boolean computeLanes(int numLefts, int numRights) {
         if (data.type == ItemPATHNode.TYPE_PORT) { // external only
             PathNode next = links.get(0);
-            Vector3 head = next.position.cpy().sub(position).nor();
-            Vector3 hand = head.cpy().crs(Vector3.Y);
+            Vector3 forward = next.position.cpy().sub(position).nor();
+            Vector3 right = forward.cpy().crs(Vector3.Y);
             
             // right lanes are placed in the right,
             // and have same direction with origin
             rightLanes.clear();
             for (int i = 0; i < numRights; i++) {
                 float x = (i + 0.5f) * data.laneWidth;
-                if (numLefts == 0) {
-                    // one-way fix
-                    x -= (numRights / 2) * data.laneWidth;
-                }
+//                if (numLefts == 0) {
+//                    // one-way fix
+//                    x -= (numRights / 2) * data.laneWidth;
+//                }
                 PathLane lane = new PathLane();
-                lane.start = hand.cpy().scl(x).add(position);
-                lane.end = head.cpy().scl(4).add(lane.start);
+                lane.start = right.cpy().scl(x).add(position);
+                lane.end = forward.cpy().scl(4).add(lane.start);
                 rightLanes.add(lane);
             }
             
             // left lanes are placed in the left,
             // and have reversed direction with origin
-            head = head.cpy().scl(-1);
+            forward = forward.cpy().scl(-1);
             leftLanes.clear();
             for (int i = 0; i < numLefts; i++) {
                 float x = (i + 0.5f) * data.laneWidth;
-                if (numRights == 0) {
-                    // one-way fix
-                    x -= (numLefts / 2) * data.laneWidth;
-                }
+//                if (numRights == 0) {
+//                    // one-way fix
+//                    x -= (numLefts / 2) * data.laneWidth;
+//                }
                 PathLane lane = new PathLane();
-                lane.start = hand.cpy().scl(-x).add(position);
-                lane.end = head.cpy().scl(4).add(lane.start);
+                lane.start = right.cpy().scl(-x).add(position);
+                lane.end = forward.cpy().scl(4).add(lane.start);
                 leftLanes.add(lane);
             }
             return true;
@@ -106,7 +106,7 @@ class PathNode {
     }
     
     boolean tryMerge(PathNode b) {
-        if (    !isPort() || !b.isPort() ||
+        if (!isPort() || !b.isPort() ||
                 segment == b.segment ||
                 segment.isCross() || b.segment.isCross() ||
                 position.dst(b.position) > 0.8f) {
@@ -115,7 +115,7 @@ class PathNode {
         
         PathNode a2 = segment.getSecondPort(this);
         PathNode b2 = b.segment.getSecondPort(b);
-        if (    a2.leftLanes.size() != b2.rightLanes.size() ||
+        if (a2.leftLanes.size() != b2.rightLanes.size() ||
                 a2.rightLanes.size() != b2.leftLanes.size()) {
             return false;
         }

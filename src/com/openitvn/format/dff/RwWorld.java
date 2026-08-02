@@ -18,7 +18,6 @@ package com.openitvn.format.dff;
 
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.IGeometry;
-import com.openitvn.unicore.world.ILayer;
 import com.openitvn.unicore.world.IWorld;
 import com.openitvn.unicore.world.IWorldCoord;
 import com.openitvn.engine.renderware.RpSection;
@@ -138,9 +137,7 @@ public class RwWorld extends IWorld {
             nodes.addAll(frameMap.values());
             // add new layer for clump
             if (allClump) {
-                ILayer layer = new ILayer(clumpId, "Clump " + clumpId);
-                layer.visible = (clumpId == 0);
-                layers.add(layer);
+                addLayer(clumpId, "Clump " + clumpId, (clumpId == 0));
                 clumpId++;
             } else {
                 break;

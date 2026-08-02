@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map.Entry;
 import javax.swing.JFileChooser;
 import javax.swing.RowFilter;
@@ -51,6 +52,8 @@ import javax.swing.table.TableRowSorter;
 public final class WorldPanel extends PanelViewer {
     
     private final WorldScriptModel scriptModel = new WorldScriptModel();
+    
+    private final HashMap<String, ItemPATHSegment> pathMap = new HashMap<>(); // inst find
     
     private GWorld ideWorld;
     private final GWorld bigWorld = new GWorld("GTA World");
@@ -120,6 +123,8 @@ public final class WorldPanel extends PanelViewer {
                 return null;
             }
         };
+        btnExportPath = new javax.swing.JButton();
+        btnOptimizePath = new javax.swing.JButton();
 
         setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 4, 4, 4));
         setName("World"); // NOI18N
@@ -169,18 +174,38 @@ public final class WorldPanel extends PanelViewer {
         });
         jScrollPane1.setViewportView(tblMap);
 
+        btnExportPath.setText("Export Paths");
+        btnExportPath.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExportPathActionPerformed(evt);
+            }
+        });
+
+        btnOptimizePath.setText("Optimize Paths");
+        btnOptimizePath.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOptimizePathActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(jScrollPane1)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(rdoIPL)
-                .addGap(18, 18, 18)
-                .addComponent(rdoIDE)
-                .addGap(18, 18, 18)
-                .addComponent(rdoAll)
-                .addGap(0, 67, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(rdoIPL)
+                        .addGap(18, 18, 18)
+                        .addComponent(rdoIDE)
+                        .addGap(18, 18, 18)
+                        .addComponent(rdoAll))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnOptimizePath)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnExportPath)))
+                .addGap(0, 28, Short.MAX_VALUE))
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {rdoIDE, rdoIPL});
@@ -193,7 +218,11 @@ public final class WorldPanel extends PanelViewer {
                     .addComponent(rdoIDE)
                     .addComponent(rdoAll))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 229, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnExportPath)
+                    .addComponent(btnOptimizePath)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -214,6 +243,7 @@ public final class WorldPanel extends PanelViewer {
                 Unicore.unregisterWorld(ideWorld);
                 // build new world
                 ideWorld = new GWorld(scriptName);
+                ideWorld.setLayerVisible(GWorld.LAYER_COLLISION, true);
                 Unicore.registerWorld(ideWorld);
                 // read objects from script
                 try (InputStream is = new FileInputStream(script.file);
@@ -260,8 +290,18 @@ public final class WorldPanel extends PanelViewer {
             }
         }
     }//GEN-LAST:event_tblMapMouseClicked
+
+    private void btnExportPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportPathActionPerformed
+        exportPathData3();
+    }//GEN-LAST:event_btnExportPathActionPerformed
+
+    private void btnOptimizePathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOptimizePathActionPerformed
+        optimizePathData3();
+    }//GEN-LAST:event_btnOptimizePathActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnExportPath;
+    private javax.swing.JButton btnOptimizePath;
     private javax.swing.ButtonGroup groupType;
     private javax.swing.JTable tblMap;
     // End of variables declaration//GEN-END:variables
@@ -289,7 +329,7 @@ public final class WorldPanel extends PanelViewer {
             geo.attach(group);
         }
         // add paths (only GTA III for now)
-        ItemPATHSegment path = bigWorld.pathMap.get(inst.modName);
+        ItemPATHSegment path = pathMap.get(inst.modName);
         if (path != null) {
             PathSegment seg = new PathSegment(path);
             seg.transform.localMatrix.set(transform);
@@ -314,7 +354,7 @@ public final class WorldPanel extends PanelViewer {
                 String modName = args[2];
                 if (segmentType == ItemPATHSegment.TYPE_CAR) {
                     ItemPATHSegment entry = new ItemPATHSegment(segmentType, modId, modName, br);
-                    bigWorld.pathMap.put(modName, entry);
+                    pathMap.put(modName, entry);
                 } else {
                     // skip ped
                     for (int i = 0; i < 12; i++) {
@@ -407,84 +447,106 @@ public final class WorldPanel extends PanelViewer {
                 // collects all ports for fix step
                 allPorts.addAll(segPorts);
             }
-            mainWhile:
+            mainLoop:
             while (!straightPorts.isEmpty()) {
                 PathNode a = straightPorts.remove(0);
                 for (PathNode b : straightPorts) {
                     if (a.tryMerge(b)) {
                         straightPorts.remove(b);
-                        continue mainWhile;
+                        continue mainLoop;
                     }
                 }
             }
         }
+        
         // STEP: cross with opposite fix
         for (PathNode a : allPorts) {
             String segName = a.segment.getName().substring(4);
-            if (segName.equals("rd_CrossRoads11") ||
-                    segName.equals("rd_CrossRoads12") ||
-                    segName.equals("rd_TJunction12") ||
-                    segName.equals("com_cust_roads45") ||
-                    segName.equals("com_cust_roads44") ||
-                    segName.equals("rd_TJunction11way") ||
-                    segName.equals("rd_TJunction11") ||
-                    segName.equals("CrossRoadn1") ||
-                    segName.equals("ind_customroad088") ||
-                    segName.equals("ind_customroad0bb") ||
-                    segName.equals("indmaincj1way") ||
-                    segName.equals("cussRoads5")) {
-                boolean oppositeFix = false;
-                for (PathNode b : allPorts) {
-                    if (!b.segment.isCross() && a.position.dst(b.position) < 0.4f) {
-                        oppositeFix = tryFixLane(a, b);
-                        break;
+            switch (segName) {
+                case "rd_CrossRoads11":
+                case "rd_CrossRoads12":
+                case "rd_TJunction12":
+                case "com_cust_roads45":
+                case "com_cust_roads44":
+                case "rd_TJunction11way":
+                case "rd_TJunction11":
+                case "CrossRoadn1":
+                case "ind_customroad088":
+                case "ind_customroad0bb":
+                case "indmaincj1way":
+                case "cussRoads5":
+                    boolean oppositeFix = false;
+                    for (PathNode b : allPorts) {
+                        if (!b.segment.isCross() && a.position.dst(b.position) < 0.4f) {
+                            oppositeFix = tryFixLane(a, b);
+                            break;
+                        }
+                        // special com_cust_roads45 next to roadcustc1w010 (COMNbtm)
+                        else if (b.segment.getName().endsWith("roadcustc1w010") && a.position.dst(b.position) < 0.4f) {
+                            a.computeLanes(b.rightLanes.size(), b.leftLanes.size());
+                            break;
+                        }
                     }
-                    // special com_cust_roads45 next to roadcustc1w010 (COMNbtm)
-                    else if (b.segment.getName().endsWith("roadcustc1w010") && a.position.dst(b.position) < 0.4f) {
-                        a.computeLanes(b.rightLanes.size(), b.leftLanes.size());
-                        break;
+                    if (oppositeFix) {
+                        // fix opposite port
+                        PathNode b = a.segment.getOffensivePort(a);
+                        if (b != null) {
+                            b.computeLanes(a.rightLanes.size(), a.leftLanes.size());
+                        }
                     }
-                }
-                if (oppositeFix) {
-                    // fix opposite port
-                    PathNode b = a.segment.getOffensivePort(a);
-                    if (b != null)
-                        b.computeLanes(a.rightLanes.size(), a.leftLanes.size());
-                }
+                    break;
             }
         }
         // STEP: cross without opposite fix
         for (PathNode a : allPorts) {
             String segName = a.segment.getName().substring(4);
-            if (segName.equals("com_cust_roads57")) {
-                for (PathNode b : allPorts) {
-                    if (b.segment.getName().endsWith("rd_CrossRoads11") && a.position.dst(b.position) < 0.4f) {
-                        tryFixLane(a, b);
-                        break;
+            switch (segName) {
+                case "com_cust_roads57":
+                    for (PathNode b : allPorts) {
+                        if (b.segment.getName().endsWith("rd_CrossRoads11") && a.position.dst(b.position) < 0.4f) {
+                            tryFixLane(a, b);
+                            break;
+                        }
                     }
-                }
-            }
-            if (segName.equals("com_roadkb17") ||
-                    segName.equals("com_roadkb13")) {
-                for (PathNode b : allPorts) {
-                    if (b.segment.isCross() && a.position.dst(b.position) < 0.4f) {
-                        tryFixLane(a, b);
-                        break;
+                    break;
+                    
+                case "com_roadkb17":
+                case "com_roadkb13":
+                    for (PathNode b : allPorts) {
+                        if (b.segment.isCross() && a.position.dst(b.position) < 0.4f) {
+                            tryFixLane(a, b);
+                            break;
+                        }
                     }
-                }
-                // fix opposite port
-                PathNode b = a.segment.getOffensivePort(a);
-                if (b != null)
-                    b.computeLanes(a.rightLanes.size(), a.leftLanes.size());
+                    // fix opposite port
+                    PathNode b = a.segment.getOffensivePort(a);
+                    if (b != null) {
+                        b.computeLanes(a.rightLanes.size(), a.leftLanes.size());
+                    }
+                    break;
             }
         }
-        // STEP: 
-        // FINAL: optimize data and rebuild models
+        // STEP: optimize data
         for (INode group : groups) {
             ArrayList<PathSegment> segments = new ArrayList<>();
             group.getChildrenByClass(PathSegment.class, segments);
             for (PathSegment seg : segments) {
                 seg.optimizeData();
+            }
+        }
+//        // STEP: fix node offset for one-way segments
+//        for (INode group : groups) {
+//            ArrayList<PathSegment> segments = new ArrayList<>();
+//            group.getChildrenByClass(PathSegment.class, segments);
+//            for (PathSegment seg : segments) {
+//                seg.deleteStraightNodes(2);
+//            }
+//        }
+        // FINAL: rebuild models
+        for (INode group : groups) {
+            ArrayList<PathSegment> segments = new ArrayList<>();
+            group.getChildrenByClass(PathSegment.class, segments);
+            for (PathSegment seg : segments) {
                 seg.rebuildModel();
             }
         }
@@ -511,7 +573,7 @@ public final class WorldPanel extends PanelViewer {
             for (INode group : nodes) {
                 String name = group.getName();
                 name = name.substring(0, name.length() - 4);
-                File out = new File(dir + "/" + name + ".road");
+                File out = new File(dir + "/" + name + ".path");
                 try (FileOutputStream os = new FileOutputStream(out, false);
                         PrintStream ps = new PrintStream(os)) {
                     ArrayList<PathSegment> segments = new ArrayList<>();

@@ -139,19 +139,17 @@ public class RpSection implements TreeNode {
         }
         this.size = size;
         
-//        //DO NOT REMOVE - for dump when neccessary
+        // DO NOT REMOVE - for dump when necessary
 //        System.out.printf("0x%1$05x\n", version);
-//        StringBuilder dumpName = new StringBuilder();
-//        for(int i = 0; i < getLevel(); i++) dumpName.append("|--");
-//        dumpName.append(toString());
-//        System.out.println(dumpName.toString());
+//        printDump();
         
         // parse children sections
         if (type.isContainer) {
             // parse children
             long endPos = ds.position() + size;
             while (ds.position() < endPos) {
-                children.add(loadSection(ds, RpSection.this));
+                RpSection child = loadSection(ds, RpSection.this);
+                children.add(child);
             }
         } else {
             // get data
@@ -200,6 +198,15 @@ public class RpSection implements TreeNode {
                 return (T)child;
         }
         return null;
+    }
+    
+    public final void printDump() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < level; i++) {
+            sb.append("|--");
+        }
+        sb.append(toString());
+        System.out.println(sb);
     }
     
     @Override

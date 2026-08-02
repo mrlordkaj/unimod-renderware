@@ -90,12 +90,71 @@ class PathSegment extends IGeometry {
         }
     }
     
+//    int deleteStraightNodes(float thresholdAngle) {
+//        ArrayList<Integer> pendingDeletes = new ArrayList<>();
+//        if (crossNode == null) {
+//            Vector3 prevDir = new Vector3();
+//            for (int i = 0; i < nodes.size() - 1; i++) {
+//                PathNode node = nodes.get(i);
+//                PathNode next = nodes.get(i + 1);
+//                Vector3 dir = next.position.cpy().sub(node.position).nor();
+//                if (!prevDir.isZero()) {
+//                    float cos = dir.dot(prevDir);
+//                    float angle = (float)Math.toDegrees(Math.acos(cos));
+//                    if (angle < thresholdAngle) {
+//                        pendingDeletes.add(0, i);
+//                    } else {
+//                        prevDir = dir;
+//                    }
+//                } else {
+//                    prevDir = dir;
+//                }
+//            }
+//            for (Integer i : pendingDeletes) {
+//                nodes.remove((int)i);
+//            }
+//            for (int i = 0; i < nodes.size() - 1; i++) {
+//                nodes.get(i).nextIndex = (short)(i + 1);
+//            }
+//        }
+//        return pendingDeletes.size();
+//    }
+    
+//    boolean fixOneWayOffset() {
+//        if (crossNode == null) {
+//            PathNode firstNode = nodes.get(0);
+//            int leftLanes = firstNode.leftLanes.size();
+//            int rightLanes = firstNode.rightLanes.size();
+//            System.out.println(leftLanes + " / " + rightLanes);
+//            if (leftLanes == 0 || rightLanes == 0) {
+//                Vector3 right = new Vector3();
+//                for (int i = 0; i < nodes.size(); i++) {
+//                    PathNode node = nodes.get(i);
+//                    if (i < nodes.size() - 1) {
+//                        PathNode nextNode = nodes.get(i + 1);
+//                        Vector3 dir = nextNode.position.cpy().sub(node.position).nor();
+//                        right = new Vector3(0, 0, 1).crs(dir);
+//                    }
+//                    float laneOffset = rightLanes * 0.5f * node.data.laneWidth;
+//                    if (leftLanes == 0) {
+//                        node.position.add(right.cpy().scl(laneOffset));
+//                    }
+//                    if (rightLanes == 0) {
+//                        node.position.sub(right.cpy().scl(laneOffset));
+//                    }
+//                }
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+    
     /**
      * Sorts nodes by optimized order. Ready for rebuild or export data.
      */
     void optimizeData() {
-        ArrayList<PathNode> sortedNodes = new ArrayList<>();
         if (crossNode == null) {
+            ArrayList<PathNode> sortedNodes = new ArrayList<>();
             for (PathNode node : nodes) {
                 node.tmpLinks = new ArrayList<>(node.links);
             }
@@ -114,42 +173,44 @@ class PathSegment extends IGeometry {
                 nextNode.tmpLinks.remove(curNode);
                 curNode = nextNode;
             }
+            nodes = sortedNodes;
         } else {
             nodes.remove(crossNode);
-            short crossId = (short)nodes.size();
             // all ports connect to cross node
             for (PathNode node : nodes) {
-                node.nextIndex = crossId;
-                sortedNodes.add(node);
+                node.nextIndex = 0;
             }
-            // add cross node at last
+            // put cross at begin
             crossNode.nextIndex = -1;
-            sortedNodes.add(crossNode);
+            nodes.add(0, crossNode);
         }
-        nodes = sortedNodes;
     }
     
     /**
      *  Exports data as ASCII format.
      */
     void exportData(PrintStream ps) {
+        ps.println("car");
         for (PathNode node : nodes) {
-            String strPos = String.format("%d, %f, %f, %f",
+            String strPos = String.format("%d, %s, %s, %s",
                     node.nextIndex,
-                    node.position.x * 100,
-                    node.position.z * 100,
-                    node.position.y * 100);
+                    node.position.x,
+                    node.position.z,
+                    node.position.y);
+            String type = "nul";
             if (node.isCross()) {
-                ps.printf("3, %s\n", strPos);
+                type = "crs";
             } else if (node.isTurn()) {
-                ps.printf("2, %s\n", strPos);
+                type = "mid";
             } else if (node.isPort()) {
-                ps.printf("1, %s, %f, %d, %d\n",
+                type = "end";
+            }
+            ps.printf("%s, %s, %s, %d, %d\n",
+                    type,
                     strPos,
-                    node.data.laneWidth * 100,
+                    node.data.laneWidth,
                     node.rightLanes.size(),
                     node.leftLanes.size());
-            }
         }
         ps.println("break");
     }

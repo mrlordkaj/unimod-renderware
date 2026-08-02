@@ -31,12 +31,15 @@ import java.nio.ByteOrder;
  */
 public class RpTextureNative extends RpSection {
     
-    // texture addressing mode
+    // Addressing mode
+    
     public static final byte WRAP_NONE   = 0x00;
     public static final byte WRAP_REPEAT = 0x01;
     public static final byte WRAP_MIRROR = 0x02;
     public static final byte WRAP_CLAMP  = 0x03;
-    // texture filtering mode
+    
+    // Filtering mode
+    
     public static final byte FILTER_NONE               = 0x00;
     public static final byte FILTER_NEAREST            = 0x01;
     public static final byte FILTER_LINEAR             = 0x02;
@@ -44,7 +47,9 @@ public class RpTextureNative extends RpSection {
     public static final byte FILTER_MIP_LINEAR         = 0x04;
     public static final byte FILTER_LINEAR_MIP_NEAREST = 0x05;
     public static final byte FILTER_LINEAR_MIP_LINEAR  = 0x06;
-    // image formats
+    
+    // Image formats
+    
     public static final int FORMAT_DEFAULT         = 0x0000;
     public static final int FORMAT_1555            = 0x0100; //(1 bit alpha, RGB 5 bits each; also used for DXT1 with alpha)
     public static final int FORMAT_565             = 0x0200; //(5 bits red, 6 bits green, 5 bits blue; also used for DXT1 without alpha)
@@ -57,20 +62,24 @@ public class RpTextureNative extends RpSection {
     public static final int FORMAT_EXT_PAL8        = 0x2000; //(2^8 = 256 palette colors)
     public static final int FORMAT_EXT_PAL4        = 0x4000; //(2^4 = 16 palette colors)
     public static final int FORMAT_EXT_MIPMAP      = 0x8000; //(mipmaps included)
-    // compression
+    
+    // Compression
+    
     public static final byte COMPRESSION_NONE = 0;
     public static final byte COMPRESSION_DXT1 = 1;
     public static final byte COMPRESSION_DXT3 = 3;
     public static final byte COMPRESSION_DXT5 = 5;
     public static final byte COMPRESSION_PAL4 = 4;
     public static final byte COMPRESSION_PAL8 = 8;
-    // platform
+    
+    // Platform
     public static final int PLATFORM_GTA_XBOX = 5;
     public static final int PLATFORM_GTA3_PC  = 8;
     public static final int PLATFORM_GTASA_PC = 9;
     public static final int PLATFORM_PS2      = StringHelper.makeFourCC("PS20");
     
     // TextureFormat; 72 bytes in total
+    
     private final int platformId;
     public final byte filterMode;
     private final byte uWrap;
@@ -79,6 +88,7 @@ public class RpTextureNative extends RpSection {
     public final String maskName;
     
     // RasterFormat; 16 bytes in total
+    
     private final int format;
     private final int formatExt;
     public final boolean hasAlpha;
@@ -88,21 +98,23 @@ public class RpTextureNative extends RpSection {
     public final byte mipCount;
     private final byte compression;
     
+    // Data
+    
     public ByteBuffer nativeData;
 
     public RpTextureNative(int size, int libId, RpSection parent, DataStream ds) {
         super(RpType.TextureNative, size, libId, parent, ds);
         ByteBuffer bb = getStruct();
-        // texture format
+        // Texture format
         platformId = bb.getInt();
         filterMode = bb.get();
         byte addressing = bb.get();
         uWrap = (byte)((addressing & 0xf0) >> 4);
         vWrap = (byte) (addressing & 0x0f);
-        bb.getShort(); // pad
+        bb.position(bb.position() + 2); // pad
         textureName = RpHelper.readName(bb, 32);
         maskName = RpHelper.readName(bb, 32);
-        // raster format
+        // Raster format
         int rasterFormat = bb.getInt();
         formatExt = rasterFormat & 0xf000;
         format = rasterFormat & 0x0f00;
@@ -111,7 +123,7 @@ public class RpTextureNative extends RpSection {
         height = bb.getShort();
         colorDepth = bb.get();
         mipCount = bb.get();
-        bb.get(); // pad
+        bb.position(bb.position() + 1); // pad
         byte rasterType = bb.get();
         if (platformId == PLATFORM_GTASA_PC) {
             compression = getCompression(format, formatExt);
@@ -120,7 +132,7 @@ public class RpTextureNative extends RpSection {
             compression = (rasterType == COMPRESSION_NONE) ? getCompression(format, formatExt) : rasterType;
             hasAlpha = alpha != 0;
         }
-        // end header
+        // End header
         nativeData = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
     }
     
@@ -129,32 +141,31 @@ public class RpTextureNative extends RpSection {
 //                maskName : textureName;
 //        return texName.replaceAll("@", "a")
 //                .replaceAll("\\s+", "_");
-        return (hasAlpha && !maskName.isEmpty()) ? maskName : textureName;
+//        return (hasAlpha && !maskName.isEmpty()) ? maskName : textureName;
+        return !maskName.isEmpty() ? maskName : textureName;
     }
     
-    private byte getCompression(int fmt, int ext) {
+    private static byte getCompression(int fmt, int ext) {
         if ((ext & FORMAT_EXT_PAL4) != 0) {
             return COMPRESSION_PAL4;
-        } else if ((ext & FORMAT_EXT_PAL8) != 0) {
-            return COMPRESSION_PAL8;
-        } else {
-            //FORMAT_DEFAULT
-            switch (fmt) {
-                case FORMAT_1555:
-                case FORMAT_565:
-                case FORMAT_555:
-                    return COMPRESSION_DXT1;
-
-                case FORMAT_4444:
-                    return COMPRESSION_DXT3;
-
-                case FORMAT_LUM8:
-                case FORMAT_8888:
-                case FORMAT_888:
-                    return COMPRESSION_NONE;
-            }
         }
-        return COMPRESSION_NONE;
+        if ((ext & FORMAT_EXT_PAL8) != 0) {
+            return COMPRESSION_PAL8;
+        }
+        switch (fmt) {
+            case FORMAT_1555:
+            case FORMAT_565:
+            case FORMAT_555:
+                return COMPRESSION_DXT1;
+            case FORMAT_4444:
+                return COMPRESSION_DXT3;
+            case FORMAT_LUM8:
+            case FORMAT_8888:
+            case FORMAT_888:
+                return COMPRESSION_NONE;
+            default:
+                return COMPRESSION_NONE;
+        }
     }
     
     public IPixelFormat getPixelFormat() {
