@@ -26,51 +26,45 @@ import java.nio.ByteBuffer;
  */
 public class RwTexture extends ITexture {
     
-    private final RpTextureNative texture;
+    public final RpTextureNative textureNative;
     
-    public RwTexture(String name, RpTextureNative texture) {
+    public RwTexture(String name, RpTextureNative texNav) {
         super(name);
-        this.texture = texture;
-        width = texture.width;
-        height = texture.height;
+        textureNative = texNav;
+        width = texNav.width;
+        height = texNav.height;
         numFaces = 1;
-        numMips = texture.mipCount;
-        uwrap = texture.getUWrap();
-        vwrap = texture.getVWrap();
-        format = texture.getPixelFormat();
-        // read palette
-        ByteBuffer bb = texture.nativeData;
+        numMips = texNav.mipCount;
+        uwrap = texNav.getUWrap();
+        vwrap = texNav.getVWrap();
+        format = texNav.getPixelFormat();
+        // Read palette
+        ByteBuffer bb = texNav.getNativeData();
         bb.rewind();
-        switch (texture.getPixelFormat()) {
+        switch (format) {
             case PALETTE4_RGBA8_OES:
             case PALETTE4_RGB8_OES:
-                // TODO: build palette
-                int skip = 32 * 2;
-                bb.position(skip);
+                palette = new byte[16][4];
+                for (byte[] c : palette) {
+                    bb.get(c);
+                }
                 break;
                 
             case PALETTE8_RGBA8_OES:
             case PALETTE8_RGB8_OES:
                 palette = new byte[256][4];
                 for (byte[] c : palette) {
-                    c[0] = bb.get();
-                    c[1] = bb.get();
-                    c[2] = bb.get();
-                    c[3] = bb.get();
+                    bb.get(c);
                 }
                 break;
         }
-        // read image buffers
-        imageBuffers = new byte[1][texture.mipCount][];
-        for (int i = 0; i < texture.mipCount; i++) {
+        // Read image buffers
+        imageBuffers = new byte[1][texNav.mipCount][];
+        for (int i = 0; i < texNav.mipCount; i++) {
             int size = bb.getInt();
             imageBuffers[0][i] = new byte[size];
             bb.get(imageBuffers[0][i]);
         }
-    }
-    
-    public RpTextureNative getTextureData() {
-        return texture;
     }
     
     @Override

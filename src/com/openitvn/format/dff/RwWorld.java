@@ -69,7 +69,7 @@ public class RwWorld extends IWorld {
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
         for (ITexture tex : resource.getTextures()) {
             if (tex instanceof RwTexture) {
-                RpTextureNative texData = ((RwTexture)tex).getTextureData();
+                RpTextureNative texData = ((RwTexture)tex).textureNative;
                 if (!texData.textureName.isEmpty()) {
                     texNavMap.put(texData.textureName.toLowerCase(), texData);
                 }
@@ -159,7 +159,7 @@ public class RwWorld extends IWorld {
             } else {
                 tex = (RwTexture) resource.findTexture(texName);
             }
-            String key = tex.getTextureData().textureName.toLowerCase();
+            String key = tex.textureNative.textureName.toLowerCase();
             rs.put(key, tex);
         }
         return rs;

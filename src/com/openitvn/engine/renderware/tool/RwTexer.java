@@ -79,7 +79,7 @@ public final class RwTexer extends javax.swing.JDialog {
                     if (row >= 0) {
                         int id = tableTexLib.convertRowIndexToModel(row);
                         texture = texLibModel.entries.get(id);
-                        RpTextureNative texData = texture.getTextureData();
+                        RpTextureNative texData = texture.textureNative;
                         lblFormat.setText(texture.getPixelFormat().toString());
                         lblFormat.setToolTipText(String.format("Depth: %d bit", texData.colorDepth));
                         for (int i = 0; i < texture.getMipCount(); i++) {
@@ -243,7 +243,7 @@ public final class RwTexer extends javax.swing.JDialog {
             	JFileChooser fc = new JFileChooser(curFile);
                 fc.setAcceptAllFileFilterUsed(false);
                 fc.addChoosableFileFilter(new FileNameExtensionFilter("Portable Network Graphics (png)","png"));
-                fc.setSelectedFile(new File(texture.getTextureData().getMapperName()+".png"));
+                fc.setSelectedFile(new File(texture.textureNative.getMapperName()+".png"));
                 if (fc.showSaveDialog(RwTexer.this) == JFileChooser.APPROVE_OPTION) {
                     curFile = fc.getSelectedFile();
                     try {
@@ -269,7 +269,7 @@ public final class RwTexer extends javax.swing.JDialog {
                     curFile = fc.getSelectedFile();
                     for (RwTexture tex : texLibModel.entries) {
                         try {
-                            String fileName = tex.getTextureData().getMapperName() + ".png";
+                            String fileName = tex.textureNative.getMapperName() + ".png";
                             File out = new File(curFile.getPath() + "/" + fileName);
                             BufferedRaster img = exportImage(tex, 0);
                             ImageIO.write(img, "png", out);

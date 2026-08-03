@@ -31,14 +31,11 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
-import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.VehicleModel;
-import com.openitvn.unicore.plugin.gta.item.ItemCARS;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.awt.Canvas;
 import java.io.IOException;
-import java.util.HashMap;
 
 /**
  *
@@ -89,22 +86,22 @@ public class ViewportApp implements ApplicationListener {
     //<editor-fold defaultstate="collapsed" desc="Draw Grid">
     
     //http://stackoverflow.com/questions/24215500/healthy-way-of-drawing-grid-lines-in-libgdx
-    private ImmediateModeRenderer20 lineRenderer;
+    private ImmediateModeRenderer20 lr;
     
     private void drawLine(float x1, float y1, float z1,
                             float x2, float y2, float z2,
                             Color c) {
-        lineRenderer.color(c);
-        lineRenderer.vertex(x1, y1, z1);
-        lineRenderer.color(c);
-        lineRenderer.vertex(x2, y2, z2);
+        lr.color(c);
+        lr.vertex(x1, y1, z1);
+        lr.color(c);
+        lr.vertex(x2, y2, z2);
     }
     
     private void drawGrid(PerspectiveCamera cam) {
         int startX = -GRID_WIDTH / 2;
         int startY = -GRID_HEIGHT / 2;
         
-        lineRenderer.begin(cam.combined, GL20.GL_LINES);
+        lr.begin(cam.combined, GL20.GL_LINES);
         
         for (int x = 0; x <= GRID_WIDTH; x++) {
             // draw vertical
@@ -120,14 +117,14 @@ public class ViewportApp implements ApplicationListener {
                     Color.DARK_GRAY);
         }
         
-        lineRenderer.end();
+        lr.end();
     }
     
     //</editor-fold>
     
     @Override
     public void create() {
-        lineRenderer = new ImmediateModeRenderer20(false, true, 0);
+        lr = new ImmediateModeRenderer20(false, true, 0);
         mb = new ModelBatch();
         env = new Environment();
         env.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f));
@@ -185,13 +182,15 @@ public class ViewportApp implements ApplicationListener {
     
     @Override
     public void dispose() {
+        lr.dispose();
         mb.dispose();
         instance = null;
     }
     
     public void setSingleModel(String modName, String txdName) throws IOException {
-        if (gtaModel != null)
+        if (gtaModel != null) {
             gtaModel.dispose();
+        }
         gtaModel = new GtaModel(modName, txdName, GtaModel.MeshType.AllMesh);
         modInst = new ModelInstance(gtaModel.getModel());
     }

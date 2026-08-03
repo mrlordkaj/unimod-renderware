@@ -16,19 +16,12 @@
  */
 package com.openitvn.gtavc.gui.g3d;
 
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
-import com.openitvn.engine.renderware.RpTextureNative;
-import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 /**
  *
@@ -37,72 +30,8 @@ import java.util.Map.Entry;
 public class GtaTextureManager {
     
     private static final HashMap<String, RpTextureDictionary> TEXDIC_MAP = new HashMap<>();
-    private static final HashMap<String, GtaTexture> TEXTURE_MAP = new HashMap<>();
     
-    public static void removeTexture(GtaTexture tex) {
-        for (Entry<String, GtaTexture> e : TEXTURE_MAP.entrySet()) {
-            if (e.getValue().equals(tex)) {
-                TEXTURE_MAP.remove(e.getKey());
-                return;
-            }
-        }
-    }
-    
-    public static Texture attach(String txdName, String texName, GtaModel gMod) {
-        String mapperName = getMapperName(txdName, texName);
-        GtaTexture gTex = TEXTURE_MAP.get(mapperName);
-        if (gTex == null) {
-            RpTextureDictionary rTexDic = getTexDic(txdName);
-            if (rTexDic != null) {
-                RpTextureNative rTex = rTexDic.findTexture(texName);
-                gTex = new GtaTexture(texName, rTex, gMod);
-                TEXTURE_MAP.put(mapperName, gTex);
-            } else {
-                return new Texture(0, 0, Pixmap.Format.RGBA8888);
-            }
-        }
-        return gTex.getTexture(gMod);
-    }
-    
-    public static void detach(String txdName, String texName, GtaModel gMod) {
-        GtaTexture gTex = TEXTURE_MAP.get(getMapperName(txdName, texName));
-        if (gTex != null)
-            gTex.removeHolder(gMod);
-    }
-    
-    public static Collection<GtaTexture> getAllTextures() {
-        return TEXTURE_MAP.values();
-    }
-    
-    public static Collection<GtaTexture> getTexturesByTexDicName(String txdName) {
-        ArrayList<GtaTexture> rs = new ArrayList<>();
-        RpTextureDictionary rTexDic = getTexDic(txdName);
-        for (RpTextureNative rTex : rTexDic.textures) {
-            String mapperName = rTex.getMapperName();
-            GtaTexture gTex = TEXTURE_MAP.get(mapperName);
-            if (gTex != null)
-                rs.add(gTex);
-        }
-        return rs;
-    }
-    
-    public static Collection<GtaTexture> getTexturesByTexDicNames(ArrayList<String> txdNames) {
-        ArrayList<GtaTexture> rs = new ArrayList<>();
-        for (String txdName : txdNames)
-            rs.addAll(getTexturesByTexDicName(txdName));
-        return rs;
-    }
-    
-    public static Collection<GtaTexture> getTexturesByMapperNames(ArrayList<String> mapperNames) {
-        ArrayList<GtaTexture> rs = new ArrayList<>();
-        for (Entry<String, GtaTexture> e : TEXTURE_MAP.entrySet()) {
-            if (mapperNames.contains(e.getKey()))
-                rs.add(e.getValue());
-        }
-        return rs;
-    }
-    
-    // TODO: cleanup unnecessary dictionaries when unload scene part
+    // TODO: Cleanup unnecessary dictionaries when unload scene part
     public static RpTextureDictionary getTexDic(String txdName) {
         RpTextureDictionary txd = TEXDIC_MAP.get(txdName);
         if (txd == null) {
@@ -115,16 +44,5 @@ public class GtaTextureManager {
             }
         }
         return txd;
-    }
-    
-    public static String getMapperName(String txdName, String texName) {
-        RpTextureDictionary txd = getTexDic(txdName);
-        if (txd != null) {
-            RpTextureNative tex = txd.findTexture(texName);
-            if (tex != null) {
-                return tex.getMapperName();
-            }
-        }
-        return txdName + "_" + texName;
     }
 }

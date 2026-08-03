@@ -28,14 +28,16 @@ import java.nio.ByteBuffer;
  */
 public class RpMaterial extends RpSection {
     
-    // data
+    // Data
+    
     public RpColor color;
     public boolean bTextured;
     public float ambient;
     public float specular;
     public float diffuse;
     
-    // reference
+    // Reference
+    
     private RpTexture texture;
     
     public RpMaterial(int size, int libId, RpSection parent, DataStream ds) {

@@ -65,11 +65,11 @@ public final class WorldPanel extends PanelViewer {
     public WorldPanel() {
         initComponents();
         // setup the table
-        TableColumnModel cm = tblMap.getColumnModel();
-        cm.getColumn(WorldScriptModel.COL_ACTIVE).setMinWidth(20);
-        cm.getColumn(WorldScriptModel.COL_ACTIVE).setMaxWidth(20);
-        cm.getColumn(WorldScriptModel.COL_TYPE).setMinWidth(40);
-        cm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
+        TableColumnModel tcm = tblMap.getColumnModel();
+        tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMinWidth(20);
+        tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMaxWidth(20);
+        tcm.getColumn(WorldScriptModel.COL_TYPE).setMinWidth(40);
+        tcm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
         refineWorldTable(null);
         tblMap.setDefaultRenderer(Boolean.class, new UCBooleanCellRenderer());
         // register worlds

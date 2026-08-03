@@ -28,14 +28,15 @@ public class RwMaterial extends IMaterial {
     
     public RwMaterial(String matName, RpMaterial matData, RpTextureNative texNav) {
         super(matName);
-        // precomputed alpha
+        // Precomputed alpha
         color.a = matData.color.a / 255f;
-        // enable alpha test when needed
-        boolean masked = (texNav != null && texNav.hasAlpha) || matData.isMasked(); // TODO: need optimize?
+        // Enable alpha test when needed
+        boolean masked = (texNav != null && texNav.hasAlpha()) || matData.isMasked(); // TODO: need optimize?
         if (matData.bTextured && masked) {
             alphaBlend = true;
             cullFace = false;
-        } else if (color.a < 1) {
+        }
+        else if (color.a < 1) {
             alphaBlend = true;
             cullFace = false;
             alphaTest = color.a - 0.01f;
@@ -43,12 +44,13 @@ public class RwMaterial extends IMaterial {
         ambientFactor = matData.ambient;
         diffuseFactor = matData.diffuse;
         specularFactor = matData.specular;
-        // texture or color
+        // Texture or color
         if (!matData.bTextured) {
             color.b = matData.color.b / 255f;
             color.g = matData.color.g / 255f;
             color.r = matData.color.r / 255f;
-        } else if (texNav != null) {
+        }
+        else if (texNav != null) {
             diffuseTexture = texNav.getMapperName();
         }
     }

@@ -17,18 +17,11 @@
 
 package com.openitvn.gtavc.gui.g3d;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.engine.renderware.struct.RpFrame;
 import com.openitvn.engine.renderware.RpType;
@@ -42,14 +35,16 @@ import com.badlogic.gdx.math.Vector3;
 import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
-import com.openitvn.engine.renderware.struct.RpColor;
-import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.format.dff.RwMaterial;
+import com.openitvn.format.txd.RwTexture;
+import com.openitvn.gtavc.gui.Main;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
+import com.openitvn.unicore.world.resource.IMaterial;
+import com.openitvn.unicore.world.resource.ResourceManager;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  *
@@ -84,8 +79,8 @@ public class GtaModel {
     
     public Model getModel() {
         if (model == null) {
-            boolean lclTrn = (meshType == MeshType.AllMesh);
-            model = createModel(this, lclTrn, new Vector3(1, 1, 1));
+            boolean bLocalTransform = (meshType == MeshType.AllMesh);
+            model = createModel(this, bLocalTransform, new Vector3(1, 1, 1));
         }
         return model;
     }
@@ -108,23 +103,24 @@ public class GtaModel {
     }
     
     public void dispose() {
-        if (model != null)
+        if (model != null) {
             model.dispose();
-        // cleanup unused textures
-        for (RpGeometry rGeo : getGeometries()) {
-            for (RpMaterial rMat : rGeo.getFirstChild(RpType.MaterialList).getChildren(RpMaterial.class)) {
-                if (rMat.bTextured) {
-                    String texName = rMat.getTextureName();
-                    GtaTextureManager.detach(txdName, texName, this);
-                }
-            }
         }
+        // TODO: Cleanup unused textures
+//        for (RpGeometry geoData : getGeometries()) {
+//            RpSection matList = geoData.getFirstChild(RpType.MaterialList);
+//            for (RpMaterial matData : matList.getChildren(RpMaterial.class)) {
+//                if (matData.bTextured) {
+//                    String texName = matData.getTextureName();
+//                    GtaTextureManager.detach(txdName, texName, this);
+//                }
+//            }
+//        }
     }
     
-    public static HashMap<String, Material> MATERIAL_MAP = new HashMap<>();
-    public static HashMap<String, String> TEXTURE_USAGE_MAP = new HashMap<>(); // matName, texName
-    
-    public static Model createModel(GtaModel gMod, boolean applyLocalTransform, Vector3 scale) {
+    private static Model createModel(GtaModel gMod, boolean bLocalTransform, Vector3 scale) {
+        ResourceManager res = Main.getInstance().resource;
+            
         ModelBuilder mb = new ModelBuilder();
         mb.begin();
         for (RpGeometry rGeo : gMod.getGeometries()) {
@@ -134,7 +130,7 @@ public class GtaModel {
             
             // local transform
             Matrix4 trn = new Matrix4().rotate(-1, 0, 0, 90); //convert z-up to y-up
-            if (applyLocalTransform) {
+            if (bLocalTransform) {
                 RpFrame[] frmSeq = gMod.rClump.frameList.getFrameSequence(rGeo.frame);
                 trn.mul(createTransform(frmSeq));
                 if (rGeo.frame.name.startsWith("wheel_l"))
@@ -145,6 +141,7 @@ public class GtaModel {
             }
             
             // create meshes
+            int k = 1;
             ArrayList<RpMaterial> rMats = rGeo.getFirstChild(RpType.MaterialList).getChildren(RpMaterial.class);
             for (int i = 0; i < rMats.size(); i++) {
                 // create and init transform new part
@@ -155,49 +152,37 @@ public class GtaModel {
                 mesh.scale(scale.x, scale.y, scale.z);
                 mesh.transform(trn);
                 // prepare material for new meshpart
-                RpMaterial rMat = rMats.get(i);
-                Material mat = new Material();
-                boolean hasAlpha;
-                if (rMat.bTextured) {
-                    String texName = rMat.getTextureName();
-                    Texture tex = GtaTextureManager.attach(gMod.txdName, texName, gMod);
-                    mat.set(TextureAttribute.createDiffuse(tex));
-                    // check alpha
-                    try {
-                        RpTextureDictionary rTexDic = GtaTextureManager.getTexDic(gMod.txdName);
-                        RpTextureNative rTex = rTexDic.findTexture(texName);
-                        hasAlpha = rTex != null && rTex.hasAlpha;
-                    } catch (NullPointerException ex) {
-                        hasAlpha = rMat.bTextured && rMat.isMasked();
+                RpMaterial matData = rMats.get(i);
+                
+                RpTextureDictionary texDic = GtaTextureManager.getTexDic(gMod.txdName);
+                String matName = "M_";
+                RpTextureNative texNav = matData.bTextured ? texDic.findTexture(matData.getTextureName()) : null;
+                if (texNav != null) {
+                    String texName = texNav.getMapperName();
+                    if (!res.containsTexture(texName)) {
+                        RwTexture iTex = new RwTexture(texName, texNav);
+                        res.register(iTex);
                     }
-                } else {
-                    hasAlpha = rMat.color.a < 255;
-                    mat.set(ColorAttribute.createDiffuse(combineColor(rMat.color, rMat.diffuse)));
-                    mat.set(ColorAttribute.createAmbient(combineColor(rMat.color, rMat.ambient)));
-                    mat.set(ColorAttribute.createSpecular(combineColor(rMat.color, rMat.specular)));
+                    matName += texName;
                 }
-                // enable alpha test
-                if (hasAlpha) {
-                    mat.set(new BlendingAttribute(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA));
-                    mat.set(FloatAttribute.createAlphaTest(.5f));
-                    mat.set(IntAttribute.createCullFace(GL20.GL_NONE));
+                else {
+                    matName += gMod.modName + k;
+                    k++;
                 }
+                IMaterial iMat = res.findMaterial(matName);
+                if (iMat == null) {
+                    iMat = new RwMaterial(matName, matData, texNav);
+                    res.register(iMat);
+                }
+                Material mat = res.makeInstance(iMat, null); // TODO: model is not null
+                
                 mb.part(null, mesh, GL20.GL_TRIANGLES, mat);
             }
         }
         return mb.end();
     }
     
-    private static Color combineColor(RpColor rColor, float f) {
-        Color c = new Color();
-        c.r = rColor.r * f / 255;
-        c.g = rColor.g * f / 255;
-        c.b = rColor.b * f / 255;
-        c.a = rColor.a * f / 255;
-        return c;
-    }
-    
-    public static Matrix4 createTransform(RpFrame[] frameSequence) {
+    private static Matrix4 createTransform(RpFrame[] frameSequence) {
         Matrix4 trn = new Matrix4();
         for (RpFrame frm : frameSequence)
             trn.mul(new Matrix4(frm.combineMatrix4()));

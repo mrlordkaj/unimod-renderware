@@ -28,7 +28,6 @@ import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
-import com.openitvn.unicore.plugin.gta.item.ItemPATHSegment;
 import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.resource.IMaterial;
 import com.openitvn.unicore.world.resource.IModel;
@@ -42,7 +41,8 @@ import java.util.regex.Pattern;
  *
  * @author Thinh Pham
  */
-public class GWorld extends RwWorld {
+public class GWorld extends RwWorld
+{
     public static final int LAYER_NORMAL = 0,
                             LAYER_DISTANCE = 1,
                             LAYER_COLLISION = 2,
@@ -52,7 +52,7 @@ public class GWorld extends RwWorld {
     public final HashMap<String, ColFile> collisionMap = new HashMap<>(); // inst find
     public final HashMap<Integer, Integer> modelLayerMap = new HashMap<>(); // layer find - objs.id, layer.id
     
-    // store all resource names used by groups,
+    // Store all resource names used by groups,
     // for quickly delete when deactive a group
     public final HashMap<String, GroupRegistry> groupRegistryMap = new HashMap<>(); // groupName, registry
     
@@ -62,7 +62,7 @@ public class GWorld extends RwWorld {
         addLayer(LAYER_DISTANCE, "Distance Map", false);
         addLayer(LAYER_COLLISION, "Collision Map", false);
         addLayer(LAYER_CAR_PATH, "Vehicle Path", false);
-        // add blank material for default
+        // Add blank material for default
         IMaterial mat = new IMaterial("M_Blank");
         resource.register(mat);
     }
@@ -77,7 +77,7 @@ public class GWorld extends RwWorld {
     }
     
     public void addOBJS(ItemOBJS objs, GroupRegistry reg) {
-        // check ignore pattern
+        // Check ignore pattern
         String regex = GameConfig.getWorldIgnorePattern();
         if (regex != null) {
             Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
@@ -87,17 +87,17 @@ public class GWorld extends RwWorld {
         }
         
         ResourceModel res = ResourceModel.getInstance();
-        // load textures
+        // Load textures
         try (EntryStream ts = res.getEntryStream(objs.txdName, "txd")) {
             loadTexDic(ts);
         } catch (IOException ex) {
             Logger.printWarning("TXD not found: " + objs.txdName);
         }
-        // prepare texture native cache from resource manager
+        // Prepare texture native cache from resource manager
         HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
         for (ITexture tex : resource.getTextures()) {
             if (tex instanceof RwTexture) {
-                RpTextureNative texData = ((RwTexture)tex).getTextureData();
+                RpTextureNative texData = ((RwTexture)tex).textureNative;
                 if (!texData.textureName.isEmpty()) {
                     texNavMap.put(texData.textureName.toLowerCase(), texData);
                 }
@@ -106,11 +106,11 @@ public class GWorld extends RwWorld {
                 }
             }
         }
-        // load model
+        // Load model
         try (EntryStream ms = res.getEntryStream(objs.modName, "dff")) {
             RpClump clump = RpSection.loadRoot(ms, RpClump.class);
             if (clump != null) {
-                // only load root geometry as model
+                // Only load root geometry as model
                 RpGeometry geoData = clump.getRootGeometry();
                 if (geoData != null) {
                     IModel mod = new IModel("SM_"+objs.modName);
@@ -119,14 +119,14 @@ public class GWorld extends RwWorld {
                     int k = 1;
                     for (short i = 0; i < geoData.materials.size(); i++) {
                         RpMaterial matData = geoData.materials.get(i);
-                        // search texture by name which defined in material
+                        // Search texture by name which defined in material
                         String texName = matData.getMaskName();
                         RpTextureNative texNav = texNavMap.get(texName.toLowerCase());
                         if (texNav == null) {
                             texName = matData.getTextureName();
                             texNav = texNavMap.get(texName.toLowerCase());
                         }
-                        // create material
+                        // Create material
                         String matName = "M_";
                         if (texName.isEmpty()) {
                             matName += objs.modName + k;
@@ -137,13 +137,13 @@ public class GWorld extends RwWorld {
                                 Logger.printWarning("Texture not found: %s (%s.txd)", texName, objs.txdName);
                             }
                         }
-                        // register new material when missing
+                        // Register new material when missing
                         if (!resource.containsMaterial(matName)) {
                             RwMaterial mat = new RwMaterial(matName, matData, texNav);
                             resource.register(mat);
                             reg.matNames.add(matName);
                         }
-                        // mesh
+                        // Mesh
                         IMesh mesh = new IMesh();
                         mesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
                         mesh.setIndices(geoData.indexMap.get(i));
@@ -162,12 +162,12 @@ public class GWorld extends RwWorld {
     void executeOBJSGroup(String groupName, BufferedReader br, boolean bActive) {
         GroupRegistry reg = groupRegistryMap.get(groupName);
         if (bActive) {
-            // register new reg for this group
+            // Register new reg for this group
             if (reg == null) {
                 reg = new GroupRegistry();
                 groupRegistryMap.put(groupName, reg);
             }
-            // parse collision list
+            // Parse collision list
             ResourceModel res = ResourceModel.getInstance();
             String colFile = groupName.substring(0, groupName.length() - 4);
             try (EntryStream cs = res.getEntryStream(colFile, "col")) {
@@ -182,7 +182,7 @@ public class GWorld extends RwWorld {
                     }
                 }
             } catch (IOException ex) { }
-            // parse objs list
+            // Parse OBJS list
             String[] args;
             while ((args = ScriptHelper.parseLineByComma(br)) != null) {
                 try {

@@ -110,13 +110,16 @@ public class RpSection implements TreeNode {
         return null;
     }
     
-    // data
+    // Data
+    
     public RpType type;
     public int size;
     public int version;
     public int build;
     public ByteBuffer data;
-    // references
+    
+    // Structure
+    
     public final RpSection parent;
     public final ArrayList<RpSection> children = new ArrayList<>();
     public final int level;
@@ -127,9 +130,8 @@ public class RpSection implements TreeNode {
         this.version = libraryIDUnpackVersion(libId);
         this.build = libraryIDUnpackBuild(libId);
         this.level = (parent == null) ? 0 : parent.level + 1;
-        // with version 0x31000 or lower,
-        // such as mak_billboardsrvc.dff, or lamppost2.dff, or sam.dff (GTA3)
-        // we must plus 12*(atomicCount-1) bytes to grand section's size
+        // In version 0x31000 or lower, must plus 12*(atomicCount-1) bytes to root's size
+	// mak_billboardsrvc.dff, lamppost2.dff, sam.dff (GTA3)
         if (version <= 0x31000 && level == 0 && ds.remaining() >= 16) {
             long mark = ds.position();
             ds.position(mark + 12);
@@ -143,16 +145,17 @@ public class RpSection implements TreeNode {
 //        System.out.printf("0x%1$05x\n", version);
 //        printDump();
         
-        // parse children sections
+        // Parse children sections
         if (type.isContainer) {
-            // parse children
+            // Parse children
             long endPos = ds.position() + size;
             while (ds.position() < endPos) {
                 RpSection child = loadSection(ds, RpSection.this);
                 children.add(child);
             }
-        } else {
-            // get data
+        }
+        else {
+            // Read data
             data = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
             ds.get(data.array());
         }

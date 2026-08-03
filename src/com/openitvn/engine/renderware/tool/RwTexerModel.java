@@ -74,7 +74,7 @@ class RwTexerModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        RpTextureNative texData = entries.get(row).getTextureData();
+        RpTextureNative texData = entries.get(row).textureNative;
         switch (col) {
             case COL_NAME:
                 return texData.textureName;
@@ -83,7 +83,7 @@ class RwTexerModel extends AbstractTableModel {
                 return texData.maskName;
                 
             case COL_ALPHA:
-                return texData.hasAlpha;
+                return texData.hasAlpha();
         }
         return null;
     }

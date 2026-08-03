@@ -28,6 +28,7 @@ import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
+import com.openitvn.unicore.world.resource.ResourceManager;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
@@ -48,7 +49,7 @@ import javax.swing.table.TableRowSorter;
 public class Main extends javax.swing.JFrame {
     
     private final ScriptFileModel scriptGroupModel = new ScriptFileModel();
-    private final ResourceModel resource = ResourceModel.getInstance();
+    private final ResourceModel resourceModel = ResourceModel.getInstance();
     private final ViewportApp gdxApp = ViewportApp.getInstance();
     private String currentModelFile, currentTexDicFile;
     
@@ -58,6 +59,8 @@ public class Main extends javax.swing.JFrame {
             instance = new Main();
         return instance;
     }
+    
+    public final ResourceManager resource = new ResourceManager();
 
     private Main() {
         initComponents();
@@ -128,11 +131,11 @@ public class Main extends javax.swing.JFrame {
     }
 
     private void initItemTable() {
-        TableColumnModel cm = tblDefinitionItem.getColumnModel();
-        cm.getColumn(ScriptItemModel.COL_TYPE).setMinWidth(40);
-        cm.getColumn(ScriptItemModel.COL_TYPE).setMaxWidth(40);
-        cm.getColumn(ScriptItemModel.COL_FILE).setMinWidth(30);
-        cm.getColumn(ScriptItemModel.COL_FILE).setMaxWidth(30);
+        TableColumnModel tcm = tblDefinitionItem.getColumnModel();
+        tcm.getColumn(ScriptItemModel.COL_TYPE).setMinWidth(40);
+        tcm.getColumn(ScriptItemModel.COL_TYPE).setMaxWidth(40);
+        tcm.getColumn(ScriptItemModel.COL_FILE).setMinWidth(30);
+        tcm.getColumn(ScriptItemModel.COL_FILE).setMaxWidth(30);
         refineItemTable();
     }
 
@@ -174,7 +177,7 @@ public class Main extends javax.swing.JFrame {
     private void openRwDump() {
         int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (id >= 0) {
-            IArchiveEntry e = resource.getEntry(id);
+            IArchiveEntry e = resourceModel.getEntry(id);
             String type = e.getExt().toLowerCase();
             if (type.equals("txd") || type.equals("dff")) {
                 RwDumper dlg = RwDumper.getInstance();
@@ -187,7 +190,7 @@ public class Main extends javax.swing.JFrame {
     private void openRwTexture() {
         int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (id >= 0) {
-            IArchiveEntry e = resource.getEntry(id);
+            IArchiveEntry e = resourceModel.getEntry(id);
             if (e.getExt().equalsIgnoreCase("txd")) {
                 RwTexer dlg = RwTexer.getInstance();
                 dlg.setVisible(true);
@@ -200,7 +203,7 @@ public class Main extends javax.swing.JFrame {
         try {
             int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
             if (id >= 0) {
-                IArchiveEntry e = resource.getEntry(id);
+                IArchiveEntry e = resourceModel.getEntry(id);
                 if (e.getExt().equalsIgnoreCase("dff")) {
                     String fileName = e.getName();
                     currentModelFile = fileName;
@@ -331,7 +334,7 @@ public class Main extends javax.swing.JFrame {
         });
 
         tblResource.setAutoCreateRowSorter(true);
-        tblResource.setModel(resource);
+        tblResource.setModel(resourceModel);
         tblResource.setRowHeight(20);
         tblResource.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tblResource.setShowHorizontalLines(false);
@@ -385,7 +388,7 @@ public class Main extends javax.swing.JFrame {
                     .addComponent(txtFindResource, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 454, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 461, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -500,7 +503,7 @@ public class Main extends javax.swing.JFrame {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
+            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel3)
@@ -533,7 +536,7 @@ public class Main extends javax.swing.JFrame {
 
     jMenu2.setText("Tools");
 
-    mnuTexture.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.CTRL_MASK));
+    mnuTexture.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.CTRL_DOWN_MASK));
     mnuTexture.setText("Texture Viewer...");
     mnuTexture.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon16/application_view_gallery.png"))); // NOI18N
     mnuTexture.addItemListener(new java.awt.event.ItemListener() {
@@ -563,7 +566,7 @@ public class Main extends javax.swing.JFrame {
         .addGroup(layout.createSequentialGroup()
             .addContainerGap()
             .addComponent(splMain)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
     );
 
@@ -601,7 +604,7 @@ public class Main extends javax.swing.JFrame {
         }
         int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
         if (evt.isPopupTrigger() && id > -1) {
-            IArchiveEntry e = resource.getEntry(id);
+            IArchiveEntry e = resourceModel.getEntry(id);
             switch (e.getExt().toLowerCase()) {
                 case "txd":
                     mnuTxd.show(evt.getComponent(), x, y);

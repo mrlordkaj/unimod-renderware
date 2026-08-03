@@ -27,22 +27,25 @@ import com.openitvn.unicore.data.DataStream;
 
 public class RpTexture extends RpSection {
     
-    // texture filtering
-    public static final byte FILTERNAFILTERMODE = 0; //filtering is disabled
-    public static final byte FILTERNEAREST = 1; //Point sampled
-    public static final byte FILTERLINEAR = 2; //Bilinear
-    public static final byte FILTERMIPNEAREST = 3; //Point sampled per pixel mip map
-    public static final byte FILTERMIPLINEAR = 4; //Bilinear per pixel mipmap)
-    public static final byte FILTERLINEARMIPNEAREST = 5; //MipMap interp point sampled
-    public static final byte FILTERLINEARMIPLINEAR = 6; //Trilinear
-    // texture addressing
-    public static final byte TEXTUREADDRESSNATEXTUREADDRESS = 0; //no tiling
-    public static final byte TEXTUREADDRESSWRAP = 1; //tile in U or V direction
-    public static final byte TEXTUREADDRESSMIRROR = 2; //mirror in U or V direction
+    // Filtering
+    
+    public static final byte FILTERNAFILTERMODE = 0; // filtering is disabled
+    public static final byte FILTERNEAREST = 1; // Point sampled
+    public static final byte FILTERLINEAR = 2; // Bilinear
+    public static final byte FILTERMIPNEAREST = 3; // Point sampled per pixel mip map
+    public static final byte FILTERMIPLINEAR = 4; // Bilinear per pixel mipmap)
+    public static final byte FILTERLINEARMIPNEAREST = 5; // MipMap interp point sampled
+    public static final byte FILTERLINEARMIPLINEAR = 6; // Trilinear
+    
+    // Addressing
+    public static final byte TEXTUREADDRESSNATEXTUREADDRESS = 0; // no tiling
+    public static final byte TEXTUREADDRESSWRAP = 1; // tile in U or V direction
+    public static final byte TEXTUREADDRESSMIRROR = 2; // mirror in U or V direction
     public static final byte TEXTUREADDRESSCLAMP = 3;
     public static final byte TEXTUREADDRESSBORDER = 4;
     
-    // data
+    // Data
+    
     public byte filtering;
     public boolean hasMipMap;
     public String textureName;

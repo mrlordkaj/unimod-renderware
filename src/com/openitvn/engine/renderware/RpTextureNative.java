@@ -73,6 +73,7 @@ public class RpTextureNative extends RpSection {
     public static final byte COMPRESSION_PAL8 = 8;
     
     // Platform
+    
     public static final int PLATFORM_GTA_XBOX = 5;
     public static final int PLATFORM_GTA3_PC  = 8;
     public static final int PLATFORM_GTASA_PC = 9;
@@ -81,68 +82,59 @@ public class RpTextureNative extends RpSection {
     // TextureFormat; 72 bytes in total
     
     private final int platformId;
-    public final byte filterMode;
-    private final byte uWrap;
-    private final byte vWrap;
-    public String textureName;
+    private final byte filterMode;
+    private final byte addressing;
+    public final String textureName;
     public final String maskName;
     
     // RasterFormat; 16 bytes in total
     
-    private final int format;
-    private final int formatExt;
-    public final boolean hasAlpha;
+    private final int rasterFormat;
+    private final int alpha;
     public final short width;
     public final short height;
     public final byte colorDepth;
     public final byte mipCount;
-    private final byte compression;
+    private final byte rasterType;
     
-    // Data
-    
-    public ByteBuffer nativeData;
-
     public RpTextureNative(int size, int libId, RpSection parent, DataStream ds) {
         super(RpType.TextureNative, size, libId, parent, ds);
         ByteBuffer bb = getStruct();
-        // Texture format
+        // TextureFormat; 72 bytes in total
         platformId = bb.getInt();
         filterMode = bb.get();
-        byte addressing = bb.get();
-        uWrap = (byte)((addressing & 0xf0) >> 4);
-        vWrap = (byte) (addressing & 0x0f);
+        addressing = bb.get();
         bb.position(bb.position() + 2); // pad
         textureName = RpHelper.readName(bb, 32);
         maskName = RpHelper.readName(bb, 32);
-        // Raster format
-        int rasterFormat = bb.getInt();
-        formatExt = rasterFormat & 0xf000;
-        format = rasterFormat & 0x0f00;
-        int alpha = bb.getInt();
+        // RasterFormat; 16 bytes in total
+        rasterFormat = bb.getInt();
+        alpha = bb.getInt();
         width = bb.getShort();
         height = bb.getShort();
         colorDepth = bb.get();
         mipCount = bb.get();
         bb.position(bb.position() + 1); // pad
-        byte rasterType = bb.get();
-        if (platformId == PLATFORM_GTASA_PC) {
-            compression = getCompression(format, formatExt);
-            hasAlpha = (rasterType & 0b1) != 0;
-        } else {
-            compression = (rasterType == COMPRESSION_NONE) ? getCompression(format, formatExt) : rasterType;
-            hasAlpha = alpha != 0;
-        }
-        // End header
-        nativeData = bb.slice().order(ByteOrder.LITTLE_ENDIAN);
+        rasterType = bb.get();
+    }
+    
+    public ByteBuffer getNativeData() {
+        ByteBuffer bb = getStruct();
+        bb.position(88);
+        return bb.slice().order(ByteOrder.LITTLE_ENDIAN);
     }
     
     public String getMapperName() {
-//        String texName = (hasAlpha && !maskName.isEmpty()) ?
-//                maskName : textureName;
-//        return texName.replaceAll("@", "a")
+        String texName = (maskName.isEmpty() || !hasAlpha()) ? textureName : maskName;
+//        texName = texName.replaceAll("@", "a")
 //                .replaceAll("\\s+", "_");
-//        return (hasAlpha && !maskName.isEmpty()) ? maskName : textureName;
-        return !maskName.isEmpty() ? maskName : textureName;
+        return texName;
+    }
+    
+    public boolean hasAlpha() {
+        return platformId == PLATFORM_GTASA_PC ?
+                (rasterType & 0b1) != 0 :
+                alpha != 0;
     }
     
     private static byte getCompression(int fmt, int ext) {
@@ -163,50 +155,44 @@ public class RpTextureNative extends RpSection {
             case FORMAT_8888:
             case FORMAT_888:
                 return COMPRESSION_NONE;
-            default:
-                return COMPRESSION_NONE;
         }
+        return COMPRESSION_NONE;
     }
     
     public IPixelFormat getPixelFormat() {
-        switch (compression) {
+        int ext = rasterFormat & 0xf000;
+        int fmt = rasterFormat & 0x0f00;
+        boolean bCompressSource = (platformId == PLATFORM_GTASA_PC) || (rasterType == COMPRESSION_NONE);
+        byte compress = bCompressSource ? getCompression(fmt, ext) : rasterType;
+        switch (compress) {
             case COMPRESSION_NONE:
-                switch (format) {
+                switch (fmt) {
                     case FORMAT_LUM8:
                         return IPixelFormat.D3DFMT_L8;
-                        
                     case FORMAT_8888:
                         return IPixelFormat.D3DFMT_A8R8G8B8;
-                        
                     case FORMAT_888:
                         return IPixelFormat.D3DFMT_X8R8G8B8;
                 }
                 break;
-                
             case COMPRESSION_DXT1:
                 return IPixelFormat.D3DFMT_DXT1;
-            
             case COMPRESSION_DXT3:
                 return IPixelFormat.D3DFMT_DXT3;
-                
             case COMPRESSION_DXT5:
                 return IPixelFormat.D3DFMT_DXT5;
-                
             case COMPRESSION_PAL4:
-                switch (format) {
+                switch (fmt) {
                     case FORMAT_8888:
                         return IPixelFormat.PALETTE4_RGBA8_OES;
-                        
                     case FORMAT_888:
                         return IPixelFormat.PALETTE4_RGB8_OES;
                 }
                 break;
-                
             case COMPRESSION_PAL8:
-                switch (format) {
+                switch (fmt) {
                     case FORMAT_8888:
                         return IPixelFormat.PALETTE8_RGBA8_OES;
-                        
                     case FORMAT_888:
                         return IPixelFormat.PALETTE8_RGB8_OES;
                 }
@@ -215,23 +201,22 @@ public class RpTextureNative extends RpSection {
     }
     
     public int getUWrap() {
-        return convertWrap(uWrap);
+        byte u = (byte)((addressing & 0xf0) >> 4);
+        return convertWrap(u);
     }
     
     public int getVWrap() {
-        return convertWrap(vWrap);
+        byte v = (byte)(addressing & 0x0f);
+        return convertWrap(v);
     }
     
-    private int convertWrap(byte val) {
+    private static int convertWrap(byte val) {
         switch (val) {
             case WRAP_REPEAT:
                 return GL20.GL_REPEAT;
-                
             case WRAP_MIRROR:
-                return GL20.GL_MIRRORED_REPEAT;
-                
-            default:
-                return GL20.GL_CLAMP_TO_EDGE;
+                return GL20.GL_MIRRORED_REPEAT; 
         }
+        return GL20.GL_CLAMP_TO_EDGE;
     }
 }
