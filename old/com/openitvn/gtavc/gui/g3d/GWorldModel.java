@@ -16,14 +16,18 @@
  */
 package com.openitvn.gtavc.gui.g3d;
 
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.math.Matrix4;
+import com.openitvn.unicore.world.IGrid;
+import com.openitvn.unicore.world.IWorldCoord;
 import java.io.IOException;
 
 /**
  *
  * @author Thinh Pham
  */
-public class GWorldModel extends GWorld {
+public class GWorldModel extends GWorldBase {
     
     private static GWorldModel instance;
     
@@ -33,17 +37,36 @@ public class GWorldModel extends GWorld {
         return instance;
     }
     
-    private GWorldModel() { }
+    private IGrid grid;
+    
+    @Override
+    void init() {
+        super.init();
+        grid = new IGrid();
+        grid.rebuild(IWorldCoord.Zup);
+    }
+    
+    @Override
+    void dispose() {
+        super.dispose();
+        grid.dispose();
+    }
+    
+    @Override
+    void draw(ModelBatch mb, Environment env) {
+        super.draw(mb, env);
+        grid.draw(mb);
+    }
     
     public void setModel(String modName, String txdName) throws IOException {
-        // clean current stuff
+        // Clean current stuff
+        instances.clear();
         for (GtaModel mod : models.values()) {
             mod.dispose();
         }
         models.clear();
-        instances.clear();
-        // set new model
-        GtaModel mod = new GtaModel(modName, txdName, GtaModel.MeshType.AllMesh);
+        // Set new model
+        GtaModel mod = new GtaModel(modName, txdName, GtaModel.MeshType.AllMesh, this);
         models.put(0, mod);
         instances.add(new GtaInstance(new Matrix4(), mod));
     }

@@ -17,8 +17,6 @@
 package com.openitvn.engine.renderware;
 
 import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.data.DataStream;
 import com.openitvn.unicore.world.IVertex;
 import com.openitvn.engine.renderware.struct.RpSphere;
@@ -40,7 +38,8 @@ import java.util.HashMap;
 
 public class RpGeometry extends RpSection {
     
-    // flags
+    // Flags
+    
     private static final int GEOMETRYTRISTRIP =                 0x00000001; //is triangle strip (if disabled it will be an triangle list)
     private static final int GEOMETRYPOSITIONS =                0x00000002; //vertex translation
     private static final int GEOMETRYTEXTURED =                 0x00000004; //texture coordinates
@@ -51,10 +50,12 @@ public class RpGeometry extends RpSection {
     private static final int GEOMETRYTEXTURED2 =                0x00000080; //texture coordinates 2
     private static final int GEOMETRYNATIVE =                   0x01000000; //native geometry
     
-    // data
+    // Data
+    
     public final int numVerts;
     
-    // references
+    // References
+    
     public final ArrayList<RpMaterial> materials;
     public final FloatBuffer vertData;
     public final VertexAttributes vertFmt;
@@ -79,40 +80,37 @@ public class RpGeometry extends RpSection {
                 mat.diffuse = diffuse;
             }
         }
-        // prepare vertices
-        IVertex[] verts = vertices = new IVertex[numVerts];
+        // Prepare vertices
+        IVertex[] verts = /*vertices = */new IVertex[numVerts];
         for (int i = 0; i < numVerts; i++) {
             verts[i] = new IVertex();
         }
         HashMap<Short, ArrayList<Short>> idxMap = new HashMap<>();
-        // vertices data
+        // Vertices data
         if ((fmt & GEOMETRYNATIVE) == 0) {
-            // prelit
+            // Prelit
             if ((fmt & GEOMETRYPRELIT) != 0) {
                 for (IVertex v : verts) {
                     RpColor c = new RpColor(bb);
                     v.setColor(c.r, c.g, c.b, c.a);
                 }
             }
-            // texCoords
+            // TexCoords
             if ((fmt & (GEOMETRYTEXTURED | GEOMETRYTEXTURED2)) != 0) {
                 int numTexCoords = (fmt & 0x00ff0000) >> 16;
                 if (numTexCoords == 0) {
                     numTexCoords = ((fmt & GEOMETRYTEXTURED) != 0) ? 1 : 2;
                 }
-                texCoords = new Vector2[numTexCoords][numVerts];
                 for (int i = 0; i < numTexCoords; i++) {
                     int j = 0;
                     for (IVertex vert : verts) {
                         float u = bb.getFloat();
                         float v = bb.getFloat();
                         vert.addTexCoord(u, v);
-                        texCoords[i][j++] = new Vector2(u, v);
                     }
                 }
             }
-            // indices and matId
-            triangles = new RpTriangle[numFaces];
+            // Indices and matId
             for (int i = 0; i < numFaces; i++) {
                 RpTriangle face = new RpTriangle(bb);
                 ArrayList<Short> ids = idxMap.get(face.materialIndex);
@@ -123,30 +121,27 @@ public class RpGeometry extends RpSection {
                 ids.add(face.v1);
                 ids.add(face.v2);
                 ids.add(face.v3);
-                triangles[i] = face;
             }
         }
-        // repeat by morphTargetCount (always 1 in GTA series)
+        // Repeat by morphTargetCount (always 1 in GTA series)
         RpSphere bounding = new RpSphere(bb); // boundingSphere
         int hasVertex = bb.getInt();
         int hasNormal = bb.getInt();
-        // vertex position
+        // Vertex position
         for (IVertex v : verts) {
             float a = bb.getFloat();
             float b = bb.getFloat();
             float c = bb.getFloat();
             v.set(a, b, c);
         }
-        // normal
+        // Normal
         if ((fmt & GEOMETRYNORMALS) != 0) {
-            normals = new Vector3[numVerts];
             int i = 0;
             for (IVertex v : verts) {
                 float a = bb.getFloat();
                 float b = bb.getFloat();
                 float c = bb.getFloat();
                 v.setNormal(a, b, c);
-                normals[i++] = new Vector3(a, b, c);
             }
         }
         if (bb.hasRemaining()) {
@@ -156,8 +151,8 @@ public class RpGeometry extends RpSection {
         }
         vertData = IVertex.createVertexBuffer(verts);
         vertFmt = verts[0].generateVertexFormat();
-        // end repeat by morphTargetCount
-        // materials and meshes
+        // End repeat by morphTargetCount
+        // Materials and meshes
         indexMap = new ArrayList<>();
         for (short i = 0; i < materials.size(); i++) {
             ArrayList<Short> ids = idxMap.get(i);
@@ -170,57 +165,6 @@ public class RpGeometry extends RpSection {
     }
     
     //<editor-fold defaultstate="collapsed" desc="Deprecated">
-    @Deprecated private Vector2[][] texCoords;
-    @Deprecated private RpTriangle[] triangles;
-    @Deprecated private IVertex[] vertices;
-    @Deprecated private Vector3[] normals;
     @Deprecated public RpFrame frame;
-    
-    @Deprecated
-    @Override
-    public Object clone() throws CloneNotSupportedException{  
-        return super.clone();  
-    }
-    
-    @Deprecated
-    public int getTexCoordCount() {
-        return (texCoords == null) ? 0 : texCoords.length;
-    }
-    
-    @Deprecated
-    public Vector2[][] getTexCoords() {
-        return texCoords;
-    }
-    
-    @Deprecated
-    public int getVertexCount() {
-        return vertices.length;
-    }
-    
-    @Deprecated
-    public Vector3[] getVertices() {
-        return vertices;
-    }
-    
-    @Deprecated
-    public boolean hasNormal() {
-        return normals != null;
-    }
-    
-    @Deprecated
-    public Vector3[] getNormals() {
-        return normals;
-    }
-    
-    @Deprecated
-    public RpTriangle[] getTriangles(int matId) {
-        ArrayList<RpTriangle> rs = new ArrayList<>();
-        for (RpTriangle face : triangles) {
-            if (face.materialIndex == matId) {
-                rs.add(face);
-            }
-        }
-        return rs.toArray(new RpTriangle[rs.size()]);
-    }
     //</editor-fold>
 }

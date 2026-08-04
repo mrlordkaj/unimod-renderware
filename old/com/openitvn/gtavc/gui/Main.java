@@ -19,8 +19,8 @@ package com.openitvn.gtavc.gui;
 import com.openitvn.engine.renderware.tool.RwTexer;
 import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.engine.renderware.RpTextureDictionary;
+import com.openitvn.gtavc.gui.g3d.GWorldModel;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
-import com.openitvn.gtavc.gui.g3d.GtaTextureManager;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
@@ -28,7 +28,6 @@ import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
-import com.openitvn.unicore.world.resource.ResourceManager;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
@@ -60,8 +59,6 @@ public class Main extends javax.swing.JFrame {
         return instance;
     }
     
-    public final ResourceManager resource = new ResourceManager();
-
     private Main() {
         initComponents();
         recallWindowState();
@@ -94,7 +91,7 @@ public class Main extends javax.swing.JFrame {
 
     private void initAssetTable() {
         //setup the table
-        TableColumnModel cm = tblResource.getColumnModel();
+        TableColumnModel cm = resourceTable.getColumnModel();
         cm.getColumn(ResourceModel.COL_INDEX).setMinWidth(40);
         cm.getColumn(ResourceModel.COL_INDEX).setMaxWidth(40);
         cm.getColumn(ResourceModel.COL_SIZE).setMinWidth(60);
@@ -175,7 +172,7 @@ public class Main extends javax.swing.JFrame {
     //<editor-fold defaultstate="collapsed" desc="RenderWare Tools">
     
     private void openRwDump() {
-        int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+        int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
         if (id >= 0) {
             IArchiveEntry e = resourceModel.getEntry(id);
             String type = e.getExt().toLowerCase();
@@ -188,7 +185,7 @@ public class Main extends javax.swing.JFrame {
     }
     
     private void openRwTexture() {
-        int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+        int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
         if (id >= 0) {
             IArchiveEntry e = resourceModel.getEntry(id);
             if (e.getExt().equalsIgnoreCase("txd")) {
@@ -201,7 +198,7 @@ public class Main extends javax.swing.JFrame {
     
     private void openRwModel() {
         try {
-            int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+            int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
             if (id >= 0) {
                 IArchiveEntry e = resourceModel.getEntry(id);
                 if (e.getExt().equalsIgnoreCase("dff")) {
@@ -210,7 +207,7 @@ public class Main extends javax.swing.JFrame {
                     // find match name dff and txd for texture dictionary
                     String modName = fileName.substring(0, fileName.length() - 4);
                     String txdName = findTexDic(modName);
-                    RpTextureDictionary texDic = GtaTextureManager.getTexDic(txdName);
+                    RpTextureDictionary texDic = GWorldModel.getInstance().getTexDic(txdName);
                     if (texDic != null) {
                         currentTexDicFile = txdName + ".txd";
                         if (mnuTexture.isSelected()) {
@@ -250,38 +247,37 @@ public class Main extends javax.swing.JFrame {
 
         mnuTxd = new javax.swing.JPopupMenu();
         mnuTxdViewer = new javax.swing.JMenuItem();
-        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator2 = new javax.swing.JPopupMenu.Separator();
         mnuTxdDumper = new javax.swing.JMenuItem();
         mnuDff = new javax.swing.JPopupMenu();
         mnuDffViewer = new javax.swing.JMenuItem();
-        jSeparator3 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator3 = new javax.swing.JPopupMenu.Separator();
         mnuDffDumper = new javax.swing.JMenuItem();
         rdoMapDefinition = new javax.swing.ButtonGroup();
-        rdoVehicleMode = new javax.swing.ButtonGroup();
         splMain = new javax.swing.JSplitPane();
         tabbedControlPanel = new javax.swing.JTabbedPane();
-        jPanel1 = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        tblResource = new javax.swing.JTable();
+        javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
+        javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
+        resourceTable = new javax.swing.JTable();
         txtFindResource = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
+        javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
         tblDefinitionGroup = new javax.swing.JTable();
-        jScrollPane3 = new javax.swing.JScrollPane();
+        javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
         tblDefinitionItem = new javax.swing.JTable();
         rdoIDE = new javax.swing.JRadioButton();
         rdoIPL = new javax.swing.JRadioButton();
-        jLabel5 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
         cboViewMode = new javax.swing.JComboBox<>();
-        jLabel3 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
         cboMapTime = new javax.swing.JComboBox<>();
         viewpotArea = new javax.swing.JPanel();
         statusBar = new javax.swing.JToolBar();
         lblInfo = new javax.swing.JLabel();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        jMenu2 = new javax.swing.JMenu();
+        javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
+        javax.swing.JMenu jMenu1 = new javax.swing.JMenu();
+        javax.swing.JMenu jMenu2 = new javax.swing.JMenu();
         mnuTexture = new javax.swing.JCheckBoxMenuItem();
 
         mnuTxdViewer.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -333,29 +329,29 @@ public class Main extends javax.swing.JFrame {
             }
         });
 
-        tblResource.setAutoCreateRowSorter(true);
-        tblResource.setModel(resourceModel);
-        tblResource.setRowHeight(20);
-        tblResource.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        tblResource.setShowHorizontalLines(false);
-        tblResource.setShowVerticalLines(false);
-        tblResource.getTableHeader().setResizingAllowed(false);
-        tblResource.getTableHeader().setReorderingAllowed(false);
-        tblResource.addMouseListener(new java.awt.event.MouseAdapter() {
+        resourceTable.setAutoCreateRowSorter(true);
+        resourceTable.setModel(resourceModel);
+        resourceTable.setRowHeight(20);
+        resourceTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        resourceTable.setShowHorizontalLines(false);
+        resourceTable.setShowVerticalLines(false);
+        resourceTable.getTableHeader().setResizingAllowed(false);
+        resourceTable.getTableHeader().setReorderingAllowed(false);
+        resourceTable.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
-                onTableResourcePopupTrigger(evt);
+                onResouceTablePopupTriggered(evt);
             }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                onTableResourcePopupTrigger(evt);
-                onResourceEntryClicked(evt);
+                onResouceTablePopupTriggered(evt);
+                onResourceTableClicked(evt);
             }
         });
-        tblResource.addKeyListener(new java.awt.event.KeyAdapter() {
+        resourceTable.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                tblResourceKeyReleased(evt);
+                onResourceTableKeyReleased(evt);
             }
         });
-        jScrollPane1.setViewportView(tblResource);
+        jScrollPane1.setViewportView(resourceTable);
 
         txtFindResource.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
@@ -573,12 +569,17 @@ public class Main extends javax.swing.JFrame {
     pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void onResourceEntryClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onResourceEntryClicked
-        if(evt.getButton() == MouseEvent.BUTTON3) return; //cancel right mouse for popup trigger
+    private void onResourceTableClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onResourceTableClicked
+        if (evt.getButton() == MouseEvent.BUTTON3)
+            return; //cancel right mouse for popup trigger
         boolean isDoubleClick = (evt.getClickCount() == 2);
-        if(mnuTexture.isSelected() || isDoubleClick) openRwTexture();
-        if(gdxApp.getViewpotMode() == ViewportMode.SingleModel || isDoubleClick) openRwModel();
-    }//GEN-LAST:event_onResourceEntryClicked
+        if (mnuTexture.isSelected() || isDoubleClick) {
+            openRwTexture();
+        }
+        if (gdxApp.getViewpotMode() == ViewportMode.SingleModel || isDoubleClick) {
+            openRwModel();
+        }
+    }//GEN-LAST:event_onResourceTableClicked
 
     private void refineDefinitionItemKey(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_refineDefinitionItemKey
         refineItemTable();
@@ -591,18 +592,18 @@ public class Main extends javax.swing.JFrame {
     private void txtFindResourceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFindResourceKeyTyped
         String regex = txtFindResource.getText();
         regex = String.format("(?i)(%1$s)", regex);
-        TableRowSorter<ScriptItemModel> sorter = (TableRowSorter) tblResource.getRowSorter();
+        TableRowSorter<ScriptItemModel> sorter = (TableRowSorter) resourceTable.getRowSorter();
         sorter.setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
     }//GEN-LAST:event_txtFindResourceKeyTyped
 
-    private void onTableResourcePopupTrigger(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onTableResourcePopupTrigger
+    private void onResouceTablePopupTriggered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onResouceTablePopupTriggered
         int x = evt.getX();
         int y = evt.getY();
         if (evt.getButton() == MouseEvent.BUTTON3) {
-            int selRow = tblResource.rowAtPoint(new Point(x, y));
-            tblResource.setRowSelectionInterval(selRow, selRow);
+            int selRow = resourceTable.rowAtPoint(new Point(x, y));
+            resourceTable.setRowSelectionInterval(selRow, selRow);
         }
-        int id = tblResource.convertRowIndexToModel(tblResource.getSelectedRow());
+        int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
         if (evt.isPopupTrigger() && id > -1) {
             IArchiveEntry e = resourceModel.getEntry(id);
             switch (e.getExt().toLowerCase()) {
@@ -615,7 +616,7 @@ public class Main extends javax.swing.JFrame {
                     break;
             }
         }
-    }//GEN-LAST:event_onTableResourcePopupTrigger
+    }//GEN-LAST:event_onResouceTablePopupTriggered
 
     private void mnuTxdViewerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuTxdViewerActionPerformed
         openRwTexture();
@@ -629,10 +630,14 @@ public class Main extends javax.swing.JFrame {
         openRwDump();
     }//GEN-LAST:event_mnuDffDumperActionPerformed
 
-    private void tblResourceKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblResourceKeyReleased
-        if (mnuTexture.isSelected()) openRwTexture();
-        if (gdxApp.getViewpotMode() == ViewportMode.SingleModel) openRwModel();
-    }//GEN-LAST:event_tblResourceKeyReleased
+    private void onResourceTableKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_onResourceTableKeyReleased
+        if (mnuTexture.isSelected()) {
+            openRwTexture();
+        }
+        if (gdxApp.getViewpotMode() == ViewportMode.SingleModel) {
+            openRwModel();
+        }
+    }//GEN-LAST:event_onResourceTableKeyReleased
 
     private void mnuDffViewerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuDffViewerActionPerformed
         openRwModel();
@@ -694,19 +699,6 @@ public class Main extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<String> cboMapTime;
     private javax.swing.JComboBox<ViewportMode> cboViewMode;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JPopupMenu.Separator jSeparator2;
-    private javax.swing.JPopupMenu.Separator jSeparator3;
     private javax.swing.JLabel lblInfo;
     private javax.swing.JPopupMenu mnuDff;
     private javax.swing.JMenuItem mnuDffDumper;
@@ -718,13 +710,12 @@ public class Main extends javax.swing.JFrame {
     private javax.swing.JRadioButton rdoIDE;
     private javax.swing.JRadioButton rdoIPL;
     private javax.swing.ButtonGroup rdoMapDefinition;
-    private javax.swing.ButtonGroup rdoVehicleMode;
+    private javax.swing.JTable resourceTable;
     private javax.swing.JSplitPane splMain;
     private javax.swing.JToolBar statusBar;
     private javax.swing.JTabbedPane tabbedControlPanel;
     private javax.swing.JTable tblDefinitionGroup;
     private javax.swing.JTable tblDefinitionItem;
-    private javax.swing.JTable tblResource;
     private javax.swing.JTextField txtFindResource;
     private javax.swing.JPanel viewpotArea;
     // End of variables declaration//GEN-END:variables

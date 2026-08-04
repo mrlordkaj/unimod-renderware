@@ -20,52 +20,39 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglCanvas;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
-import com.badlogic.gdx.graphics.glutils.ImmediateModeRenderer20;
 import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
-import com.openitvn.unicore.plugin.gta.VehicleModel;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.awt.Canvas;
+import java.awt.Color;
 import java.io.IOException;
 
 /**
  *
  * @author Thinh Pham
  */
-public class ViewportApp implements ApplicationListener {
-    
-    static final int GRID_WIDTH = 10;
-    static final int GRID_HEIGHT = 10;
-    
+public class ViewportApp implements ApplicationListener
+{
     private final LwjglCanvas canvas;
     private ViewportMode mode;
     
-    public final VehicleModel vehicleModel = new VehicleModel();
+    // Map modes
     
-    //single model mode
-    private GtaModel gtaModel;
-    private ModelInstance modInst;
-    private PerspectiveCamera modCam;
-    private CameraInputController modCtrl;
-    
-    // map mode
     final GWorldMap mapView = GWorldMap.getInstance();
     final GWorldModel modView = GWorldModel.getInstance();
     
-    //renderers
+    // Renderers
+    
     private ModelBatch mb;
     private Environment env;
     
-    //singleton app
+    // Singleton
+    
     private static ViewportApp instance;
     public static ViewportApp getInstance() {
         if (instance == null) {
@@ -83,95 +70,41 @@ public class ViewportApp implements ApplicationListener {
         return canvas.getCanvas();
     }
     
-    //<editor-fold defaultstate="collapsed" desc="Draw Grid">
-    
-    //http://stackoverflow.com/questions/24215500/healthy-way-of-drawing-grid-lines-in-libgdx
-    private ImmediateModeRenderer20 lr;
-    
-    private void drawLine(float x1, float y1, float z1,
-                            float x2, float y2, float z2,
-                            Color c) {
-        lr.color(c);
-        lr.vertex(x1, y1, z1);
-        lr.color(c);
-        lr.vertex(x2, y2, z2);
+    public void setCanvasBackground(Color c) {
+        float r = c.getRed() / 255f;
+        float g = c.getGreen() / 255f;
+        float b = c.getBlue() / 255f;
+        float a = c.getAlpha() / 255f;
+        Gdx.gl.glClearColor(r, g, b, a);
     }
-    
-    private void drawGrid(PerspectiveCamera cam) {
-        int startX = -GRID_WIDTH / 2;
-        int startY = -GRID_HEIGHT / 2;
-        
-        lr.begin(cam.combined, GL20.GL_LINES);
-        
-        for (int x = 0; x <= GRID_WIDTH; x++) {
-            // draw vertical
-            drawLine(x + startX, 0, startY,
-                    x + startX, 0, GRID_HEIGHT + startY,
-                    Color.DARK_GRAY);
-        }
-
-        for (int y = 0; y <= GRID_HEIGHT; y++) {
-            // draw horizontal
-            drawLine(startX, 0, startY + y,
-                    GRID_WIDTH + startX, 0, startY + y,
-                    Color.DARK_GRAY);
-        }
-        
-        lr.end();
-    }
-    
-    //</editor-fold>
     
     @Override
     public void create() {
-        lr = new ImmediateModeRenderer20(false, true, 0);
+        setCanvasBackground(new Color(0xff393939));
         mb = new ModelBatch();
         env = new Environment();
         env.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f));
-        
-        // setup viewers
         mapView.init();
         modView.init();
-        
-        //setup single viewpot
-        modCam = new PerspectiveCamera();
-        modCam.fieldOfView = 45;
-        modCam.near = 0.2f;
-        modCam.far = 300f;
-        modCam.position.set(GRID_WIDTH, Math.max(GRID_WIDTH, GRID_HEIGHT), GRID_HEIGHT);
-        modCam.lookAt(0, 0, 0);
-        modCtrl = new CameraInputController(modCam);
-        
         Gdx.input.setInputProcessor(mapView.camCtrl);
     }
     
     @Override
     public void resize(int width, int height) {
         mapView.resize(width, height);
-        modCam.viewportWidth = width;
-        modCam.viewportHeight = height;
+        modView.resize(width, height);
     }
     
     @Override
     public void render() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-        
-        // update camera
         switch (mode) {
             case MapNormal:
             case MapDistance:
                 mapView.draw(mb, env);
                 break;
-                
             case SingleModel:
-                modCam.update();
-                modCtrl.update();
-                drawGrid(modCam);
-                mb.begin(modCam);
-                if (modInst != null) {
-                    mb.render(modInst, env);
-                }
-                mb.end();
+                modView.draw(mb, env);
                 break;
         }
     }
@@ -182,17 +115,14 @@ public class ViewportApp implements ApplicationListener {
     
     @Override
     public void dispose() {
-        lr.dispose();
+        mapView.dispose();
+        modView.dispose();
         mb.dispose();
         instance = null;
     }
     
     public void setSingleModel(String modName, String txdName) throws IOException {
-        if (gtaModel != null) {
-            gtaModel.dispose();
-        }
-        gtaModel = new GtaModel(modName, txdName, GtaModel.MeshType.AllMesh);
-        modInst = new ModelInstance(gtaModel.getModel());
+        modView.setModel(modName, txdName);
     }
     
     public ViewportMode getViewpotMode() {
@@ -207,10 +137,8 @@ public class ViewportApp implements ApplicationListener {
                 Gdx.input.setInputProcessor(mapView.camCtrl);
                 mapView.setViewportMode(mode);
                 break;
-                
             case SingleModel:
-                modInst = (gtaModel == null) ? null : new ModelInstance(gtaModel.getModel());
-                Gdx.input.setInputProcessor(modCtrl);
+                Gdx.input.setInputProcessor(modView.camCtrl);
                 break;
         }
     }

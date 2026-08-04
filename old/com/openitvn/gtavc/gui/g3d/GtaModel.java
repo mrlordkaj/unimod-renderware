@@ -19,28 +19,23 @@ package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.openitvn.engine.renderware.struct.RpTriangle;
 import com.openitvn.engine.renderware.struct.RpFrame;
-import com.openitvn.engine.renderware.RpType;
 import com.openitvn.engine.renderware.RpGeometry;
 import com.openitvn.engine.renderware.RpMaterial;
 import com.openitvn.engine.renderware.RpClump;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.dff.RwMaterial;
 import com.openitvn.format.txd.RwTexture;
-import com.openitvn.gtavc.gui.Main;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
+import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.resource.IMaterial;
 import com.openitvn.unicore.world.resource.ResourceManager;
 import java.io.IOException;
@@ -59,19 +54,23 @@ public class GtaModel {
     float drawDistance;
     RpClump rClump;
     Model model;
+    GWorldBase world;
+    ResourceManager resource;
     
-    public GtaModel(ItemOBJS objs) {
-        this(objs.modName, objs.txdName, MeshType.OneMesh);
+    public GtaModel(ItemOBJS objs, GWorldBase world) {
+        this(objs.modName, objs.txdName, MeshType.OneMesh, world);
         drawDistance = objs.dd1;
     }
     
-    public GtaModel(String modName, String txdName, MeshType meshType) {
+    public GtaModel(String modName, String txdName, MeshType meshType, GWorldBase world) {
         this.meshType = meshType;
         this.modName = modName;
         this.txdName = txdName;
+        this.world = world;
+        this.resource = world.resource;
         ResourceModel res = ResourceModel.getInstance();
-        try (EntryStream ms = res.getEntryStream(modName, "dff")) {
-            rClump = RpSection.loadRoot(ms, RpClump.class);
+        try (EntryStream ds = res.getEntryStream(modName, "dff")) {
+            rClump = RpSection.loadRoot(ds, RpClump.class);
         } catch (IOException ex) {
             System.err.println("DFF not found: " + modName);
         }
@@ -79,25 +78,68 @@ public class GtaModel {
     
     public Model getModel() {
         if (model == null) {
-            boolean bLocalTransform = (meshType == MeshType.AllMesh);
-            model = createModel(this, bLocalTransform, new Vector3(1, 1, 1));
+            ModelBuilder mb = new ModelBuilder();
+            mb.begin();
+            for (RpGeometry geoData : getGeometries()) {
+                // Convert z-up to y-up
+                Matrix4 trn = new Matrix4().rotate(-1, 0, 0, 90);
+                // Apply local transform
+                if (meshType == MeshType.AllMesh) {
+                    trn.mul(createTransform(geoData.frame));
+                    if (geoData.frame.name.startsWith("wheel_l")) {
+                        trn.rotate(0, 1, 0, 180);
+                    }
+                }
+                // Create meshes
+                int k = 1;
+                for (int i = 0; i < geoData.materials.size(); i++) {
+                    // Prepare material for new meshpart
+                    RpMaterial matData = geoData.materials.get(i);
+                    RpTextureDictionary texDic = world.getTexDic(txdName);
+                    String matName = "M_";
+                    RpTextureNative texNav = matData.bTextured ? texDic.findTexture(matData.getTextureName()) : null;
+                    if (texNav != null) {
+                        String texName = texNav.getMapperName();
+                        if (!resource.containsTexture(texName)) {
+                            RwTexture iTex = new RwTexture(texName, texNav);
+                            resource.register(iTex);
+                        }
+                        matName += texName;
+                    }
+                    else {
+                        matName += modName + k;
+                        k++;
+                    }
+                    IMaterial iMat = resource.findMaterial(matName);
+                    if (iMat == null) {
+                        iMat = new RwMaterial(matName, matData, texNav);
+                        resource.register(iMat);
+                    }
+                    Material mat = resource.makeInstance(iMat, null); // TODO: model is not null
+                    // Create and init transform new part
+                    IMesh iMesh = new IMesh();
+                    iMesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
+                    iMesh.setIndices(geoData.indexMap.get(i));
+                    iMesh.materialName = matName;
+                    Mesh mesh = iMesh.rebuild();
+                    mesh.transform(trn);
+                    // Add meshpart to final model
+                    mb.part(null, mesh, GL20.GL_TRIANGLES, mat);
+                }
+            }
+            model = mb.end();
         }
         return model;
     }
     
-    public ArrayList<RpGeometry> getGeometries() {
+    private ArrayList<RpGeometry> getGeometries() {
+        if (meshType == MeshType.AllMesh) {
+            return rClump.geometries;
+        }
         ArrayList<RpGeometry> ret = new ArrayList<>();
-        if (rClump != null) {
-            switch (meshType) {
-                case AllMesh:
-                    return rClump.geometries;
-                    
-                case OneMesh:
-                    RpGeometry root = rClump.getRootGeometry();
-                    if (root != null)
-                        ret.add(root);
-                    break;
-            }
+        RpGeometry root = rClump.getRootGeometry();
+        if (root != null) {
+            ret.add(root);
         }
         return ret;
     }
@@ -118,133 +160,12 @@ public class GtaModel {
 //        }
     }
     
-    private static Model createModel(GtaModel gMod, boolean bLocalTransform, Vector3 scale) {
-        ResourceManager res = Main.getInstance().resource;
-            
-        ModelBuilder mb = new ModelBuilder();
-        mb.begin();
-        for (RpGeometry rGeo : gMod.getGeometries()) {
-            // vertexFormat and vertexData are common data
-            VertexAttribute[] verFmt = createVertexFormat(rGeo);
-            float[] vertData = wrapVertexData(rGeo);
-            
-            // local transform
-            Matrix4 trn = new Matrix4().rotate(-1, 0, 0, 90); //convert z-up to y-up
-            if (bLocalTransform) {
-                RpFrame[] frmSeq = gMod.rClump.frameList.getFrameSequence(rGeo.frame);
-                trn.mul(createTransform(frmSeq));
-                if (rGeo.frame.name.startsWith("wheel_l"))
-                    trn.rotate(0, 1, 0, 180);
-//                for(RwFrame frame : frameSequence)
-//                    System.out.print(" > " + frame.name);
-//                System.out.println();
-            }
-            
-            // create meshes
-            int k = 1;
-            ArrayList<RpMaterial> rMats = rGeo.getFirstChild(RpType.MaterialList).getChildren(RpMaterial.class);
-            for (int i = 0; i < rMats.size(); i++) {
-                // create and init transform new part
-                short[] idxData = wrapIndexData(rGeo.getTriangles(i));
-                Mesh mesh = new Mesh(true, rGeo.getVertexCount(), idxData.length, verFmt);
-                mesh.setVertices(vertData);
-                mesh.setIndices(idxData);
-                mesh.scale(scale.x, scale.y, scale.z);
-                mesh.transform(trn);
-                // prepare material for new meshpart
-                RpMaterial matData = rMats.get(i);
-                
-                RpTextureDictionary texDic = GtaTextureManager.getTexDic(gMod.txdName);
-                String matName = "M_";
-                RpTextureNative texNav = matData.bTextured ? texDic.findTexture(matData.getTextureName()) : null;
-                if (texNav != null) {
-                    String texName = texNav.getMapperName();
-                    if (!res.containsTexture(texName)) {
-                        RwTexture iTex = new RwTexture(texName, texNav);
-                        res.register(iTex);
-                    }
-                    matName += texName;
-                }
-                else {
-                    matName += gMod.modName + k;
-                    k++;
-                }
-                IMaterial iMat = res.findMaterial(matName);
-                if (iMat == null) {
-                    iMat = new RwMaterial(matName, matData, texNav);
-                    res.register(iMat);
-                }
-                Material mat = res.makeInstance(iMat, null); // TODO: model is not null
-                
-                mb.part(null, mesh, GL20.GL_TRIANGLES, mat);
-            }
+    private Matrix4 createTransform(RpFrame target) {
+        Matrix4 trn = new Matrix4(target.combineMatrix4());
+        while (target.hasParent()) {
+            target = rClump.frameList.findParent(target);
+            trn.mulLeft(new Matrix4(target.combineMatrix4()));
         }
-        return mb.end();
-    }
-    
-    private static Matrix4 createTransform(RpFrame[] frameSequence) {
-        Matrix4 trn = new Matrix4();
-        for (RpFrame frm : frameSequence)
-            trn.mul(new Matrix4(frm.combineMatrix4()));
         return trn;
-    }
-    
-    private static VertexAttribute[] createVertexFormat(RpGeometry rGeo) {
-        ArrayList<VertexAttribute> attrs = new ArrayList<>();
-        attrs.add(VertexAttribute.Position());
-        if (rGeo.hasNormal())
-            attrs.add(VertexAttribute.Normal());
-        for (int i = 0; i < rGeo.getTexCoordCount(); i++)
-            attrs.add(VertexAttribute.TexCoords(i));
-        return attrs.toArray(new VertexAttribute[attrs.size()]);
-    }
-    
-    private static float[] wrapVertexData(RpGeometry rGeo) {
-        boolean hasNormal = rGeo.hasNormal();
-        Vector3[] normals = rGeo.getNormals();
-        
-        int numTexCoords = rGeo.getTexCoordCount();
-        Vector2[][] texCoords = rGeo.getTexCoords();
-        
-        //begin create new vertex data
-        int numVerts = rGeo.getVertexCount();
-        int vertStride = 3;
-        if (hasNormal)
-            vertStride += 3;
-        vertStride += numTexCoords * 2;
-        float[] vertData = new float[numVerts * vertStride];
-        //end create new vertex data
-        
-        //begin wrap vertex data
-        Vector3[] verts = rGeo.getVertices();
-        int k = 0;
-        for (int i = 0; i < numVerts; i++) {
-            vertData[k++] = verts[i].x;
-            vertData[k++] = verts[i].y;
-            vertData[k++] = verts[i].z;
-            if (hasNormal) {
-                vertData[k++] = normals[i].x;
-                vertData[k++] = normals[i].y;
-                vertData[k++] = normals[i].z;
-            }
-            for (int j = 0; j < numTexCoords; j++) {
-                vertData[k++] = texCoords[j][i].x;
-                vertData[k++] = texCoords[j][i].y;
-            }
-        }
-        //end wrap vertex data
-        
-        return vertData;
-    }
-    
-    private static short[] wrapIndexData(RpTriangle[] faces) {
-        short[] data = new short[faces.length * 3];
-        int i = 0;
-        for (RpTriangle face : faces) {
-            data[i] = face.v1; i++;
-            data[i] = face.v2; i++;
-            data[i] = face.v3; i++;
-        }
-        return data;
     }
 }

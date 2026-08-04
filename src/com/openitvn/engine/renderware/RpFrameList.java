@@ -49,23 +49,8 @@ public class RpFrameList extends RpSection {
         }
     }
     
-    @Deprecated
-    public RpFrame[] getFrameSequence(RpFrame frame) {
-        ArrayList<RpFrame> frameSequence = new ArrayList<>();
-        //add target frame
-        frameSequence.add(frame);
-        //add parents sequence
-        RpFrame curFrame = frame;
-        while (curFrame.hasParent()) {
-            curFrame = getParentFrame(curFrame);
-            frameSequence.add(0, curFrame);
-        }
-        return frameSequence.toArray(new RpFrame[frameSequence.size()]);
-    }
-    
-    @Deprecated
-    public RpFrame getParentFrame(RpFrame childFrame) {
-        int parentIndex = childFrame.parentIndex;
+    public RpFrame findParent(RpFrame child) {
+        int parentIndex = child.parentIndex;
         return frames[parentIndex];
     }
 }

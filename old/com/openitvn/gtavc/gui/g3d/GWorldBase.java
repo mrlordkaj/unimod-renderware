@@ -20,6 +20,12 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.openitvn.engine.renderware.RpSection;
+import com.openitvn.engine.renderware.RpTextureDictionary;
+import com.openitvn.unicore.data.EntryStream;
+import com.openitvn.unicore.plugin.gta.ResourceModel;
+import com.openitvn.unicore.world.resource.ResourceManager;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -27,8 +33,13 @@ import java.util.HashMap;
  *
  * @author Thinh Pham
  */
-public abstract class GWorld {
+public abstract class GWorldBase
+{
+    private static final int GRID_WIDTH = 10;
+    private static final int GRID_HEIGHT = 10;
     
+    final ResourceManager resource = new ResourceManager();
+    final HashMap<String, RpTextureDictionary> texDic = new HashMap<>();
     final HashMap<Integer, GtaModel> models = new HashMap<>();
     ArrayList<GtaInstance> instances = new ArrayList<>();
     
@@ -40,11 +51,19 @@ public abstract class GWorld {
         cam.fieldOfView = 45;
         cam.near = 0.2f;
         cam.far = 300;
-        cam.position.set(ViewportApp.GRID_WIDTH,
-                Math.max(ViewportApp.GRID_WIDTH, ViewportApp.GRID_HEIGHT),
-                ViewportApp.GRID_HEIGHT);
+        cam.position.set(GRID_WIDTH,
+                Math.max(GRID_WIDTH, GRID_HEIGHT),
+                GRID_HEIGHT);
         cam.lookAt(0, 0, 0);
         camCtrl = new CameraInputController(cam);
+    }
+    
+    void dispose() {
+        instances.clear();
+        for (GtaModel mod : models.values()) {
+            mod.dispose();
+        }
+        models.clear();
     }
     
     void resize(int width, int height) {
@@ -60,5 +79,20 @@ public abstract class GWorld {
             mb.render(inst.inst, env);
         }
         mb.end();
+    }
+    
+    // TODO: Cleanup unnecessary dictionaries when unload scene part
+    public RpTextureDictionary getTexDic(String txdName) {
+        RpTextureDictionary txd = texDic.get(txdName);
+        if (txd == null) {
+            ResourceModel res = ResourceModel.getInstance();
+            try (EntryStream ds = res.getEntryStream(txdName, "txd")) {
+                txd = RpSection.loadRoot(ds, RpTextureDictionary.class);
+                texDic.put(txdName, txd);
+            } catch (IOException ex) {
+                System.err.println("TXD not found: " + txdName);
+            }
+        }
+        return txd;
     }
 }

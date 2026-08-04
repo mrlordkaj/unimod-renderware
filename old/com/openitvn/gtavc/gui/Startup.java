@@ -51,11 +51,11 @@ public class Startup extends javax.swing.JFrame {
     }
     
     private void launch(JTextField txtLoc, String alias, String title) {
-        Workspace space = new Workspace();
-        space.name = alias;
-        space.location = txtLoc.getText();
-        Setting.getInstance().saveDirectory(space);
-        GameConfig.setWorkspaceOld(space);
+        Workspace workspace = new Workspace();
+        workspace.name = alias;
+        workspace.location = txtLoc.getText();
+        Setting.getInstance().saveDirectory(workspace);
+        GameConfig.setWorkspace(workspace);
         Main.getInstance().setTitle(title);
         Main.getInstance().setVisible(true);
         dispose();
@@ -65,21 +65,21 @@ public class Startup extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jLabel1 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         txtGtaVcLocation = new javax.swing.JTextField();
         btnGtaVcBrowser = new javax.swing.JButton();
         btnGtaVcLaunch = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel4 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel6 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel7 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel8 = new javax.swing.JLabel();
         btnGta3Launch = new javax.swing.JButton();
         btnGta3Browser = new javax.swing.JButton();
         txtGta3Location = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
+        javax.swing.JLabel jLabel9 = new javax.swing.JLabel();
         btnGtaSaLaunch = new javax.swing.JButton();
         btnGtaSaBrowser = new javax.swing.JButton();
         txtGtaSaLocation = new javax.swing.JTextField();
@@ -297,15 +297,6 @@ public class Startup extends javax.swing.JFrame {
     private javax.swing.JButton btnGtaSaLaunch;
     private javax.swing.JButton btnGtaVcBrowser;
     private javax.swing.JButton btnGtaVcLaunch;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JTextField txtGta3Location;
     private javax.swing.JTextField txtGtaSaLocation;
     private javax.swing.JTextField txtGtaVcLocation;

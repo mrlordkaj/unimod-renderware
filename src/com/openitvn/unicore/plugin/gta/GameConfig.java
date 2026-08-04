@@ -79,6 +79,7 @@ public abstract class GameConfig {
         return rs;
     }
     
+    @Deprecated
     public static ArrayList<String> getDependencies() {
         ArrayList<String> rs = new ArrayList<>();
 //        switch (workspace.name) {
@@ -208,14 +209,5 @@ public abstract class GameConfig {
                 break;
         }
         return rs;
-    }
-    
-    @Deprecated
-    public static void setWorkspaceOld(Workspace space) {
-        if (space != workspace) {
-            workspace = space;
-            ResourceModel.getInstance().load(space);
-            Workspace.setActive(space, 0x240691);
-        }
     }
 }

@@ -26,7 +26,7 @@ import java.util.ArrayList;
  *
  * @author Thinh Pham
  */
-public class GWorldMap extends GWorld {
+public class GWorldMap extends GWorldBase {
     
     private final ArrayList<GtaInstance>
             norIns = new ArrayList<>(),
@@ -76,7 +76,7 @@ public class GWorldMap extends GWorld {
 //        if (!(objs instanceof TOBJEntry)) return; // test
 
         // add models
-        GtaModel mod = new GtaModel(objs);
+        GtaModel mod = new GtaModel(objs, this);
         models.put(objs.modId, mod);
     }
     

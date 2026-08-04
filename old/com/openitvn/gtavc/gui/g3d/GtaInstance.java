@@ -29,11 +29,11 @@ import com.openitvn.unicore.plugin.gta.item.ItemINST;
  */
 public class GtaInstance {
     
-    // gta data
+    // GTA data
     public final ItemINST define;
     public final GtaModel gModel;
     
-    // libgdx data
+    // libGDX data
     public final ModelInstance inst;
     
     public GtaInstance(ItemINST def, GtaModel mod) {
@@ -41,7 +41,7 @@ public class GtaInstance {
         this.gModel = mod;
         this.inst = new ModelInstance(mod.getModel());
         
-        // compute transform
+        // Compute transform
         Vector3 pos = new Vector3(def.posX, def.posY, def.posZ);
         Vector3 scl = new Vector3(def.sclX, def.sclY, def.sclZ);
         Quaternion rot = new Quaternion(def.rotX, def.rotY, def.rotZ, def.rotW);

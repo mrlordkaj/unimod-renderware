@@ -60,7 +60,6 @@ public class RpFrame {
         };
     }
     
-    @Deprecated
     public boolean hasParent() {
         return parentIndex >= 0;
     }
