@@ -23,8 +23,8 @@ import com.badlogic.gdx.math.Vector3;
  * @author Thinh Pham
  * https://gtamods.com/wiki/PATH_(IDE_Section)
  */
-public class ItemPATHNode {
-    
+public class ItemPATHNode
+{
     public static final int TYPE_NULL = 0,
                             TYPE_PORT = 1,
                             TYPE_TURN = 2;

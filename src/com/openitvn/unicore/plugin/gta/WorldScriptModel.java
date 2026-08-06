@@ -21,10 +21,8 @@ import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.BackgroundTask;
 import com.openitvn.unicore.data.EntryStream;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 
@@ -98,9 +96,8 @@ class WorldScriptModel extends AbstractTableModel
             String name = script.getName();
             String state = bActive ? "on" : "off";
             Logger.printNotice("%s triggered: %s [%s]", script.type, name, state);
-            try (InputStream is = new FileInputStream(script.file);
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr)) {
+            try (FileReader fr = new FileReader(script.file);
+                BufferedReader br = new BufferedReader(fr)) {
                 String line;
                 while ((line = ScriptHelper.readLine(br)) != null) {
                     switch (line) {
@@ -175,7 +172,7 @@ class WorldScriptModel extends AbstractTableModel
     
     @Override
     public boolean isCellEditable(int row, int col) {
-        return (col == COL_ACTIVE) && scripts.get(row).type.equals(WorldScript.Type.IPL);
+        return (col == COL_ACTIVE) && scripts.get(row).type == WorldScript.Type.IPL;
     }
     
     @Override

@@ -25,8 +25,8 @@ import java.util.ArrayList;
  *
  * @author Thinh Pham
  */
-public class ItemPATHSegment {
-    
+public class ItemPATHSegment
+{
     public static final int TYPE_PED = 0,
                             TYPE_CAR = 1;
     

@@ -19,15 +19,13 @@ package com.openitvn.gtavc.gui;
 import com.openitvn.engine.renderware.tool.RwTexer;
 import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.engine.renderware.RpTextureDictionary;
-import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.unicore.archive.IArchiveEntry;
-import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
-import com.openitvn.unicore.plugin.gta.item.ItemINST;
-import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
+import com.openitvn.unicore.plugin.gta.WorldScript;
+import com.openitvn.unicore.plugin.gta.item.*;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
@@ -35,9 +33,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.util.ArrayList;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.RowFilter;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -55,7 +54,8 @@ public class Main extends javax.swing.JFrame
         return instance;
     }
     
-    private final ScriptFileModel scriptGroupModel = new ScriptFileModel();
+    private final WorldScriptModel worldScriptModel = new WorldScriptModel();
+    private final WorldItemModel worldItemModel = new WorldItemModel();
     private final ResourceModel resourceModel = ResourceModel.getInstance();
     private final ViewportApp gdxApp = ViewportApp.getInstance();
     private String dffFileName, txdFileName;
@@ -65,8 +65,8 @@ public class Main extends javax.swing.JFrame
         recallWindowState();
         initViewpot();
         initAssetTable();
-        initItemGroupTable();
-        initItemTable();
+        initWorldScriptTable();
+        initWorldItemTable();
     }
 
     //<editor-fold defaultstate="collapsed" desc="Initialize and Dispose">
@@ -86,31 +86,44 @@ public class Main extends javax.swing.JFrame
     }
 
     private void initAssetTable() {
-        //setup the table
-        TableColumnModel cm = resourceTable.getColumnModel();
-        cm.getColumn(ResourceModel.COL_INDEX).setMinWidth(40);
-        cm.getColumn(ResourceModel.COL_INDEX).setMaxWidth(40);
-        cm.getColumn(ResourceModel.COL_SIZE).setMinWidth(60);
-        cm.getColumn(ResourceModel.COL_SIZE).setMaxWidth(60);
+        TableColumnModel tcm = resourceTable.getColumnModel();
+        tcm.getColumn(ResourceModel.COL_INDEX).setMinWidth(40);
+        tcm.getColumn(ResourceModel.COL_INDEX).setMaxWidth(40);
+        tcm.getColumn(ResourceModel.COL_SIZE).setMinWidth(60);
+        tcm.getColumn(ResourceModel.COL_SIZE).setMaxWidth(60);
     }
 
-    private void initItemGroupTable() {
-        //setup the table
-        TableColumnModel tcm = tblDefinitionGroup.getColumnModel();
-        tcm.getColumn(ScriptFileModel.COL_ACTIVE).setMinWidth(20);
-        tcm.getColumn(ScriptFileModel.COL_ACTIVE).setMaxWidth(20);
-        tcm.getColumn(ScriptFileModel.COL_INDEX).setMinWidth(30);
-        tcm.getColumn(ScriptFileModel.COL_INDEX).setMaxWidth(30);
-        tcm.getColumn(ScriptFileModel.COL_TYPE).setMinWidth(40);
-        tcm.getColumn(ScriptFileModel.COL_TYPE).setMaxWidth(40);
-        //bind data
+    private void initWorldScriptTable() {
+        // Setup column
+        TableColumnModel tcm = worldScriptTable.getColumnModel();
+        tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMinWidth(20);
+        tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMaxWidth(20);
+        tcm.getColumn(WorldScriptModel.COL_TYPE).setMinWidth(40);
+        tcm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
+        // Bind data
         try {
-            scriptGroupModel.reload();
-            refineItemGroupTable();
+            worldScriptModel.reload(resourceModel);
+            refineWorldScriptTable();
         } catch (IOException ex) {}
+        
+        worldScriptTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) {
+                    return;
+                }
+                int row = worldScriptTable.getSelectedRow();
+                if (row >= 0) {
+                    row = worldScriptTable.convertRowIndexToModel(row);
+                    WorldScript script = worldScriptModel.scripts.get(row);
+                    worldItemModel.entries = worldScriptModel.getScriptItems(script);
+                    worldItemModel.fireTableDataChanged();
+                }
+            }
+        });
     }
 
-    private void refineItemGroupTable() {
+    private void refineWorldScriptTable() {
         String regex;
         if (rdoIDE.isSelected()) {
             regex = "(^IDE$)";
@@ -121,39 +134,16 @@ public class Main extends javax.swing.JFrame
         else {
             regex = "(^NULL$)";
         }
-        TableRowSorter<ScriptFileModel> sorter = (TableRowSorter)tblDefinitionGroup.getRowSorter();
-        sorter.setRowFilter(RowFilter.regexFilter(regex, ScriptFileModel.COL_TYPE));
+        TableRowSorter<WorldScriptModel> sorter = (TableRowSorter)worldScriptTable.getRowSorter();
+        sorter.setRowFilter(RowFilter.regexFilter(regex, WorldScriptModel.COL_TYPE));
     }
 
-    private void initItemTable() {
-        TableColumnModel tcm = tblDefinitionItem.getColumnModel();
-        tcm.getColumn(ScriptItemModel.COL_TYPE).setMinWidth(40);
-        tcm.getColumn(ScriptItemModel.COL_TYPE).setMaxWidth(40);
-        tcm.getColumn(ScriptItemModel.COL_FILE).setMinWidth(30);
-        tcm.getColumn(ScriptItemModel.COL_FILE).setMaxWidth(30);
-        refineItemTable();
+    private void initWorldItemTable() {
+        TableColumnModel tcm = worldItemTable.getColumnModel();
+        tcm.getColumn(WorldItemModel.COL_TYPE).setMinWidth(40);
+        tcm.getColumn(WorldItemModel.COL_TYPE).setMaxWidth(40);
     }
 
-    private void refineItemTable() {
-        ArrayList<RowFilter<Object, Object>> filters = new ArrayList<>(2);
-
-        //rebuild regex of selected definition file
-        String filterByFile = "(^-1$)";
-        int row = tblDefinitionGroup.getSelectedRow();
-        if (row >= 0) {
-            row = tblDefinitionGroup.convertRowIndexToModel(row);
-            int fileId = scriptGroupModel.getEntries().get(row).index;
-            filterByFile = "(^" + fileId + "$)";
-        }
-        filters.add(RowFilter.regexFilter(filterByFile, ScriptItemModel.COL_FILE));
-
-        //rebuild regex of selected types
-        filters.add(RowFilter.regexFilter("", ScriptItemModel.COL_TYPE));
-
-        TableRowSorter<ScriptItemModel> sorter = (TableRowSorter)tblDefinitionItem.getRowSorter();
-        sorter.setRowFilter(RowFilter.andFilter(filters));
-    }
-    
     public int getDividerLocation() {
         return splMain.getDividerLocation();
     }
@@ -211,8 +201,8 @@ public class Main extends javax.swing.JFrame
             // Find match name DFF and TXD for texture dictionary
             String modName = dffFileName.substring(0, dffFileName.length() - 4);
             String txdName = findTexDic(modName);
-            gdxApp.modView.openModel(modName, txdName);
-            RpTextureDictionary texDic = gdxApp.modView.getTexDic(txdName);
+            gdxApp.modelView.openModel(modName, txdName);
+            RpTextureDictionary texDic = gdxApp.modelView.getTexDic(txdName);
             if (texDic != null) {
                 txdFileName = txdName + ".txd";
                 if (mnuTexture.isSelected()) {
@@ -228,10 +218,10 @@ public class Main extends javax.swing.JFrame
     }
     
     private String findTexDic(String modName) {
-        for (ItemNULL script : scriptGroupModel.getDefinitionItemModel().entries) {
+        for (ItemNULL script : worldItemModel.entries) {
             switch (script.getType()){
-                case OBJS:
-                case TOBJ:
+                case "OBJS":
+                case "TOBJ":
                     ItemOBJS objs = (ItemOBJS)script;
                     if (modName.equals(objs.modName)) {
                         return objs.txdName;
@@ -273,9 +263,9 @@ public class Main extends javax.swing.JFrame
         javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
-        tblDefinitionGroup = new javax.swing.JTable();
+        worldScriptTable = new javax.swing.JTable();
         javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
-        tblDefinitionItem = new javax.swing.JTable();
+        worldItemTable = new javax.swing.JTable();
         rdoIDE = new javax.swing.JRadioButton();
         rdoIPL = new javax.swing.JRadioButton();
         javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
@@ -403,46 +393,36 @@ public class Main extends javax.swing.JFrame
 
         tabbedControlPanel.addTab("Resource", new javax.swing.ImageIcon(getClass().getResource("/icon16/box_open.png")), jPanel1); // NOI18N
 
-        tblDefinitionGroup.setAutoCreateRowSorter(true);
-        tblDefinitionGroup.setModel(scriptGroupModel);
-        tblDefinitionGroup.setRowHeight(20);
-        tblDefinitionGroup.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        tblDefinitionGroup.setShowHorizontalLines(false);
-        tblDefinitionGroup.setShowVerticalLines(false);
-        tblDefinitionGroup.getTableHeader().setResizingAllowed(false);
-        tblDefinitionGroup.getTableHeader().setReorderingAllowed(false);
-        tblDefinitionGroup.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseReleased(java.awt.event.MouseEvent evt) {
-                refineDefinitionItemMouse(evt);
-            }
-        });
-        tblDefinitionGroup.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                refineDefinitionItemKey(evt);
-            }
-        });
-        jScrollPane2.setViewportView(tblDefinitionGroup);
+        worldScriptTable.setAutoCreateRowSorter(true);
+        worldScriptTable.setModel(worldScriptModel);
+        worldScriptTable.setRowHeight(20);
+        worldScriptTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        worldScriptTable.setShowHorizontalLines(false);
+        worldScriptTable.setShowVerticalLines(false);
+        worldScriptTable.getTableHeader().setResizingAllowed(false);
+        worldScriptTable.getTableHeader().setReorderingAllowed(false);
+        jScrollPane2.setViewportView(worldScriptTable);
 
-        tblDefinitionItem.setAutoCreateRowSorter(true);
-        tblDefinitionItem.setModel(scriptGroupModel.getDefinitionItemModel());
-        tblDefinitionItem.setRowHeight(20);
-        tblDefinitionItem.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        tblDefinitionItem.setShowHorizontalLines(false);
-        tblDefinitionItem.setShowVerticalLines(false);
-        tblDefinitionItem.getTableHeader().setResizingAllowed(false);
-        tblDefinitionItem.getTableHeader().setReorderingAllowed(false);
-        tblDefinitionItem.addMouseListener(new java.awt.event.MouseAdapter() {
+        worldItemTable.setAutoCreateRowSorter(true);
+        worldItemTable.setModel(worldItemModel);
+        worldItemTable.setRowHeight(20);
+        worldItemTable.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        worldItemTable.setShowHorizontalLines(false);
+        worldItemTable.setShowVerticalLines(false);
+        worldItemTable.getTableHeader().setResizingAllowed(false);
+        worldItemTable.getTableHeader().setReorderingAllowed(false);
+        worldItemTable.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblDefinitionItemMouseClicked(evt);
+                worldItemTableMouseClicked(evt);
             }
         });
-        jScrollPane3.setViewportView(tblDefinitionItem);
+        jScrollPane3.setViewportView(worldItemTable);
 
         rdoMapDefinition.add(rdoIDE);
         rdoIDE.setText("Definition (IDE)");
         rdoIDE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                onRefineDefinitionGroup(evt);
+                onWorldScriptChanged(evt);
             }
         });
 
@@ -451,7 +431,7 @@ public class Main extends javax.swing.JFrame
         rdoIPL.setText("Placement (IPL)");
         rdoIPL.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                onRefineDefinitionGroup(evt);
+                onWorldScriptChanged(evt);
             }
         });
 
@@ -512,10 +492,10 @@ public class Main extends javax.swing.JFrame
                 .addComponent(rdoIDE)
                 .addComponent(rdoIPL))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 285, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel3)
                 .addComponent(cboTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -606,7 +586,7 @@ public class Main extends javax.swing.JFrame
 
     private void onResourceTableClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onResourceTableClicked
         if (evt.getButton() == MouseEvent.BUTTON3)
-            return; //cancel right mouse for popup trigger
+            return; // Cancel right mouse for popup trigger
         boolean isDoubleClick = (evt.getClickCount() == 2);
         if (mnuTexture.isSelected() || isDoubleClick) {
             openRwTexture();
@@ -616,18 +596,10 @@ public class Main extends javax.swing.JFrame
         }
     }//GEN-LAST:event_onResourceTableClicked
 
-    private void refineDefinitionItemKey(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_refineDefinitionItemKey
-        refineItemTable();
-    }//GEN-LAST:event_refineDefinitionItemKey
-
-    private void refineDefinitionItemMouse(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_refineDefinitionItemMouse
-        refineItemTable();
-    }//GEN-LAST:event_refineDefinitionItemMouse
-
     private void txtFindResourceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFindResourceKeyTyped
         String regex = txtFindResource.getText();
         regex = String.format("(?i)(%1$s)", regex);
-        TableRowSorter<ScriptItemModel> sorter = (TableRowSorter) resourceTable.getRowSorter();
+        TableRowSorter<WorldItemModel> sorter = (TableRowSorter) resourceTable.getRowSorter();
         sorter.setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
     }//GEN-LAST:event_txtFindResourceKeyTyped
 
@@ -678,20 +650,20 @@ public class Main extends javax.swing.JFrame
         openRwModel();
     }//GEN-LAST:event_mnuDffViewerActionPerformed
 
-    private void tblDefinitionItemMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblDefinitionItemMouseClicked
-        int id = tblDefinitionItem.convertRowIndexToModel(tblDefinitionItem.getSelectedRow());
-        ItemNULL e = scriptGroupModel.getDefinitionItemModel().entries.get(id);
+    private void worldItemTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_worldItemTableMouseClicked
+        int id = worldItemTable.convertRowIndexToModel(worldItemTable.getSelectedRow());
+        ItemNULL e = worldItemModel.entries.get(id);
         switch (e.getType()) {
-            case INST:
+            case "INST":
                 ItemINST inst = (ItemINST)e;
-                gdxApp.mapView.moveCameraTo(inst.posX, inst.posZ, -inst.posY);
+                gdxApp.worldView.moveCameraTo(inst.posX, inst.posZ, -inst.posY);
                 break;
         }
-    }//GEN-LAST:event_tblDefinitionItemMouseClicked
+    }//GEN-LAST:event_worldItemTableMouseClicked
 
-    private void onRefineDefinitionGroup(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onRefineDefinitionGroup
-        refineItemGroupTable();
-    }//GEN-LAST:event_onRefineDefinitionGroup
+    private void onWorldScriptChanged(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onWorldScriptChanged
+        refineWorldScriptTable();
+    }//GEN-LAST:event_onWorldScriptChanged
 
     private void setViewportMode(ViewportMode mode) {
         gdxApp.setViewpotMode(mode);
@@ -700,11 +672,10 @@ public class Main extends javax.swing.JFrame
     
     private void onSwitchControlPanel(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_onSwitchControlPanel
         switch (tabbedControlPanel.getSelectedIndex()) {
-            case 0: // resource
+            case 0: // Resource
                 setViewportMode(ViewportMode.SingleModel);
                 break;
-                
-            case 1: // map
+            case 1: // World
                 setViewportMode((ViewportMode)cboDistance.getSelectedItem());
                 break;
         }
@@ -731,7 +702,7 @@ public class Main extends javax.swing.JFrame
     }//GEN-LAST:event_mnuTextureItemStateChanged
 
     private void cboTimeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cboTimeItemStateChanged
-        gdxApp.mapView.setTime(cboTime.getSelectedIndex());
+        gdxApp.worldView.setTime(cboTime.getSelectedIndex());
     }//GEN-LAST:event_cboTimeItemStateChanged
 
     private void mnuWorkspaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuWorkspaceActionPerformed
@@ -764,9 +735,9 @@ public class Main extends javax.swing.JFrame
     private javax.swing.JSplitPane splMain;
     private javax.swing.JToolBar statusBar;
     private javax.swing.JTabbedPane tabbedControlPanel;
-    private javax.swing.JTable tblDefinitionGroup;
-    private javax.swing.JTable tblDefinitionItem;
     private javax.swing.JTextField txtFindResource;
     private javax.swing.JPanel viewpotArea;
+    private javax.swing.JTable worldItemTable;
+    private javax.swing.JTable worldScriptTable;
     // End of variables declaration//GEN-END:variables
 }

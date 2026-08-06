@@ -21,27 +21,10 @@ package com.openitvn.unicore.plugin.gta.item;
  *
  * @author Thinh Pham
  */
-@Deprecated
-public class ItemNULL {
-    
-    protected int groupIndex;
-    protected ItemType itemType = ItemType.NULL;
-    
-    public ItemNULL() {
-        this(0);
-    }
-    
-    public ItemNULL(int groupIndex) {
-        this.groupIndex = groupIndex;
-    }
-    
-    @Deprecated
-    public int getGroupIndex() {
-        return groupIndex;
-    }
-    
-    public ItemType getType() {
-        return itemType;
+public class ItemNULL
+{
+    public String getType() {
+        return "NULL";
     }
     
     @Override

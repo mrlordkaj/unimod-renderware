@@ -23,8 +23,8 @@ import com.openitvn.unicore.plugin.gta.GameConfig;
  * @author Thinh Pham
  * https://gtamods.com/wiki/CARS_(IDE_Section)
  */
-public class ItemCARS extends ItemNULL {
-    
+public class ItemCARS extends ItemNULL
+{
     public int id;              // Unique object ID.
     public String modName;      // Name of the .dff model file without extension.
     public String txdName;      // Name of the .txd texture dictionary without extension.
@@ -89,11 +89,9 @@ public class ItemCARS extends ItemNULL {
             }
         } catch (ArrayIndexOutOfBoundsException ex) { }
     }
-        
-    @Deprecated
-    public ItemCARS(String[] args, int groupIndex) {
-        this(args, GameConfig.getAlias());
-        this.groupIndex = groupIndex;
-        this.itemType = ItemType.CARS;
+    
+    @Override
+    public String getType() {
+        return "CARS";
     }
 }

@@ -33,7 +33,7 @@ import java.util.HashMap;
  *
  * @author Thinh Pham
  */
-public abstract class GWorldBase
+public abstract class GtaCanvas
 {
     private static final int GRID_WIDTH = 10;
     private static final int GRID_HEIGHT = 10;

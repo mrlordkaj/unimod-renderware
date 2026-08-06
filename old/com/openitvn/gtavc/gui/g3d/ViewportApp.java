@@ -35,8 +35,8 @@ public class ViewportApp implements ApplicationListener
     
     // Map modes
     
-    public final GWorldMap mapView = new GWorldMap(this);
-    public final GWorldModel modView = new GWorldModel();
+    public final GtaCanvasWorld worldView = new GtaCanvasWorld(this);
+    public final GtaCanvasModel modelView = new GtaCanvasModel();
     
     // Singleton
     
@@ -68,25 +68,25 @@ public class ViewportApp implements ApplicationListener
     @Override
     public void create() {
         setCanvasBackground(new Color(0xff393939));
-        mapView.init();
-        modView.init();
-        Gdx.input.setInputProcessor(mapView.camCtrl);
+        worldView.init();
+        modelView.init();
+        Gdx.input.setInputProcessor(worldView.camCtrl);
     }
     
     @Override
     public void resize(int width, int height) {
-        mapView.resize(width, height);
-        modView.resize(width, height);
+        worldView.resize(width, height);
+        modelView.resize(width, height);
     }
     
     @Override
     public void render() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         if (mode == ViewportMode.SingleModel) {
-            modView.update();
+            modelView.update();
         }
         else {
-            mapView.update();
+            worldView.update();
         }
     }
     
@@ -97,8 +97,8 @@ public class ViewportApp implements ApplicationListener
     @Override
     public void dispose() {
         instance = null;
-        mapView.dispose();
-        modView.dispose();
+        worldView.dispose();
+        modelView.dispose();
     }
     
     public ViewportMode getViewpotMode() {
@@ -108,11 +108,11 @@ public class ViewportApp implements ApplicationListener
     public void setViewpotMode(ViewportMode mode) {
         this.mode = mode;
         if (mode == ViewportMode.SingleModel) {
-            Gdx.input.setInputProcessor(modView.camCtrl);
+            Gdx.input.setInputProcessor(modelView.camCtrl);
         }
         else {
-            Gdx.input.setInputProcessor(mapView.camCtrl);
-            mapView.updateVisibility();
+            Gdx.input.setInputProcessor(worldView.camCtrl);
+            worldView.updateVisibility();
         }
     }
 }

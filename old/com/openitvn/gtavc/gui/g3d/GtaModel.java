@@ -51,17 +51,17 @@ public class GtaModel extends IModel
     
     final MeshType meshType;
     final String modName, txdName;
-    final GWorldBase world;
+    final GtaCanvas world;
     ItemOBJS objs;
     RpClump clump;
     Model model;
     
-    GtaModel(ItemOBJS objs, GWorldBase world) {
+    GtaModel(ItemOBJS objs, GtaCanvas world) {
         this(objs.modName, objs.txdName, MeshType.Single, world);
         this.objs = objs;
     }
     
-    GtaModel(String modName, String txdName, MeshType meshType, GWorldBase world) {
+    GtaModel(String modName, String txdName, MeshType meshType, GtaCanvas world) {
         this.meshType = meshType;
         this.modName = modName;
         this.txdName = txdName;

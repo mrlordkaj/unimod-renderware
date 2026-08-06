@@ -24,7 +24,7 @@ import java.io.IOException;
  *
  * @author Thinh Pham
  */
-public class GWorldModel extends GWorldBase
+public class GtaCanvasModel extends GtaCanvas
 {
     private IGrid grid;
     private GtaInstance inst;

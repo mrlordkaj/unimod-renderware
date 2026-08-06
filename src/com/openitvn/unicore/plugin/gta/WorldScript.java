@@ -31,25 +31,13 @@ public class WorldScript
     public final Type type;
     public boolean bActive = false;
 
-    WorldScript(String path, Type type) {
+    public WorldScript(String path, Type type) {
         this.path = path;
         this.type = type;
         this.file = new File(GameConfig.getDirectory() + "/" + path);
-        this.index = -1;
     }
 
     public String getName() {
         return file.getName();
-    }
-    
-    @Deprecated
-    public final int index;
-    
-    @Deprecated
-    public WorldScript(int index, String path, Type type) {
-        this.path = path;
-        this.type = type;
-        this.file = new File(GameConfig.getDirectory() + "/" + path);
-        this.index = index;
     }
 }

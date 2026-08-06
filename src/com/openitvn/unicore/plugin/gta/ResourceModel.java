@@ -56,7 +56,7 @@ public class ResourceModel extends AbstractTableModel {
     }
     
     final ArrayList<IArchiveEntry> entries;
-    final ArrayList<WorldScript> scripts;
+    public final ArrayList<WorldScript> scripts;
     final HashMap<String, String> dffTxdMap;
     
     private ResourceModel() {

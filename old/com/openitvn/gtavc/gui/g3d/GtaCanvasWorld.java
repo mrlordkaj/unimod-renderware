@@ -24,14 +24,14 @@ import java.util.HashMap;
  *
  * @author Thinh Pham
  */
-public class GWorldMap extends GWorldBase
+public class GtaCanvasWorld extends GtaCanvas
 {
     private final ViewportApp gdxApp;
     private final HashMap<Integer, GtaModel> modMap = new HashMap<>();
     private final HashMap<ItemINST, GtaInstance> instMap = new HashMap<>();
     private int time = 12;
     
-    GWorldMap(ViewportApp gdxApp) {
+    GtaCanvasWorld(ViewportApp gdxApp) {
         this.gdxApp = gdxApp;
     }
     

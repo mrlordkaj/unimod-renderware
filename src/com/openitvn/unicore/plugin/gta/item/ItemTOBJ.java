@@ -18,11 +18,11 @@ package com.openitvn.unicore.plugin.gta.item;
 
 /**
  *
- * @author Thinh 
+ * @author Thinh Pham
  * https://gtamods.com/wiki/TOBJ
  */
-public class ItemTOBJ extends ItemOBJS {
-    
+public class ItemTOBJ extends ItemOBJS
+{
     public int timeOn;
     public int timeOff;
 
@@ -40,10 +40,8 @@ public class ItemTOBJ extends ItemOBJS {
         return rs;
     }
     
-    @Deprecated
-    public ItemTOBJ(String[] args, int groupId) {
-        this(args);
-        this.groupIndex = groupId;
-        this.itemType = ItemType.TOBJ;
+    @Override
+    public String getType() {
+        return "TOBJ";
     }
 }

@@ -42,7 +42,6 @@ public abstract class ScriptHelper {
      * Remove comment, then split up by comma.
      * @return arguments or null.
      */
-    @Deprecated
     public static String[] parseLineByComma(String line) {
         if (line != null) {
             line = line.replaceAll("#.*$", "").trim();
@@ -71,9 +70,14 @@ public abstract class ScriptHelper {
      * Read the next line, remove comment, then transform to lowercase.
      * @return command line or null.
      */
-    static String readLine(BufferedReader br) throws IOException {
-        String line = br.readLine();
-        return line == null ? null :
-                line.replaceAll("#.*$", "").trim().toLowerCase();
+    public static String readLine(BufferedReader br) {
+        try {
+            String line = br.readLine();
+            if (line != null) {
+                return line.replaceAll("#.*$", "").trim().toLowerCase();
+            }
+        }
+        catch (IOException ex) {}
+        return null;
     }
 }
