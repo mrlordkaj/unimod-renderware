@@ -34,8 +34,8 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Thinh Pham
  */
-public class ScriptItemModel extends AbstractTableModel {
-    
+public class ScriptItemModel extends AbstractTableModel
+{
     public static final int COL_DESC = 0;
     public static final int COL_TYPE = 1;
     public static final int COL_FILE = 2;
@@ -46,8 +46,8 @@ public class ScriptItemModel extends AbstractTableModel {
         entries.clear();
         if (scripts != null) {
             for (WorldScript script : scripts) {
-                String filePath = script.getAbsolutePath();
-                defineFromFile(filePath, script.getIndex());
+                String path = script.file.getAbsolutePath();
+                defineFromFile(path, script.index);
             }
         }
         fireTableDataChanged();
@@ -63,12 +63,10 @@ public class ScriptItemModel extends AbstractTableModel {
         switch (col) {
             case COL_DESC:
                 return "Description";
-                
             case COL_TYPE:
                 return "Type";
-                
             case COL_FILE:
-                return "SID";
+                return "GID";
         }
         return null;
     }
@@ -78,10 +76,10 @@ public class ScriptItemModel extends AbstractTableModel {
         switch (col) {
             case COL_FILE:
                 return Integer.class;
-
             case COL_DESC:
+                return ItemNULL.class;
             case COL_TYPE:
-                return String.class;
+                return WorldScript.Type.class;
         }
         return String.class;
     }
@@ -96,10 +94,8 @@ public class ScriptItemModel extends AbstractTableModel {
         switch(col) {
             case COL_DESC:
                 return entries.get(row);
-                
             case COL_TYPE:
                 return entries.get(row).getType();
-                
             case COL_FILE:
                 return entries.get(row).getGroupIndex();
         }

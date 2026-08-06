@@ -21,16 +21,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl.LwjglCanvas;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.math.Vector3;
-import com.openitvn.unicore.plugin.gta.item.ItemNULL;
-import com.openitvn.unicore.plugin.gta.item.ItemINST;
-import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.awt.Canvas;
 import java.awt.Color;
-import java.io.IOException;
 
 /**
  *
@@ -43,13 +35,8 @@ public class ViewportApp implements ApplicationListener
     
     // Map modes
     
-    final GWorldMap mapView = GWorldMap.getInstance();
-    final GWorldModel modView = GWorldModel.getInstance();
-    
-    // Renderers
-    
-    private ModelBatch mb;
-    private Environment env;
+    public final GWorldMap mapView = new GWorldMap(this);
+    public final GWorldModel modView = new GWorldModel();
     
     // Singleton
     
@@ -81,9 +68,6 @@ public class ViewportApp implements ApplicationListener
     @Override
     public void create() {
         setCanvasBackground(new Color(0xff393939));
-        mb = new ModelBatch();
-        env = new Environment();
-        env.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f));
         mapView.init();
         modView.init();
         Gdx.input.setInputProcessor(mapView.camCtrl);
@@ -98,14 +82,11 @@ public class ViewportApp implements ApplicationListener
     @Override
     public void render() {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-        switch (mode) {
-            case MapNormal:
-            case MapDistance:
-                mapView.draw(mb, env);
-                break;
-            case SingleModel:
-                modView.draw(mb, env);
-                break;
+        if (mode == ViewportMode.SingleModel) {
+            modView.update();
+        }
+        else {
+            mapView.update();
         }
     }
     
@@ -115,14 +96,9 @@ public class ViewportApp implements ApplicationListener
     
     @Override
     public void dispose() {
+        instance = null;
         mapView.dispose();
         modView.dispose();
-        mb.dispose();
-        instance = null;
-    }
-    
-    public void setSingleModel(String modName, String txdName) throws IOException {
-        modView.setModel(modName, txdName);
     }
     
     public ViewportMode getViewpotMode() {
@@ -131,32 +107,12 @@ public class ViewportApp implements ApplicationListener
     
     public void setViewpotMode(ViewportMode mode) {
         this.mode = mode;
-        switch (mode) {
-            case MapNormal:
-            case MapDistance:
-                Gdx.input.setInputProcessor(mapView.camCtrl);
-                mapView.setViewportMode(mode);
-                break;
-            case SingleModel:
-                Gdx.input.setInputProcessor(modView.camCtrl);
-                break;
+        if (mode == ViewportMode.SingleModel) {
+            Gdx.input.setInputProcessor(modView.camCtrl);
         }
-    }
-    
-    public void addOBJS(ItemOBJS objs) throws Exception {
-        mapView.addOBJS(objs);
-    }
-    
-    public void removeOBJS(ItemOBJS e) {
-        mapView.removeOBJS(e);
-    }
-    
-    public void select(ItemNULL entry) {
-        switch (entry.getType()) {
-            case INST:
-                ItemINST inst = (ItemINST)entry;
-                mapView.moveCameraTo(new Vector3(inst.posX, inst.posY, inst.posZ));
-                break;
+        else {
+            Gdx.input.setInputProcessor(mapView.camCtrl);
+            mapView.updateVisibility();
         }
     }
 }

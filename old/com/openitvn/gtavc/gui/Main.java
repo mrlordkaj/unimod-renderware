@@ -19,7 +19,6 @@ package com.openitvn.gtavc.gui;
 import com.openitvn.engine.renderware.tool.RwTexer;
 import com.openitvn.engine.renderware.tool.RwDumper;
 import com.openitvn.engine.renderware.RpTextureDictionary;
-import com.openitvn.gtavc.gui.g3d.GWorldModel;
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
@@ -27,6 +26,7 @@ import com.openitvn.gtavc.gui.pref.MainState;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
+import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import java.awt.Canvas;
 import java.awt.Point;
@@ -45,19 +45,20 @@ import javax.swing.table.TableRowSorter;
  *
  * @author Thinh Pham
  */
-public class Main extends javax.swing.JFrame {
+public class Main extends javax.swing.JFrame
+{
+    private static Main instance;
+    public static Main getInstance() {
+        if (instance == null) {
+            instance = new Main();
+        }
+        return instance;
+    }
     
     private final ScriptFileModel scriptGroupModel = new ScriptFileModel();
     private final ResourceModel resourceModel = ResourceModel.getInstance();
     private final ViewportApp gdxApp = ViewportApp.getInstance();
-    private String currentModelFile, currentTexDicFile;
-    
-    private static Main instance;
-    public static Main getInstance() {
-        if (instance == null)
-            instance = new Main();
-        return instance;
-    }
+    private String dffFileName, txdFileName;
     
     private Main() {
         initComponents();
@@ -66,11 +67,6 @@ public class Main extends javax.swing.JFrame {
         initAssetTable();
         initItemGroupTable();
         initItemTable();
-        
-        //active default item groups
-        for (String ide : GameConfig.getDependencies()) {
-            scriptGroupModel.activeIPL(ide);
-        }
     }
 
     //<editor-fold defaultstate="collapsed" desc="Initialize and Dispose">
@@ -100,30 +96,32 @@ public class Main extends javax.swing.JFrame {
 
     private void initItemGroupTable() {
         //setup the table
-        TableColumnModel cm = tblDefinitionGroup.getColumnModel();
-        cm.getColumn(ScriptFileModel.COL_ACTIVE).setMinWidth(20);
-        cm.getColumn(ScriptFileModel.COL_ACTIVE).setMaxWidth(20);
-        cm.getColumn(ScriptFileModel.COL_INDEX).setMinWidth(30);
-        cm.getColumn(ScriptFileModel.COL_INDEX).setMaxWidth(30);
-        cm.getColumn(ScriptFileModel.COL_TYPE).setMinWidth(40);
-        cm.getColumn(ScriptFileModel.COL_TYPE).setMaxWidth(40);
+        TableColumnModel tcm = tblDefinitionGroup.getColumnModel();
+        tcm.getColumn(ScriptFileModel.COL_ACTIVE).setMinWidth(20);
+        tcm.getColumn(ScriptFileModel.COL_ACTIVE).setMaxWidth(20);
+        tcm.getColumn(ScriptFileModel.COL_INDEX).setMinWidth(30);
+        tcm.getColumn(ScriptFileModel.COL_INDEX).setMaxWidth(30);
+        tcm.getColumn(ScriptFileModel.COL_TYPE).setMinWidth(40);
+        tcm.getColumn(ScriptFileModel.COL_TYPE).setMaxWidth(40);
         //bind data
         try {
             scriptGroupModel.reload();
             refineItemGroupTable();
-        } catch (IOException ex) { }
+        } catch (IOException ex) {}
     }
 
     private void refineItemGroupTable() {
         String regex;
         if (rdoIDE.isSelected()) {
             regex = "(^IDE$)";
-        } else if (rdoIPL.isSelected()) {
+        }
+        else if (rdoIPL.isSelected()) {
             regex = "(^IPL$)";
-        } else {
+        }
+        else {
             regex = "(^NULL$)";
         }
-        TableRowSorter<ScriptFileModel> sorter = (TableRowSorter) tblDefinitionGroup.getRowSorter();
+        TableRowSorter<ScriptFileModel> sorter = (TableRowSorter)tblDefinitionGroup.getRowSorter();
         sorter.setRowFilter(RowFilter.regexFilter(regex, ScriptFileModel.COL_TYPE));
     }
 
@@ -144,7 +142,7 @@ public class Main extends javax.swing.JFrame {
         int row = tblDefinitionGroup.getSelectedRow();
         if (row >= 0) {
             row = tblDefinitionGroup.convertRowIndexToModel(row);
-            int fileId = scriptGroupModel.getEntries().get(row).getIndex();
+            int fileId = scriptGroupModel.getEntries().get(row).index;
             filterByFile = "(^" + fileId + "$)";
         }
         filters.add(RowFilter.regexFilter(filterByFile, ScriptItemModel.COL_FILE));
@@ -162,64 +160,68 @@ public class Main extends javax.swing.JFrame {
 
     @Override
     public void dispose() {
+        instance = null;
         MainState.getInstance().saveWindowState(this);
+        if (mnuTexture.isSelected()) {
+            RwTexer.getInstance().dispose();
+        }
         gdxApp.dispose();
         super.dispose();
+        System.exit(0);
     }
 
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="RenderWare Tools">
     
-    private void openRwDump() {
+    private IArchiveEntry getEntryFromResourceTable() {
         int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
         if (id >= 0) {
-            IArchiveEntry e = resourceModel.getEntry(id);
-            String type = e.getExt().toLowerCase();
-            if (type.equals("txd") || type.equals("dff")) {
-                RwDumper dlg = RwDumper.getInstance();
-                dlg.setVisible(true);
-                dlg.openEntry(e);
-            }
+            return resourceModel.getEntry(id);
+        }
+        return null;
+    }
+    
+    private void openRwDump() {
+        IArchiveEntry e = getEntryFromResourceTable();
+        if (e == null) return;
+        String type = e.getExt().toLowerCase();
+        if (type.equals("txd") || type.equals("dff")) {
+            RwDumper dlg = RwDumper.getInstance();
+            dlg.setVisible(true);
+            dlg.openEntry(e);
         }
     }
     
     private void openRwTexture() {
-        int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
-        if (id >= 0) {
-            IArchiveEntry e = resourceModel.getEntry(id);
-            if (e.getExt().equalsIgnoreCase("txd")) {
-                RwTexer dlg = RwTexer.getInstance();
-                dlg.setVisible(true);
-                dlg.openEntry(e);
-            }
+        IArchiveEntry e = getEntryFromResourceTable();
+        if (e == null) return;
+        if (e.getExt().equalsIgnoreCase("txd")) {
+            RwTexer texer = RwTexer.getInstance();
+            texer.setVisible(true);
+            texer.openEntry(e);
         }
     }
     
     private void openRwModel() {
+        IArchiveEntry e = getEntryFromResourceTable();
+        if (e == null || !e.getExt().equalsIgnoreCase("dff")) return;
         try {
-            int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
-            if (id >= 0) {
-                IArchiveEntry e = resourceModel.getEntry(id);
-                if (e.getExt().equalsIgnoreCase("dff")) {
-                    String fileName = e.getName();
-                    currentModelFile = fileName;
-                    // find match name dff and txd for texture dictionary
-                    String modName = fileName.substring(0, fileName.length() - 4);
-                    String txdName = findTexDic(modName);
-                    RpTextureDictionary texDic = GWorldModel.getInstance().getTexDic(txdName);
-                    if (texDic != null) {
-                        currentTexDicFile = txdName + ".txd";
-                        if (mnuTexture.isSelected()) {
-                            RwTexer.getInstance().loadTexDic(currentTexDicFile, texDic);
-                        }
-                    } else {
-                        currentTexDicFile = null;
-                    }
-                    gdxApp.setSingleModel(modName, txdName);
-                    lblInfo.setText(ViewportMode.SingleModel + ": " + currentModelFile + " < " + currentTexDicFile);
+            dffFileName = e.getName();
+            // Find match name DFF and TXD for texture dictionary
+            String modName = dffFileName.substring(0, dffFileName.length() - 4);
+            String txdName = findTexDic(modName);
+            gdxApp.modView.openModel(modName, txdName);
+            RpTextureDictionary texDic = gdxApp.modView.getTexDic(txdName);
+            if (texDic != null) {
+                txdFileName = txdName + ".txd";
+                if (mnuTexture.isSelected()) {
+                    RwTexer.getInstance().loadTexDic(txdFileName, texDic);
                 }
+            } else {
+                txdFileName = null;
             }
+            updateInfoLabel();
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
         }
@@ -240,6 +242,14 @@ public class Main extends javax.swing.JFrame {
     }
     
     //</editor-fold>
+    
+    private void updateInfoLabel() {
+        ViewportMode mode = gdxApp.getViewpotMode();
+        lblInfo.setText(mode.toString());
+        if (mode == ViewportMode.SingleModel) {
+            lblInfo.setText(lblInfo.getText() + ": " + dffFileName + " < " + txdFileName);
+        }
+    }
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -269,19 +279,22 @@ public class Main extends javax.swing.JFrame {
         rdoIDE = new javax.swing.JRadioButton();
         rdoIPL = new javax.swing.JRadioButton();
         javax.swing.JLabel jLabel5 = new javax.swing.JLabel();
-        cboViewMode = new javax.swing.JComboBox<>();
+        cboDistance = new javax.swing.JComboBox<>();
         javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
-        cboMapTime = new javax.swing.JComboBox<>();
+        cboTime = new javax.swing.JComboBox<>();
         viewpotArea = new javax.swing.JPanel();
         statusBar = new javax.swing.JToolBar();
         lblInfo = new javax.swing.JLabel();
         javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
         javax.swing.JMenu jMenu1 = new javax.swing.JMenu();
+        mnuWorkspace = new javax.swing.JMenuItem();
+        javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        mnuExit = new javax.swing.JMenuItem();
         javax.swing.JMenu jMenu2 = new javax.swing.JMenu();
         mnuTexture = new javax.swing.JCheckBoxMenuItem();
 
         mnuTxdViewer.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        mnuTxdViewer.setText("RW Texture Viewer...");
+        mnuTxdViewer.setText("Texture Viewer...");
         mnuTxdViewer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuTxdViewerActionPerformed(evt);
@@ -290,7 +303,7 @@ public class Main extends javax.swing.JFrame {
         mnuTxd.add(mnuTxdViewer);
         mnuTxd.add(jSeparator2);
 
-        mnuTxdDumper.setText("RW Engine Dumper...");
+        mnuTxdDumper.setText("Section Dumper...");
         mnuTxdDumper.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuTxdDumperActionPerformed(evt);
@@ -426,7 +439,7 @@ public class Main extends javax.swing.JFrame {
         jScrollPane3.setViewportView(tblDefinitionItem);
 
         rdoMapDefinition.add(rdoIDE);
-        rdoIDE.setText("Item Definition (IDE)");
+        rdoIDE.setText("Definition (IDE)");
         rdoIDE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 onRefineDefinitionGroup(evt);
@@ -435,33 +448,37 @@ public class Main extends javax.swing.JFrame {
 
         rdoMapDefinition.add(rdoIPL);
         rdoIPL.setSelected(true);
-        rdoIPL.setText("Item Placement (IPL)");
+        rdoIPL.setText("Placement (IPL)");
         rdoIPL.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 onRefineDefinitionGroup(evt);
             }
         });
 
-        jLabel5.setLabelFor(cboViewMode);
-        jLabel5.setText("Map Mode:");
+        jLabel5.setLabelFor(cboDistance);
+        jLabel5.setText("Distance Mode:");
 
-        cboViewMode.setModel(new DefaultComboBoxModel(new ViewportMode[] {
-            ViewportMode.MapNormal,
-            ViewportMode.MapDistance
+        cboDistance.setModel(new DefaultComboBoxModel(new ViewportMode[] {
+            ViewportMode.NormalWorld,
+            ViewportMode.DistanceWorld
         })
     );
-    cboViewMode.addItemListener(new java.awt.event.ItemListener() {
+    cboDistance.addItemListener(new java.awt.event.ItemListener() {
         public void itemStateChanged(java.awt.event.ItemEvent evt) {
-            cboViewModeItemStateChanged(evt);
+            cboDistanceItemStateChanged(evt);
         }
     });
 
-    jLabel3.setLabelFor(cboMapTime);
+    jLabel3.setLabelFor(cboTime);
     jLabel3.setText("Time:");
 
-    cboMapTime.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00" }));
-    cboMapTime.setSelectedIndex(12);
-    cboMapTime.setEnabled(false);
+    cboTime.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00" }));
+    cboTime.setSelectedIndex(12);
+    cboTime.addItemListener(new java.awt.event.ItemListener() {
+        public void itemStateChanged(java.awt.event.ItemEvent evt) {
+            cboTimeItemStateChanged(evt);
+        }
+    });
 
     javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
     jPanel2.setLayout(jPanel2Layout);
@@ -473,20 +490,18 @@ public class Main extends javax.swing.JFrame {
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createSequentialGroup()
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                            .addComponent(rdoIDE)
-                            .addGap(18, 18, 18)
-                            .addComponent(rdoIPL))
-                        .addGroup(jPanel2Layout.createSequentialGroup()
-                            .addComponent(jLabel5)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(cboViewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(jLabel3)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(cboMapTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGap(0, 29, Short.MAX_VALUE)))
+                    .addComponent(rdoIDE)
+                    .addGap(18, 18, 18)
+                    .addComponent(rdoIPL)
+                    .addGap(0, 77, Short.MAX_VALUE))
+                .addGroup(jPanel2Layout.createSequentialGroup()
+                    .addComponent(jLabel5)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(cboDistance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel3)
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(cboTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addContainerGap())
     );
     jPanel2Layout.setVerticalGroup(
@@ -503,9 +518,9 @@ public class Main extends javax.swing.JFrame {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(jLabel3)
-                .addComponent(cboMapTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cboTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(jLabel5)
-                .addComponent(cboViewMode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(cboDistance, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addContainerGap())
     );
 
@@ -518,8 +533,8 @@ public class Main extends javax.swing.JFrame {
     viewpotArea.setLayout(new java.awt.BorderLayout());
     splMain.setRightComponent(viewpotArea);
 
+    statusBar.setBorder(javax.swing.BorderFactory.createEmptyBorder(6, 6, 6, 6));
     statusBar.setFloatable(false);
-    statusBar.setRollover(true);
 
     lblInfo.setText("<none>");
     lblInfo.setMaximumSize(new java.awt.Dimension(360, 14));
@@ -528,6 +543,27 @@ public class Main extends javax.swing.JFrame {
     statusBar.add(lblInfo);
 
     jMenu1.setText("File");
+
+    mnuWorkspace.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+    mnuWorkspace.setText("Switch Workspace");
+    mnuWorkspace.setEnabled(false);
+    mnuWorkspace.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            mnuWorkspaceActionPerformed(evt);
+        }
+    });
+    jMenu1.add(mnuWorkspace);
+    jMenu1.add(jSeparator1);
+
+    mnuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_DOWN_MASK));
+    mnuExit.setText("Exit");
+    mnuExit.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            mnuExitActionPerformed(evt);
+        }
+    });
+    jMenu1.add(mnuExit);
+
     jMenuBar1.add(jMenu1);
 
     jMenu2.setText("Tools");
@@ -552,10 +588,9 @@ public class Main extends javax.swing.JFrame {
         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
             .addContainerGap()
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                .addComponent(splMain)
-                .addComponent(statusBar, javax.swing.GroupLayout.DEFAULT_SIZE, 770, Short.MAX_VALUE))
+            .addComponent(splMain, javax.swing.GroupLayout.DEFAULT_SIZE, 770, Short.MAX_VALUE)
             .addContainerGap())
+        .addComponent(statusBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -563,7 +598,7 @@ public class Main extends javax.swing.JFrame {
             .addContainerGap()
             .addComponent(splMain)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(statusBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
     );
 
     pack();
@@ -648,7 +683,8 @@ public class Main extends javax.swing.JFrame {
         ItemNULL e = scriptGroupModel.getDefinitionItemModel().entries.get(id);
         switch (e.getType()) {
             case INST:
-                gdxApp.select(e);
+                ItemINST inst = (ItemINST)e;
+                gdxApp.mapView.moveCameraTo(inst.posX, inst.posZ, -inst.posY);
                 break;
         }
     }//GEN-LAST:event_tblDefinitionItemMouseClicked
@@ -659,9 +695,7 @@ public class Main extends javax.swing.JFrame {
 
     private void setViewportMode(ViewportMode mode) {
         gdxApp.setViewpotMode(mode);
-        lblInfo.setText(mode.toString());
-        if (mode == ViewportMode.SingleModel)
-            lblInfo.setText(lblInfo.getText() + ": " + currentModelFile + " < " + currentTexDicFile);
+        updateInfoLabel();
     }
     
     private void onSwitchControlPanel(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_onSwitchControlPanel
@@ -671,15 +705,15 @@ public class Main extends javax.swing.JFrame {
                 break;
                 
             case 1: // map
-                setViewportMode((ViewportMode)cboViewMode.getSelectedItem());
+                setViewportMode((ViewportMode)cboDistance.getSelectedItem());
                 break;
         }
     }//GEN-LAST:event_onSwitchControlPanel
 
-    private void cboViewModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cboViewModeItemStateChanged
+    private void cboDistanceItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cboDistanceItemStateChanged
         if (evt.getStateChange() == ItemEvent.SELECTED)
             setViewportMode((ViewportMode)evt.getItem());
-    }//GEN-LAST:event_cboViewModeItemStateChanged
+    }//GEN-LAST:event_cboDistanceItemStateChanged
 
     private void mnuTextureItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_mnuTextureItemStateChanged
         RwTexer dialog = RwTexer.getInstance();
@@ -696,17 +730,33 @@ public class Main extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_mnuTextureItemStateChanged
 
+    private void cboTimeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cboTimeItemStateChanged
+        gdxApp.mapView.setTime(cboTime.getSelectedIndex());
+    }//GEN-LAST:event_cboTimeItemStateChanged
+
+    private void mnuWorkspaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuWorkspaceActionPerformed
+        dispose();
+        Startup dlg = new Startup();
+        dlg.setVisible(true);
+    }//GEN-LAST:event_mnuWorkspaceActionPerformed
+
+    private void mnuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuExitActionPerformed
+        dispose();
+    }//GEN-LAST:event_mnuExitActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JComboBox<String> cboMapTime;
-    private javax.swing.JComboBox<ViewportMode> cboViewMode;
+    private javax.swing.JComboBox<ViewportMode> cboDistance;
+    private javax.swing.JComboBox<String> cboTime;
     private javax.swing.JLabel lblInfo;
     private javax.swing.JPopupMenu mnuDff;
     private javax.swing.JMenuItem mnuDffDumper;
     private javax.swing.JMenuItem mnuDffViewer;
+    private javax.swing.JMenuItem mnuExit;
     private javax.swing.JCheckBoxMenuItem mnuTexture;
     private javax.swing.JPopupMenu mnuTxd;
     private javax.swing.JMenuItem mnuTxdDumper;
     private javax.swing.JMenuItem mnuTxdViewer;
+    private javax.swing.JMenuItem mnuWorkspace;
     private javax.swing.JRadioButton rdoIDE;
     private javax.swing.JRadioButton rdoIPL;
     private javax.swing.ButtonGroup rdoMapDefinition;

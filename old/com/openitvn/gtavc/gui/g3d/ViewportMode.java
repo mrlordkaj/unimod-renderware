@@ -20,10 +20,10 @@ package com.openitvn.gtavc.gui.g3d;
  *
  * @author Thinh Pham
  */
-public enum ViewportMode {
-    
-    MapNormal ("Normal Map"),
-    MapDistance ("Distance Map"),
+public enum ViewportMode
+{
+    NormalWorld ("Normal Map"),
+    DistanceWorld ("Distance Map"),
     SingleModel ("Single Model");
     
     private final String name;

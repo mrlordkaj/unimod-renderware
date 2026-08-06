@@ -43,7 +43,7 @@ class RwDumperTab extends javax.swing.JPanel {
         javax.swing.JScrollPane jScrollPane1 = new javax.swing.JScrollPane();
         treeSection = new javax.swing.JTree();
 
-        setBorder(new javax.swing.border.EmptyBorder(4, 4, 4, 4));
+        setBorder(new javax.swing.border.EmptyBorder(6, 6, 6, 6));
         setLayout(new BorderLayout());
 
         jScrollPane1.setBorder(null);

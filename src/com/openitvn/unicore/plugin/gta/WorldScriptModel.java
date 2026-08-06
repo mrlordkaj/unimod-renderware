@@ -32,8 +32,8 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Thinh Pham
  */
-class WorldScriptModel extends AbstractTableModel {
-    
+class WorldScriptModel extends AbstractTableModel
+{
     public static final String[] COLUMNS = { "", "Name", "Type" };
     public static final int COL_ACTIVE = 0;
     public static final int COL_NAME = 1;
@@ -45,24 +45,14 @@ class WorldScriptModel extends AbstractTableModel {
     void bind(WorldPanel app, ResourceModel res) {
         this.app = app;
         this.scripts = res.scripts;
-        // active default dependencies
-        app.prepareDispatcher();
-        for (String dep : GameConfig.getDependencies()) {
-            for (WorldScript e : scripts) {
-                if (dep.equalsIgnoreCase(e.getName())) {
-                    executeScript(e, true);
-                    break;
-                }
-            }
-        }
-        app.executeDispatcher();
         fireTableDataChanged();
     }
     
     WorldScript findScript(String name) {
         for (WorldScript e : scripts) {
-            if (e.getName().equalsIgnoreCase(name))
+            if (e.getName().equalsIgnoreCase(name)) {
                 return e;
+            }
         }
         return null;
     }
@@ -72,18 +62,20 @@ class WorldScriptModel extends AbstractTableModel {
     }
     
     //<editor-fold defaultstate="collapsed" desc="Active / Deactive">
+    
     private ArrayList<String> getActivatedGroups(WorldScript.Type type) {
         ArrayList<String> rs = new ArrayList<>();
         for (WorldScript e : scripts) {
-            if (e.type == type && e.isActive)
+            if (e.type == type && e.bActive) {
                 rs.add(e.getName().toLowerCase());
+            }
         }
         return rs;
     }
     
     private void executeStreamScript(WorldScript script, boolean bActive) {
         if (script.type == WorldScript.Type.IPL) {
-            // for SA only, IPLs may have extra streamed data inside archive
+            // For SA only, IPLs may have extra streamed data inside archive
             String prefix = script.getName().toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
             ResourceModel res = ResourceModel.getInstance();
             int i = 0;
@@ -102,7 +94,7 @@ class WorldScriptModel extends AbstractTableModel {
     }
     
     private void executeScript(WorldScript script, boolean bActive) {
-        if (script != null && script.isActive != bActive) {
+        if (script != null && script.bActive != bActive) {
             String name = script.getName();
             String state = bActive ? "on" : "off";
             Logger.printNotice("%s triggered: %s [%s]", script.type, name, state);
@@ -131,13 +123,15 @@ class WorldScriptModel extends AbstractTableModel {
                 return;
             }
             executeStreamScript(script, bActive);
-            script.isActive = bActive;
+            script.bActive = bActive;
             System.gc();
         }
     }
+    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="JTable Model">
+    
     @Override
     public int getColumnCount() {
         return COLUMNS.length;
@@ -153,10 +147,10 @@ class WorldScriptModel extends AbstractTableModel {
         switch (col) {
             case COL_ACTIVE:
                 return Boolean.class;
-                
             case COL_NAME:
-            case COL_TYPE:
                 return String.class;
+            case COL_TYPE:
+                return WorldScript.Type.class;
         }
         return Object.class;
     }
@@ -170,11 +164,9 @@ class WorldScriptModel extends AbstractTableModel {
     public Object getValueAt(int row, int col) {
         switch (col) {
             case COL_ACTIVE:
-                return scripts.get(row).isActive;
-                
+                return scripts.get(row).bActive;
             case COL_NAME:
                 return scripts.get(row).getName();
-                
             case COL_TYPE:
                 return scripts.get(row).type;
         }
@@ -188,12 +180,12 @@ class WorldScriptModel extends AbstractTableModel {
     
     @Override
     public void setValueAt(Object value, int row, int col) {
-        boolean active = (boolean) value;
+        boolean active = (boolean)value;
         WorldScript e = scripts.get(row);
-        if (e.isActive != active) {
+        if (e.bActive != active) {
             String name = e.getName();
             if (active) {
-                // activation need a async task because it take long time
+                // Activation need a async task because it take long time
                 // in fact, deactivation is very fast, so it not need to
                 final ArrayList<String> deps = GameConfig.getDependencies(name);
                 BackgroundTask.run(new BackgroundTask(name, deps.size()+1) {
@@ -202,12 +194,12 @@ class WorldScriptModel extends AbstractTableModel {
                         try {
                             int actived = 0;
                             app.prepareDispatcher();
-                            // active dependecies
+                            // Activate dependecies
                             for (String dep : deps) {
                                 executeScript(findScript(dep), true);
                                 setProcessedCount(++actived);
                             }
-                            // active target
+                            // Activate target
                             executeScript(findScript(name), true);
                             setProcessedCount(++actived);
                         } catch (Exception ex) {
@@ -221,20 +213,20 @@ class WorldScriptModel extends AbstractTableModel {
                     }
                 });
             } else {
-                // deactive target
+                // Deactivate target
                 executeScript(findScript(name), false);
-                // deactive no longer required dependencies
+                // Deactivate dependencies
                 ArrayList<String> ipls = getActivatedGroups(WorldScript.Type.IPL);
                 ArrayList<String> ides = getActivatedGroups(WorldScript.Type.IDE);
-                ArrayList<String> keeps = GameConfig.getDependencies(ipls);
-                keeps.addAll(GameConfig.getDependencies());
+                ArrayList<String> kept = GameConfig.getDependencies(ipls);
                 for (String ide : ides) {
-                    if (!keeps.contains(ide)) {
+                    if (!kept.contains(ide)) {
                         executeScript(findScript(ide), false);
                     }
                 }
             }
         }
     }
+    
     //</editor-fold>
 }

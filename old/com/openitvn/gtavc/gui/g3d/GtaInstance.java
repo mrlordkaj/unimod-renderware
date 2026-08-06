@@ -18,42 +18,42 @@
 package com.openitvn.gtavc.gui.g3d;
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
+import com.openitvn.unicore.plugin.gta.item.ItemTOBJ;
 
 /**
  *
  * @author Thinh Pham
  */
-public class GtaInstance {
+class GtaInstance
+{
+    final GtaModel mod;
+    final ModelInstance inst;
+    boolean bVisible = true;
     
-    // GTA data
-    public final ItemINST define;
-    public final GtaModel gModel;
-    
-    // libGDX data
-    public final ModelInstance inst;
-    
-    public GtaInstance(ItemINST def, GtaModel mod) {
-        this.define = def;
-        this.gModel = mod;
+    GtaInstance(GtaModel mod) {
+        this.mod = mod;
         this.inst = new ModelInstance(mod.getModel());
-        
-        // Compute transform
-        Vector3 pos = new Vector3(def.posX, def.posY, def.posZ);
-        Vector3 scl = new Vector3(def.sclX, def.sclY, def.sclZ);
-        Quaternion rot = new Quaternion(def.rotX, def.rotY, def.rotZ, def.rotW);
-        inst.transform.translate(pos.x, pos.z, -pos.y);
-        inst.transform.rotateRad(rot.x, rot.z, -rot.y, -2*(float)Math.acos(rot.w));
-        inst.transform.scale(scl.x, scl.y, scl.z);
     }
     
-    public GtaInstance(Matrix4 transform, GtaModel mod) {
-        this.define = null;
-        this.gModel = mod;
-        this.inst = new ModelInstance(mod.getModel());
-        inst.transform.set(transform);
+    void setINST(ItemINST e) {
+        inst.transform.translate(e.posX, e.posZ, -e.posY);
+        inst.transform.rotateRad(e.rotX, e.rotZ, -e.rotY, -2*(float)Math.acos(e.rotW));
+        inst.transform.scale(e.sclX, e.sclZ, e.sclY);
+    }
+    
+    void updateVisibility(boolean bDistanceMode, int time) {
+        // By distance
+        float dd = mod.getDrawDistance();
+        bVisible = bDistanceMode ? dd > 300 : dd <= 300;
+        // By time
+        if (bVisible && mod.objs instanceof ItemTOBJ) {
+            ItemTOBJ tobj = (ItemTOBJ)mod.objs;
+            // Night object
+            bVisible = (time >= tobj.timeOn || time < tobj.timeOff);
+            if (tobj.timeOn < tobj.timeOff) {
+                System.err.println(tobj.modId + " " + tobj.modName + " " + tobj.timeOn + " " + tobj.timeOff);
+            }
+        }
     }
 }

@@ -127,8 +127,9 @@ public class ResourceModel extends AbstractTableModel {
                             continue;
                             
                         default:
-                            if (args.length > 1)
+                            if (args.length > 1) {
                                 Logger.printWarning(line);
+                            }
                             continue;
                     }
                     Logger.printNormal(line);

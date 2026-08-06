@@ -16,7 +16,6 @@
  */
 package com.openitvn.format.img;
 
-import com.openitvn.engine.renderware.RpHelper;
 import com.openitvn.unicore.archive.IArchive;
 import com.openitvn.unicore.archive.ICompression;
 import com.openitvn.unicore.data.FileStream;
@@ -34,22 +33,18 @@ public final class RwArchive extends IArchive<IArchiveEntry> {
     
     private final int MAGIC_VER2 = StringHelper.makeFourCC("VER2");
     
-    // only support v1 and v2 by now
-    private int version;
-    
     public RwArchive() {
         compression = ICompression.None;
     }
       
     @Override
     protected void parse(File in) throws IOException {
-        // directory is invalid archive
+        // Directory is invalid archive
         if (in.isDirectory()) {
-            version = -1;
             return;
         }
         if (in.getName().toLowerCase().endsWith(".img")) {
-            // if first 4 byte is "VER2", it is version 2
+            // If first 4 byte is "VER2", it is version 2
             try (FileStream fs = new FileStream(getFile())) {
                 if (fs.getInt() == MAGIC_VER2) {
                     // build index table v2
@@ -62,15 +57,14 @@ public final class RwArchive extends IArchive<IArchiveEntry> {
                         IArchiveEntry entry = new IArchiveEntry(this, name, size, offset, size);
                         entries.add(entry);
                     }
-                    version = 2;
                     return;
                 }
             }
-            // if found .dir, it is version 1
+            // If found .dir, it is version 1
             String imgName = in.getAbsolutePath();
             File dirFile = new File(imgName.substring(0, imgName.length()-4).concat(".dir"));
             if (Files.exists(dirFile.toPath())) {
-                // build index table v1
+                // Build index table v1
                 try (FileStream fs = new FileStream(dirFile)) {
                     while (fs.hasRemaining()) {
                         int offset = fs.getInt() * 2048;
@@ -80,11 +74,10 @@ public final class RwArchive extends IArchive<IArchiveEntry> {
                         entries.add(entry);
                     }
                 }
-                version = 1;
                 return;
             }
         }
-        // other files is abstract archive with itself as only entry
+        // Other files are abstract archives with the file itself as only entry
         String name = in.getName();
         int size = (int) in.length();
         IArchiveEntry entry = new IArchiveEntry(this, name, size, 0, size);

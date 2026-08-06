@@ -19,6 +19,7 @@ package com.openitvn.gtavc.gui.g3d;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
@@ -26,7 +27,6 @@ import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.world.resource.ResourceManager;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -40,13 +40,16 @@ public abstract class GWorldBase
     
     final ResourceManager resource = new ResourceManager();
     final HashMap<String, RpTextureDictionary> texDic = new HashMap<>();
-    final HashMap<Integer, GtaModel> models = new HashMap<>();
-    ArrayList<GtaInstance> instances = new ArrayList<>();
     
-    CameraInputController camCtrl;
-    PerspectiveCamera cam;
+    protected ModelBatch mb;
+    protected Environment env;
+    protected PerspectiveCamera cam;
+    protected CameraInputController camCtrl;
     
     void init() {
+        mb = new ModelBatch();
+        env = new Environment();
+        env.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.8f, 0.8f, 1f));
         cam = new PerspectiveCamera();
         cam.fieldOfView = 45;
         cam.near = 0.2f;
@@ -59,11 +62,7 @@ public abstract class GWorldBase
     }
     
     void dispose() {
-        instances.clear();
-        for (GtaModel mod : models.values()) {
-            mod.dispose();
-        }
-        models.clear();
+        mb.dispose();
     }
     
     void resize(int width, int height) {
@@ -71,15 +70,15 @@ public abstract class GWorldBase
         cam.viewportHeight = height;
     }
     
-    void draw(ModelBatch mb, Environment env) {
+    final void update() {
         cam.update();
         camCtrl.update();
         mb.begin(cam);
-        for (GtaInstance inst : instances) {
-            mb.render(inst.inst, env);
-        }
+        draw();
         mb.end();
     }
+    
+    protected abstract void draw();
     
     // TODO: Cleanup unnecessary dictionaries when unload scene part
     public RpTextureDictionary getTexDic(String txdName) {

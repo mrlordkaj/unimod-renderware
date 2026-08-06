@@ -22,19 +22,20 @@ import java.io.File;
  *
  * @author Thinh Pham
  */
-public class WorldScript {
-    
+public class WorldScript
+{
     public enum Type { IDE, IPL }
     
     public final String path;
-    final File file;
-    final Type type;
-    boolean isActive = false;
+    public final File file;
+    public final Type type;
+    public boolean bActive = false;
 
     WorldScript(String path, Type type) {
         this.path = path;
         this.type = type;
         this.file = new File(GameConfig.getDirectory() + "/" + path);
+        this.index = -1;
     }
 
     public String getName() {
@@ -42,36 +43,13 @@ public class WorldScript {
     }
     
     @Deprecated
-    private int index;
+    public final int index;
     
     @Deprecated
     public WorldScript(int index, String path, Type type) {
-        this(path, type);
+        this.path = path;
+        this.type = type;
+        this.file = new File(GameConfig.getDirectory() + "/" + path);
         this.index = index;
-    }
-    
-    @Deprecated
-    public int getIndex() {
-        return index;
-    }
-    
-    @Deprecated
-    public String getAbsolutePath() {
-        return file.getAbsolutePath();
-    }
-    
-    @Deprecated
-    public boolean isActive() {
-        return isActive;
-    }
-    
-    @Deprecated
-    public void setActive(boolean active) {
-        this.isActive = active;
-    }
-    
-    @Deprecated
-    public Type getType() {
-        return type;
     }
 }

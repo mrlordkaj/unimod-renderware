@@ -35,6 +35,7 @@ public class ItemNULL {
         this.groupIndex = groupIndex;
     }
     
+    @Deprecated
     public int getGroupIndex() {
         return groupIndex;
     }

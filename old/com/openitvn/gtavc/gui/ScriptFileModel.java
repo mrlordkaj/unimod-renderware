@@ -18,9 +18,9 @@
 package com.openitvn.gtavc.gui;
 
 import com.openitvn.unicore.plugin.gta.item.ItemNULL;
-import com.openitvn.gtavc.gui.g3d.GWorldMap;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.maintain.Logger;
+import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
@@ -40,7 +40,8 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Thinh Pham
  */
-public class ScriptFileModel extends AbstractTableModel {
+public class ScriptFileModel extends AbstractTableModel
+{
     public static final String[] COLUMNS = {"", "ID", "Name", "Type"};
     public static final int COL_ACTIVE = 0;
     public static final int COL_INDEX = 1;
@@ -50,82 +51,12 @@ public class ScriptFileModel extends AbstractTableModel {
     private final ScriptItemModel scriptItemModel = new ScriptItemModel();
     private final ArrayList<WorldScript> entries = new ArrayList<>();
     
-    //<editor-fold defaultstate="collapsed" desc="JTable Model">
-    
-    @Override
-    public String getColumnName(int col) {
-        return COLUMNS[col];
-    }
-
-    @Override
-    public int getRowCount() {
-        return entries.size();
-    }
-
-    @Override
-    public int getColumnCount() {
-        return COLUMNS.length;
-    }
-    
-    @Override
-    public Class getColumnClass(int col) {
-        switch (col) {
-            case COL_ACTIVE:
-                return Boolean.class;
-                
-            case COL_INDEX:
-                return Integer.class;
-
-            case COL_NAME:
-            case COL_TYPE:
-                return String.class;
-        }
-        return String.class;
-    }
-
-    @Override
-    public Object getValueAt(int row, int col) {
-        switch (col) {
-            case COL_ACTIVE:
-                return entries.get(row).isActive();
-                
-            case COL_INDEX:
-                return entries.get(row).getIndex();
-                
-            case COL_NAME:
-                return entries.get(row).getName();
-                
-            case COL_TYPE:
-                return entries.get(row).getType();
-        }
-        return null;
-    }
-    
-    @Override
-    public boolean isCellEditable(int row, int col) {
-        return (col == COL_ACTIVE) && entries.get(row).getType().equals(WorldScript.Type.IPL);
-    }
-    
-    @Override
-    public void setValueAt(Object value, int row, int col) {
-        if (col == COL_ACTIVE) {
-            boolean active = (boolean)value;
-            WorldScript entry = entries.get(row);
-            if (entry.isActive() != active) {
-                if (active) activeIPL(entry.getName());
-                else deactiveIPL(entry.getName());
-            }
-        }
-    }
-    
-    //</editor-fold>
-    
-    //<editor-fold defaultstate="collapsed" desc="Data Management">
     public void reload() throws IOException {
-        // reset data
+        // Reset data
         scriptItemModel.bind(null);
         entries.clear();
-        // bind data from script file
+        
+        // Bind data from script file
         for (String loader : GameConfig.getLoaders()) {
             Logger.printNotice("Executing loader: %1$s", loader);
             try (InputStream is = new FileInputStream(GameConfig.getDirectory() + loader);
@@ -152,11 +83,12 @@ public class ScriptFileModel extends AbstractTableModel {
                 Logger.printError("Failed executing: %1$s", loader);
             }
         }
-
         scriptItemModel.bind(entries);
-        // stream internal ipl from SA
-        if (GameConfig.ALIAS_SA.equals(GameConfig.getAlias()))
+        
+        // Stream internal ipl from SA
+        if (GameConfig.ALIAS_SA.equals(GameConfig.getAlias())) {
             parseInternalScript();
+        }
         
         fireTableDataChanged();
     }
@@ -190,10 +122,10 @@ public class ScriptFileModel extends AbstractTableModel {
         return null;
     }
     
-    private ArrayList<String> getActiveGroups(WorldScript.Type type) {
+    private ArrayList<String> getActivatedGroups(WorldScript.Type type) {
         ArrayList<String> rs = new ArrayList<>();
         for (WorldScript e : entries) {
-            if (e.getType() == type && e.isActive()) {
+            if (e.type == type && e.bActive) {
                 rs.add(e.getName().toLowerCase());
             }
         }
@@ -205,118 +137,168 @@ public class ScriptFileModel extends AbstractTableModel {
     }
     
     private void parseInternalScript() {
-        // for GTA SA only, read extra binary stream inside img file
-//        try {
-            ArrayList<ItemNULL> items = scriptItemModel.entries;
-            ResourceModel res = ResourceModel.getInstance();
-            for (WorldScript group : entries) {
-                if (group.getName().toLowerCase().endsWith(".ipl")) {
-                    String name = group.getName();
-                    String prefix = name.substring(0, name.length() - 4).concat("_stream");
-                    int id = 0;
-                    while (true) {
-                        try (EntryStream es = res.getEntryStream(prefix + id, "ipl")) {
-                            es.position(4); //skips "bnry"
-                            int instCount = es.getInt();
-                            es.position(0x4C); // offset of item instances, 0x4C by default
-                            for (int i = 0; i < instCount; i++) {
-                                ItemINST inst = new ItemINST(es, group.getIndex());
-                                items.add(inst);
-                            }
-                            id++;
-                        } catch (IOException ex) {
-                            break;
+        // For GTA SA only, read extra binary stream inside img file
+        ArrayList<ItemNULL> items = scriptItemModel.entries;
+        ResourceModel res = ResourceModel.getInstance();
+        for (WorldScript group : entries) {
+            if (group.getName().toLowerCase().endsWith(".ipl")) {
+                String name = group.getName();
+                String prefix = name.substring(0, name.length() - 4).concat("_stream");
+                int id = 0;
+                IArchiveEntry ae;
+                while ((ae = res.findEntry(prefix+id+".ipl")) != null) {
+                    try {
+                        EntryStream es = new EntryStream(ae);
+                        es.position(4); // Skip "bnry"
+                        int instCount = es.getInt();
+                        es.position(0x4C); // Offset of item instances, 0x4C by default
+                        for (int i = 0; i < instCount; i++) {
+                            ItemINST inst = new ItemINST(es, group.index);
+                            items.add(inst);
                         }
                     }
-//                    IArchiveEntry entry;
-//                    while ((entry = res.findEntry(prefix + id, "ipl")) != null) {
-//                        try (EntryStream es = new EntryStream(entry)) {
-//                            es.position(4); //skips "bnry"
-//                            int instCount = es.getInt();
-//                            es.position(0x4C); // offset of item instances, 0x4C by default
-//                            for (int i = 0; i < instCount; i++) {
-//                                ItemINST inst = new ItemINST(es, group.getIndex());
-//                                items.add(inst);
-//                            }
-//                        }
-//                        id++;
-//                    }
+                    catch (IOException ex) {}
+                    id++;
                 }
             }
-//        } catch (IOException ex) {
-//            ex.printStackTrace(System.err);
-//        }
+        }
     }
     
-    //</editor-fold>
-    
     //<editor-fold defaultstate="collapsed" desc="Active / Deactive">
+    
     public void activeIPL(String ipl) {
-        //active dependecies
-        for (String dp : GameConfig.getDependencies(ipl))
+        // Activate dependecies
+        for (String dp : GameConfig.getDependencies(ipl)) {
             activeGroup(getEntry(dp));
-        //active target
+        }
+        // Activate target
         activeGroup(getEntry(ipl));
     }
     
     private void activeGroup(WorldScript g) {
-        if (g != null && !g.isActive()) {
+        if (g != null && !g.bActive) {
             ViewportApp app = ViewportApp.getInstance();
-            for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
+            for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.index)) {
                 try {
                     switch (e.getType()) {
                         case OBJS:
                         case TOBJ:
-                            ItemOBJS objs = (ItemOBJS) e;
-                            app.addOBJS(objs);
+                            app.mapView.addOBJS((ItemOBJS)e);
                             break;
 
                         case INST:
-                            GWorldMap.getInstance().addINST((ItemINST)e);
+                            app.mapView.addINST((ItemINST)e);
                             break;
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace(System.err);
                 }
             }
-            g.setActive(true);
+            g.bActive = true;
         }
     }
     
     public void deactiveIPL(String ipl) {
-        // deactive target
+        // Deactivate target
         deactiveGroup(getEntry(ipl));
-        // deactive no longer required dependencies
-        ArrayList<String> keeps = GameConfig.getDependencies(getActiveGroups(WorldScript.Type.IPL));
-        keeps.addAll(GameConfig.getDependencies());
-        for (String ide : getActiveGroups(WorldScript.Type.IDE)) {
-            if (!keeps.contains(ide))
+        // Deactivate dependencies
+        ArrayList<String> ipls = getActivatedGroups(WorldScript.Type.IPL);
+        ArrayList<String> ides = getActivatedGroups(WorldScript.Type.IDE);
+        ArrayList<String> kept = GameConfig.getDependencies(ipls);
+        for (String ide : ides) {
+            if (!kept.contains(ide)) {
                 deactiveGroup(getEntry(ide));
+            }
         }
         System.gc();
     }
     
     private void deactiveGroup(WorldScript g) {
-        if (g != null && g.isActive()) {
+        if (g != null && g.bActive) {
             ViewportApp app = ViewportApp.getInstance();
-            for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.getIndex())) {
+            for (ItemNULL e : scriptItemModel.getEntriesByGroup(g.index)) {
                 try {
                     switch (e.getType()) {
                         case OBJS:
                         case TOBJ:
-                            app.removeOBJS((ItemOBJS)e);
+                            app.mapView.removeOBJS((ItemOBJS)e);
                             break;
-
                         case INST:
-                            GWorldMap.getInstance().removeINST((ItemINST)e);
+                            app.mapView.removeINST((ItemINST)e);
                             break;
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace(System.err);
                 }
             }
-            g.setActive(false);
+            g.bActive = false;
         }
     }
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="JTable Model">
+    
+    @Override
+    public String getColumnName(int col) {
+        return COLUMNS[col];
+    }
+
+    @Override
+    public int getRowCount() {
+        return entries.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+        return COLUMNS.length;
+    }
+    
+    @Override
+    public Class getColumnClass(int col) {
+        switch (col) {
+            case COL_ACTIVE:
+                return Boolean.class;
+            case COL_INDEX:
+                return Integer.class;
+            case COL_TYPE:
+                return WorldScript.Type.class;
+        }
+        return String.class;
+    }
+
+    @Override
+    public Object getValueAt(int row, int col) {
+        switch (col) {
+            case COL_ACTIVE:
+                return entries.get(row).bActive;
+            case COL_INDEX:
+                return entries.get(row).index;
+            case COL_NAME:
+                return entries.get(row).getName();
+            case COL_TYPE:
+                return entries.get(row).type;
+        }
+        return null;
+    }
+    
+    @Override
+    public boolean isCellEditable(int row, int col) {
+        return col == COL_ACTIVE &&
+                entries.get(row).type.equals(WorldScript.Type.IPL);
+    }
+    
+    @Override
+    public void setValueAt(Object value, int row, int col) {
+        if (col == COL_ACTIVE) {
+            boolean active = (boolean)value;
+            WorldScript entry = entries.get(row);
+            if (entry.bActive != active) {
+                if (active) activeIPL(entry.getName());
+                else deactiveIPL(entry.getName());
+            }
+        }
+    }
+    
     //</editor-fold>
 }

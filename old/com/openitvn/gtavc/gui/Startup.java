@@ -30,23 +30,32 @@ import javax.swing.JTextField;
 public class Startup extends javax.swing.JFrame {
     
     static {
-        System.loadLibrary("lwjgl64");
-        System.loadLibrary("gdx64");
+        String arch = System.getProperty("os.arch");
+        if (arch.endsWith("64")) {
+            System.loadLibrary("lwjgl64");
+            System.loadLibrary("gdx64");
+        } else if (arch.endsWith("86")) {
+            System.loadLibrary("lwjgl");
+            System.loadLibrary("gdx");
+        }
     }
     
     public Startup() {
         initComponents();
-        txtGta3Location.setText(Setting.getInstance().getGta3Location());
-        txtGtaVcLocation.setText(Setting.getInstance().getGtaVcLocation());
-        txtGtaSaLocation.setText(Setting.getInstance().getGtaSaLocation());
+        Setting s = Setting.getInstance();
+        txtGta3Location.setText(s.getGta3Location());
+        txtGtaVcLocation.setText(s.getGtaVcLocation());
+        txtGtaSaLocation.setText(s.getGtaSaLocation());
     }
     
-    private void browser(JTextField txtLoc, String title) {
+    private void browser(JTextField txtLoc, String alias, String title) {
         JFileChooser fc = new JFileChooser(txtLoc.getText());
         fc.setDialogTitle(title);
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            txtLoc.setText(fc.getSelectedFile().getPath());
+            String dir = fc.getSelectedFile().getPath();
+            Setting.getInstance().saveDirectory(alias, dir);
+            txtLoc.setText(dir);
         }
     }
     
@@ -54,7 +63,6 @@ public class Startup extends javax.swing.JFrame {
         Workspace workspace = new Workspace();
         workspace.name = alias;
         workspace.location = txtLoc.getText();
-        Setting.getInstance().saveDirectory(workspace);
         GameConfig.setWorkspace(workspace);
         Main.getInstance().setTitle(title);
         Main.getInstance().setVisible(true);
@@ -85,7 +93,7 @@ public class Startup extends javax.swing.JFrame {
         txtGtaSaLocation = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("GTA Viewer Startup");
+        setTitle("GTA Viewer");
         setLocationByPlatform(true);
         setResizable(false);
 
@@ -256,7 +264,7 @@ public class Startup extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnGtaVcBrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaVcBrowserActionPerformed
-        browser(txtGtaVcLocation, "GTA Vice City Directory");
+        browser(txtGtaVcLocation, GameConfig.ALIAS_VC, "GTA Vice City Directory");
     }//GEN-LAST:event_btnGtaVcBrowserActionPerformed
 
     private void btnGtaVcLaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaVcLaunchActionPerformed
@@ -264,7 +272,7 @@ public class Startup extends javax.swing.JFrame {
     }//GEN-LAST:event_btnGtaVcLaunchActionPerformed
 
     private void btnGta3BrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGta3BrowserActionPerformed
-        browser(txtGta3Location, "GTA III Directory");
+        browser(txtGta3Location, GameConfig.ALIAS_III, "GTA III Directory");
     }//GEN-LAST:event_btnGta3BrowserActionPerformed
 
     private void btnGta3LaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGta3LaunchActionPerformed
@@ -272,7 +280,7 @@ public class Startup extends javax.swing.JFrame {
     }//GEN-LAST:event_btnGta3LaunchActionPerformed
 
     private void btnGtaSaBrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaSaBrowserActionPerformed
-        browser(txtGtaSaLocation, "GTA San Andreas Directory");
+        browser(txtGtaSaLocation, GameConfig.ALIAS_SA, "GTA San Andreas Directory");
     }//GEN-LAST:event_btnGtaSaBrowserActionPerformed
 
     private void btnGtaSaLaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGtaSaLaunchActionPerformed

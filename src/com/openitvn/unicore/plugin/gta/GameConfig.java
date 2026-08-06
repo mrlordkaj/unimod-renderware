@@ -79,27 +79,6 @@ public abstract class GameConfig {
         return rs;
     }
     
-    @Deprecated
-    public static ArrayList<String> getDependencies() {
-        ArrayList<String> rs = new ArrayList<>();
-//        switch (workspace.name) {
-//            case ALIAS_III:
-//                rs.add("default.ide");
-//                break;
-//                
-//            case ALIAS_VC:
-//                rs.add("default.ide");
-//                break;
-//                
-//            case ALIAS_SA:
-//                rs.add("default.ide");
-//                rs.add("vehicles.ide");
-//                rs.add("peds.ide");
-//                break;
-//        }
-        return rs;
-    }
-    
     public static ArrayList<String> getDependencies(ArrayList<String> ipls) {
         ArrayList<String> rs = new ArrayList<>();
         for (String ipl : ipls) {

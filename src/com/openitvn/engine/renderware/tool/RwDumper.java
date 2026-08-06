@@ -33,7 +33,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  * @author Thinh Pham
  */
 @SuppressWarnings("serial")
-public class RwDumper extends javax.swing.JDialog {
+public class RwDumper extends javax.swing.JDialog
+{
+    private static final String DIALOG_TITLE = "RW Section Dumper";
     
     private final HashMap<Object, RwDumperTab> entryMap = new HashMap<>(); // key is String or RwArchiveEntry
     private File currentFile; // for file chooser default location
@@ -90,12 +92,11 @@ public class RwDumper extends javax.swing.JDialog {
         mnuCloseCurrent = new javax.swing.JMenuItem();
         mnuCloseAll = new javax.swing.JMenuItem();
         tabbedDumper = new javax.swing.JTabbedPane();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
+        javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
+        javax.swing.JMenu jMenu1 = new javax.swing.JMenu();
         mnuOpen = new javax.swing.JMenuItem();
-        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
         mnuExit = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
 
         mnuCloseCurrent.setText("Close");
         mnuCloseCurrent.addActionListener(new java.awt.event.ActionListener() {
@@ -114,10 +115,12 @@ public class RwDumper extends javax.swing.JDialog {
         popOpen.add(mnuCloseAll);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle(DIALOG_TITLE);
         setLocationByPlatform(true);
-        setMinimumSize(new java.awt.Dimension(320, 240));
+        setMinimumSize(new java.awt.Dimension(600, 400));
         setSize(new java.awt.Dimension(0, 0));
 
+        tabbedDumper.setBorder(javax.swing.BorderFactory.createEmptyBorder(6, 6, 6, 6));
         tabbedDumper.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
         tabbedDumper.setComponentPopupMenu(popOpen);
         tabbedDumper.addChangeListener(new javax.swing.event.ChangeListener() {
@@ -125,10 +128,11 @@ public class RwDumper extends javax.swing.JDialog {
                 onSwitchTab(evt);
             }
         });
+        getContentPane().add(tabbedDumper, java.awt.BorderLayout.CENTER);
 
         jMenu1.setText("File");
 
-        mnuOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        mnuOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         mnuOpen.setText("Open...");
         mnuOpen.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -138,7 +142,7 @@ public class RwDumper extends javax.swing.JDialog {
         jMenu1.add(mnuOpen);
         jMenu1.add(jSeparator1);
 
-        mnuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_MASK));
+        mnuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_DOWN_MASK));
         mnuExit.setText("Exit");
         mnuExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -149,33 +153,13 @@ public class RwDumper extends javax.swing.JDialog {
 
         jMenuBar1.add(jMenu1);
 
-        jMenu2.setText("Help");
-        jMenuBar1.add(jMenu2);
-
         setJMenuBar(jMenuBar1);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(tabbedDumper, javax.swing.GroupLayout.DEFAULT_SIZE, 530, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(tabbedDumper, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
-                .addContainerGap())
-        );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void onSwitchTab(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_onSwitchTab
-        StringBuilder sb = new StringBuilder("Renderware Dumper");
+        StringBuilder sb = new StringBuilder(DIALOG_TITLE);
         if (tabbedDumper.getTabCount() > 0) {
             RwDumperTab tab = (RwDumperTab) tabbedDumper.getSelectedComponent();
             sb.append(" - ").append(tab.getName());
@@ -234,17 +218,13 @@ public class RwDumper extends javax.swing.JDialog {
             @Override
             public void run() {
                 Unicore.loadDefaultStyle();
-                RwDumper dumper = new RwDumper();
-                dumper.setVisible(true);
+                RwDumper app = new RwDumper();
+                app.setVisible(true);
             }
         });
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JMenuItem mnuCloseAll;
     private javax.swing.JMenuItem mnuCloseCurrent;
     private javax.swing.JMenuItem mnuExit;

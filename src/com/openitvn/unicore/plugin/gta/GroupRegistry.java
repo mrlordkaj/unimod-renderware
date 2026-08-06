@@ -22,11 +22,15 @@ import java.util.ArrayList;
  *
  * @author Thinh Pham
  */
-public class GroupRegistry {
-    // registry for world resource
+public class GroupRegistry
+{
+    // World resource
+    
     public final ArrayList<String> modNames = new ArrayList<>();
     public final ArrayList<String> matNames = new ArrayList<>();
     public final ArrayList<String> texNames = new ArrayList<>();
-    // registry for collisionMap
+    
+    // Collision
+    
     public final ArrayList<String> colNames = new ArrayList<>();
 }

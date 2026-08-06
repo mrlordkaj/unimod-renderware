@@ -16,9 +16,6 @@
  */
 package com.openitvn.gtavc.gui.g3d;
 
-import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.math.Matrix4;
 import com.openitvn.unicore.world.IGrid;
 import com.openitvn.unicore.world.IWorldCoord;
 import java.io.IOException;
@@ -27,17 +24,10 @@ import java.io.IOException;
  *
  * @author Thinh Pham
  */
-public class GWorldModel extends GWorldBase {
-    
-    private static GWorldModel instance;
-    
-    public static GWorldModel getInstance() {
-        if (instance == null)
-            instance = new GWorldModel();
-        return instance;
-    }
-    
+public class GWorldModel extends GWorldBase
+{
     private IGrid grid;
+    private GtaInstance inst;
     
     @Override
     void init() {
@@ -48,26 +38,30 @@ public class GWorldModel extends GWorldBase {
     
     @Override
     void dispose() {
+        if (inst != null) {
+            inst.mod.dispose();
+            inst = null;
+        }
         super.dispose();
         grid.dispose();
+        
     }
     
     @Override
-    void draw(ModelBatch mb, Environment env) {
-        super.draw(mb, env);
+    protected void draw() {
         grid.draw(mb);
+        if (inst != null) {
+            mb.render(inst.inst, env);
+        }
     }
     
-    public void setModel(String modName, String txdName) throws IOException {
+    public void openModel(String modName, String txdName) throws IOException {
         // Clean current stuff
-        instances.clear();
-        for (GtaModel mod : models.values()) {
-            mod.dispose();
+        if (inst != null) {
+            inst.mod.dispose();
         }
-        models.clear();
         // Set new model
-        GtaModel mod = new GtaModel(modName, txdName, GtaModel.MeshType.AllMesh, this);
-        models.put(0, mod);
-        instances.add(new GtaInstance(new Matrix4(), mod));
+        GtaModel mod = new GtaModel(modName, txdName, GtaModel.MeshType.Multiple, this);
+        inst = new GtaInstance(mod);
     }
 }

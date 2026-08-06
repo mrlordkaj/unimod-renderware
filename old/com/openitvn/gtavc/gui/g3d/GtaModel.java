@@ -37,7 +37,7 @@ import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.resource.IMaterial;
-import com.openitvn.unicore.world.resource.ResourceManager;
+import com.openitvn.unicore.world.resource.IModel;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -45,99 +45,104 @@ import java.util.ArrayList;
  *
  * @author Thinh Pham
  */
-public class GtaModel {
-    
-    public enum MeshType { OneMesh, AllMesh }
+public class GtaModel extends IModel
+{
+    enum MeshType { Single, Multiple }
     
     final MeshType meshType;
     final String modName, txdName;
-    float drawDistance;
-    RpClump rClump;
+    final GWorldBase world;
+    ItemOBJS objs;
+    RpClump clump;
     Model model;
-    GWorldBase world;
-    ResourceManager resource;
     
-    public GtaModel(ItemOBJS objs, GWorldBase world) {
-        this(objs.modName, objs.txdName, MeshType.OneMesh, world);
-        drawDistance = objs.dd1;
+    GtaModel(ItemOBJS objs, GWorldBase world) {
+        this(objs.modName, objs.txdName, MeshType.Single, world);
+        this.objs = objs;
     }
     
-    public GtaModel(String modName, String txdName, MeshType meshType, GWorldBase world) {
+    GtaModel(String modName, String txdName, MeshType meshType, GWorldBase world) {
         this.meshType = meshType;
         this.modName = modName;
         this.txdName = txdName;
         this.world = world;
-        this.resource = world.resource;
-        ResourceModel res = ResourceModel.getInstance();
-        try (EntryStream ds = res.getEntryStream(modName, "dff")) {
-            rClump = RpSection.loadRoot(ds, RpClump.class);
-        } catch (IOException ex) {
-            System.err.println("DFF not found: " + modName);
-        }
+    }
+    
+    float getDrawDistance() {
+        return objs != null ? objs.dd1 : 0;
     }
     
     public Model getModel() {
-        if (model == null) {
-            ModelBuilder mb = new ModelBuilder();
-            mb.begin();
-            for (RpGeometry geoData : getGeometries()) {
-                // Convert z-up to y-up
-                Matrix4 trn = new Matrix4().rotate(-1, 0, 0, 90);
-                // Apply local transform
-                if (meshType == MeshType.AllMesh) {
-                    trn.mul(createTransform(geoData.frame));
-                    if (geoData.frame.name.startsWith("wheel_l")) {
-                        trn.rotate(0, 1, 0, 180);
-                    }
-                }
-                // Create meshes
-                int k = 1;
-                for (int i = 0; i < geoData.materials.size(); i++) {
-                    // Prepare material for new meshpart
-                    RpMaterial matData = geoData.materials.get(i);
-                    RpTextureDictionary texDic = world.getTexDic(txdName);
-                    String matName = "M_";
-                    RpTextureNative texNav = matData.bTextured ? texDic.findTexture(matData.getTextureName()) : null;
-                    if (texNav != null) {
-                        String texName = texNav.getMapperName();
-                        if (!resource.containsTexture(texName)) {
-                            RwTexture iTex = new RwTexture(texName, texNav);
-                            resource.register(iTex);
-                        }
-                        matName += texName;
-                    }
-                    else {
-                        matName += modName + k;
-                        k++;
-                    }
-                    IMaterial iMat = resource.findMaterial(matName);
-                    if (iMat == null) {
-                        iMat = new RwMaterial(matName, matData, texNav);
-                        resource.register(iMat);
-                    }
-                    Material mat = resource.makeInstance(iMat, null); // TODO: model is not null
-                    // Create and init transform new part
-                    IMesh iMesh = new IMesh();
-                    iMesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
-                    iMesh.setIndices(geoData.indexMap.get(i));
-                    iMesh.materialName = matName;
-                    Mesh mesh = iMesh.rebuild();
-                    mesh.transform(trn);
-                    // Add meshpart to final model
-                    mb.part(null, mesh, GL20.GL_TRIANGLES, mat);
+        if (model != null) {
+            return model;
+        }
+        // Load clump data
+        try (EntryStream ds = ResourceModel.getInstance().getEntryStream(modName, "dff")) {
+            clump = RpSection.loadRoot(ds, RpClump.class);
+        } catch (IOException ex) {
+            System.err.println("DFF not found: " + modName);
+            return model;
+        }
+        // Build model
+        ModelBuilder mb = new ModelBuilder();
+        mb.begin();
+        for (RpGeometry geoData : getGeometries()) {
+            // Convert z-up to y-up
+            Matrix4 trn = new Matrix4().rotate(-1, 0, 0, 90);
+            // Apply local transform
+            if (meshType == MeshType.Multiple) {
+                trn.mul(createTransform(geoData.frame));
+                if (geoData.frame.name.startsWith("wheel_l")) {
+                    trn.rotate(0, 1, 0, 180);
                 }
             }
-            model = mb.end();
+            // Create meshes
+            int k = 1;
+            for (int i = 0; i < geoData.materials.size(); i++) {
+                // Prepare material for new meshpart
+                RpMaterial matData = geoData.materials.get(i);
+                RpTextureDictionary texDic = world.getTexDic(txdName);
+                String matName = "M_";
+                RpTextureNative texNav = matData.bTextured ? texDic.findTexture(matData.getTextureName()) : null;
+                if (texNav != null) {
+                    String texName = texNav.getMapperName();
+                    if (!world.resource.containsTexture(texName)) {
+                        RwTexture iTex = new RwTexture(texName, texNav);
+                        world.resource.register(iTex);
+                    }
+                    matName += texName;
+                }
+                else {
+                    matName += modName + k;
+                    k++;
+                }
+                IMaterial iMat = world.resource.findMaterial(matName);
+                if (iMat == null) {
+                    iMat = new RwMaterial(matName, matData, texNav);
+                    world.resource.register(iMat);
+                }
+                Material mat = world.resource.makeInstance(iMat, null); // TODO: model is not null
+                // Create and init transform new part
+                IMesh iMesh = new IMesh();
+                iMesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
+                iMesh.setIndices(geoData.indexMap.get(i));
+                iMesh.materialName = matName;
+                Mesh mesh = iMesh.rebuild();
+                mesh.transform(trn);
+                // Add meshpart to final model
+                mb.part(null, mesh, GL20.GL_TRIANGLES, mat);
+            }
         }
+        model = mb.end();
         return model;
     }
     
     private ArrayList<RpGeometry> getGeometries() {
-        if (meshType == MeshType.AllMesh) {
-            return rClump.geometries;
+        if (meshType == MeshType.Multiple) {
+            return clump.geometries;
         }
         ArrayList<RpGeometry> ret = new ArrayList<>();
-        RpGeometry root = rClump.getRootGeometry();
+        RpGeometry root = clump.getRootGeometry();
         if (root != null) {
             ret.add(root);
         }
@@ -163,7 +168,7 @@ public class GtaModel {
     private Matrix4 createTransform(RpFrame target) {
         Matrix4 trn = new Matrix4(target.combineMatrix4());
         while (target.hasParent()) {
-            target = rClump.frameList.findParent(target);
+            target = clump.frameList.findParent(target);
             trn.mulLeft(new Matrix4(target.combineMatrix4()));
         }
         return trn;

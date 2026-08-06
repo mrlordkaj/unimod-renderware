@@ -16,31 +16,24 @@
  */
 package com.openitvn.gtavc.gui.g3d;
 
-import com.badlogic.gdx.math.Vector3;
 import com.openitvn.unicore.plugin.gta.item.ItemINST;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
-import com.openitvn.unicore.plugin.gta.item.ItemTOBJ;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
  * @author Thinh Pham
  */
-public class GWorldMap extends GWorldBase {
+public class GWorldMap extends GWorldBase
+{
+    private final ViewportApp gdxApp;
+    private final HashMap<Integer, GtaModel> modMap = new HashMap<>();
+    private final HashMap<ItemINST, GtaInstance> instMap = new HashMap<>();
+    private int time = 12;
     
-    private final ArrayList<GtaInstance>
-            norIns = new ArrayList<>(),
-            lodIns = new ArrayList<>();
-    
-    private static GWorldMap instance;
-    
-    public static GWorldMap getInstance() {
-        if (instance == null)
-            instance = new GWorldMap();
-        return instance;
+    GWorldMap(ViewportApp gdxApp) {
+        this.gdxApp = gdxApp;
     }
-    
-    private GWorldMap() { }
     
     @Override
     void init() {
@@ -50,74 +43,71 @@ public class GWorldMap extends GWorldBase {
         camCtrl.translateUnits = 100;
     }
     
-    void setViewportMode(ViewportMode mode) {
-        switch (mode) {
-            case MapNormal:
-                instances = norIns;
-                break;
-                
-            case MapDistance:
-                instances = lodIns;
-                break;
+    @Override
+    void dispose() {
+        instMap.clear();
+        for (GtaModel mod : modMap.values()) {
+            mod.dispose();
         }
+        modMap.clear();
+        super.dispose();
     }
     
-    void addOBJS(ItemOBJS objs) throws Exception {
-        if (objs instanceof ItemTOBJ) {
-            int sceneTime = 12;
-            ItemTOBJ tobj = (ItemTOBJ) objs;
-            if (tobj.timeOn < tobj.timeOff) { // same day
-                if (tobj.timeOn > sceneTime) return;
-            } else { // next day
-                if (tobj.timeOff < sceneTime) return;
+    @Override
+    protected void draw() {
+        for (GtaInstance inst : instMap.values()) {
+            if (inst.bVisible) {
+                mb.render(inst.inst, env);
             }
-//            return; // test: igrone all TOBJs
         }
-//        if (!(objs instanceof TOBJEntry)) return; // test
-
-        // add models
-        GtaModel mod = new GtaModel(objs, this);
-        models.put(objs.modId, mod);
     }
     
-    void removeOBJS(ItemOBJS e) {
-        if (models.containsKey(e.modId)) {
-            models.get(e.modId).dispose();
-            models.remove(e.modId);
+    public void setTime(int time) {
+        this.time = time;
+        updateVisibility();
+    }
+    
+    void updateVisibility() {
+        boolean bDistance = gdxApp.getViewpotMode() == ViewportMode.DistanceWorld;
+        for (GtaInstance inst : instMap.values()) {
+            inst.updateVisibility(bDistance, time);
+        }
+    }
+    
+    public void addOBJS(ItemOBJS objs) {
+        GtaModel mod = new GtaModel(objs, this);
+        modMap.put(objs.modId, mod);
+    }
+    
+    public void removeOBJS(ItemOBJS e) {
+        if (modMap.containsKey(e.modId)) {
+            modMap.get(e.modId).dispose();
+            modMap.remove(e.modId);
         }
     }
     
     public void addINST(ItemINST e) {
-        int objId = e.modId;
-        if (models.containsKey(objId)) {
-            GtaModel mod = models.get(objId);
-            GtaInstance inst = new GtaInstance(e, mod);
-            if (mod.drawDistance < 300)
-                norIns.add(inst);
-            else if (mod.drawDistance < 3000)
-                lodIns.add(inst);
-            moveCameraTo(inst.inst.transform.getTranslation(new Vector3()));
+        if (instMap.containsKey(e) || !modMap.containsKey(e.modId)) {
+            return;
         }
+        GtaModel mod = modMap.get(e.modId);
+        GtaInstance inst = new GtaInstance(mod);
+        inst.setINST(e);
+        boolean bDistance = gdxApp.getViewpotMode() == ViewportMode.DistanceWorld;
+        inst.updateVisibility(bDistance, time);
+        instMap.put(e, inst);
     }
     
     public void removeINST(ItemINST e) {
-        for (GtaInstance inst : norIns) {
-            if (inst.define.equals(e)) {
-                norIns.remove(inst);
-                return;
-            }
+        if (!instMap.containsKey(e)) {
+            return;
         }
-        for (GtaInstance inst : lodIns) {
-            if (inst.define.equals(e)) {
-                lodIns.remove(inst);
-                return;
-            }
-        }
+        instMap.remove(e);
     }
     
-    public void moveCameraTo(Vector3 pos) {
-        camCtrl.target.set(pos);
-        cam.position.set(pos).add(20, 20, 20);
+    public void moveCameraTo(float x, float y, float z) {
+        camCtrl.target.set(x, y, z);
+        cam.position.set(x + 20, y + 20, z + 20);
         cam.lookAt(camCtrl.target);
         cam.up.set(0, 1, 0);
     }
