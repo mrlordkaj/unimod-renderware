@@ -24,14 +24,12 @@ import com.openitvn.engine.renderware.RpTextureNative;
 import com.openitvn.format.col.ColFile;
 import com.openitvn.format.dff.RwMaterial;
 import com.openitvn.format.dff.RwWorld;
-import com.openitvn.format.txd.RwTexture;
 import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.item.ItemOBJS;
 import com.openitvn.unicore.world.IMesh;
 import com.openitvn.unicore.world.resource.IMaterial;
 import com.openitvn.unicore.world.resource.IModel;
-import com.openitvn.unicore.world.resource.ITexture;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -93,22 +91,11 @@ public class GWorld extends RwWorld
         } catch (IOException ex) {
             Logger.printWarning("TXD not found: " + objs.txdName);
         }
-        // Prepare texture native cache from resource manager
-        HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
-        for (ITexture tex : resource.getTextures()) {
-            if (tex instanceof RwTexture) {
-                RpTextureNative texData = ((RwTexture)tex).textureNative;
-                if (!texData.textureName.isEmpty()) {
-                    texNavMap.put(texData.textureName.toLowerCase(), texData);
-                }
-                if (!texData.maskName.isEmpty()) {
-                    texNavMap.put(texData.maskName.toLowerCase(), texData);
-                }
-            }
-        }
+        // Prepare texture native cache from Resource Manager
+        HashMap<String, RpTextureNative> texNavMap = prepareTexNavMap();
         // Load model
-        try (EntryStream ms = res.getEntryStream(objs.modName, "dff")) {
-            RpClump clump = RpSection.loadRoot(ms, RpClump.class);
+        try (EntryStream ds = res.getEntryStream(objs.modName, "dff")) {
+            RpClump clump = RpSection.loadRoot(ds, RpClump.class);
             if (clump != null) {
                 // Only load root geometry as model
                 RpGeometry geoData = clump.getRootGeometry();

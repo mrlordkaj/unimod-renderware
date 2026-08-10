@@ -96,9 +96,9 @@ public class ViewportApp implements ApplicationListener
     
     @Override
     public void dispose() {
-        instance = null;
         worldView.dispose();
         modelView.dispose();
+        instance = null;
     }
     
     public ViewportMode getViewpotMode() {

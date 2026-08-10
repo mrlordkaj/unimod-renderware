@@ -45,6 +45,17 @@ import javax.swing.table.TableRowSorter;
  */
 public class Main extends javax.swing.JFrame
 {
+    static {
+        String arch = System.getProperty("os.arch");
+        if (arch.endsWith("64")) {
+            System.loadLibrary("lwjgl64");
+            System.loadLibrary("gdx64");
+        } else if (arch.endsWith("86")) {
+            System.loadLibrary("lwjgl");
+            System.loadLibrary("gdx");
+        }
+    }
+    
     private static Main instance;
     public static Main getInstance() {
         if (instance == null) {
@@ -158,11 +169,15 @@ public class Main extends javax.swing.JFrame
 
     @Override
     public void dispose() {
+        // TODO: Prevent hanging on exit
+        requestFocus();
+        viewpotArea.removeAll();
+        // Save window state
         MainState.getInstance().saveWindowState(this);
+        // Dispose components
         if (texer != null) {
             texer.dispose();
         }
-        viewpotArea.removeAll();
         super.dispose();
     }
 
@@ -367,7 +382,6 @@ public class Main extends javax.swing.JFrame
         });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("GTA Viewer");
         setMinimumSize(new java.awt.Dimension(960, 600));
 
         splMain.setBorder(null);
@@ -702,8 +716,7 @@ public class Main extends javax.swing.JFrame
     }//GEN-LAST:event_cboTimeItemStateChanged
 
     private void mnuWorkspaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuWorkspaceActionPerformed
-        dispose();
-        Startup dlg = new Startup();
+        Startup dlg = new Startup(this, true);
         dlg.setVisible(true);
     }//GEN-LAST:event_mnuWorkspaceActionPerformed
 

@@ -203,12 +203,14 @@ public class ResourceModel extends AbstractTableModel
     Collection<INode> extractModel(String modName, RwWorld target) {
         // Try to load dependency texDic
         String txdName = findTexDic(modName);
-        try (EntryStream ts = getEntryStream(txdName, "txd")) {
-            target.loadTexDic(ts);
-        } catch (IOException ex) {}
+        try (EntryStream ds = getEntryStream(txdName, "txd")) {
+            target.loadTexDic(ds);
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
+        }
         // Try to load model content
-        try (EntryStream ms = getEntryStream(modName, "dff")) {
-            return target.loadData(ms, false);
+        try (EntryStream ds = getEntryStream(modName, "dff")) {
+            return target.loadData(ds, false);
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
             return new ArrayList<>();

@@ -17,7 +17,6 @@
 
 package com.openitvn.gtavc.gui.pref;
 
-import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.util.prefs.Preferences;
 
@@ -31,24 +30,23 @@ public class Setting
     private static final String GTA3_LOCATION = "gta3_location";
     private static final String GTAVC_LOCATION = "gtavc_location";
     private static final String GTASA_LOCATION = "gtasa_location";
-
-    private final Preferences prefs;
-
+    
     private static Setting _instance;
-
     public static Setting getInstance() {
         if (_instance == null) {
             _instance = new Setting();
         }
         return _instance;
     }
+    
+    private final Preferences prefs;
 
     private Setting() {
         prefs = Preferences.userRoot().node(PREFERENCE_NODE_NAME);
     }
     
-    public void saveDirectory(String name, String dir) {
-        switch (name) {
+    public void saveDirectory(String alias, String dir) {
+        switch (alias) {
             case GameConfig.ALIAS_III:
                 prefs.put(GTA3_LOCATION, dir);
                 break;
@@ -61,15 +59,15 @@ public class Setting
         }
     }
     
-    public String getGta3Location() {
-        return prefs.get(GTA3_LOCATION, "");
-    }
-    
-    public String getGtaVcLocation() {
-        return prefs.get(GTAVC_LOCATION, "");
-    }
-
-    public String getGtaSaLocation() {
-        return prefs.get(GTASA_LOCATION, "");
+    public String getDirectory(String alias) {
+        switch (alias) {
+            case GameConfig.ALIAS_III:
+                return prefs.get(GTA3_LOCATION, "");
+            case GameConfig.ALIAS_VC:
+                return prefs.get(GTAVC_LOCATION, "");
+            case GameConfig.ALIAS_SA:
+                return prefs.get(GTASA_LOCATION, "");
+        }
+        return null;
     }
 }

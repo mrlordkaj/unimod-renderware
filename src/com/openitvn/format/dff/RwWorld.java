@@ -64,52 +64,61 @@ public class RwWorld extends IWorld {
         loadData(ds, true);
     }
     
-    public Collection<INode> loadData(DataStream ds, boolean allClump) {
-        // prepare texture native cache from resource manager
-        HashMap<String, RpTextureNative> texNavMap = new HashMap<>();
+    /***
+     * Prepare texture native map from Resource Manager
+     * @return Map of name and data
+     */
+    protected HashMap<String, RpTextureNative> prepareTexNavMap() {
+        HashMap<String, RpTextureNative> ret = new HashMap<>();
         for (ITexture tex : resource.getTextures()) {
             if (tex instanceof RwTexture) {
                 RpTextureNative texData = ((RwTexture)tex).textureNative;
                 if (!texData.textureName.isEmpty()) {
-                    texNavMap.put(texData.textureName.toLowerCase(), texData);
+                    ret.put(texData.textureName.toLowerCase(), texData);
                 }
                 if (!texData.maskName.isEmpty()) {
-                    texNavMap.put(texData.maskName.toLowerCase(), texData);
+                    ret.put(texData.maskName.toLowerCase(), texData);
                 }
             }
         }
-        // load model data from stream
+        return ret;
+    }
+    
+    public Collection<INode> loadData(DataStream ds, boolean allClump) {
+        // Prepare texture native cache from Resource Manager
+        HashMap<String, RpTextureNative> texNavMap = prepareTexNavMap();
+        // Load model data from stream
         ArrayList<INode> nodes = new ArrayList<>();
         int clumpId = 0;
         RpClump clump;
         while ((clump = RpSection.loadRoot(ds, RpClump.class)) != null) {
             HashMap<RpFrame, INode> frameMap = new HashMap<>();
-            // create nodes by frames
+            // Create nodes by frames
             for (RpFrame frmData : clump.frameList.frames) {
-                boolean isGeometry = frmData.geometry != null;
-                // crete node/geometry
-                INode node = isGeometry ? new IGeometry() : new INode();
+                boolean bGeometry = frmData.geometry != null;
+                // Create node/geometry
+                INode node = bGeometry ? new IGeometry() : new INode();
                 node.setName(frmData.name);
                 node.transform.localMatrix.set(frmData.combineMatrix4());
                 if (allClump) {
                     node.setLayerIndex(clumpId);
                 }
                 frameMap.put(frmData, node);
-                // create model and materials
-                if (isGeometry) {
+                // Create model and materials
+                if (bGeometry) {
                     RpGeometry geoData = frmData.geometry;
                     IModel mod = new IModel(frmData.name);
                     // meshes = materials
                     for (short i = 0; i < geoData.materials.size(); i++) {
                         RpMaterial matData = geoData.materials.get(i);
-                        // search texture by name which defined in material
+                        // Search texture by name which defined in material
                         String texName = matData.getMaskName();
                         RpTextureNative texNav = texNavMap.get(texName.toLowerCase());
                         if (texNav == null) {
                             texName = matData.getTextureName();
                             texNav = texNavMap.get(texName.toLowerCase());
                         }
-                        // create material
+                        // Create material
                         String matName = "M_";
                         if (texName.isEmpty()) {
                             matName += "Blank";
@@ -119,7 +128,12 @@ public class RwWorld extends IWorld {
                                 Logger.printWarning("Texture not found: %s", texName);
                             }
                         }
-                        // mesh
+                        // Register new material when missing
+                        if (!resource.containsMaterial(matName)) {
+                            RwMaterial mat = new RwMaterial(matName, matData, texNav);
+                            resource.register(mat);
+                        }
+                        // Create mesh
                         IMesh mesh = new IMesh();
                         mesh.setVertices(geoData.numVerts, geoData.vertData, geoData.vertFmt);
                         mesh.setIndices(geoData.indexMap.get(i));
@@ -129,13 +143,13 @@ public class RwWorld extends IWorld {
                     resource.register(mod);
                 }
             }
-            // resolve hierarchy by frame
+            // Resolve hierarchy by frame
             for (HashMap.Entry<RpFrame, INode> e : frameMap.entrySet()) {
                 INode p = frameMap.get(e.getKey().parent);
                 e.getValue().attach(p == null ? this : p);
             }
             nodes.addAll(frameMap.values());
-            // add new layer for clump
+            // Add new layer for clump
             if (allClump) {
                 addLayer(clumpId, "Clump " + clumpId, (clumpId == 0));
                 clumpId++;
@@ -143,7 +157,7 @@ public class RwWorld extends IWorld {
                 break;
             }
         }
-        // return for vehicle management
+        // Return for vehicle management
         return nodes;
     }
     
