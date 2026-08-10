@@ -40,6 +40,7 @@ public final class ResourcePanel extends PanelViewer {
     private final ResourceModel resModel = ResourceModel.getInstance();
     private IArchiveEntry selected;
     private RwWorld viewer;
+    private RwDumper dumper;
     
     public ResourcePanel() {
         initComponents();
@@ -221,9 +222,11 @@ public final class ResourcePanel extends PanelViewer {
         if (selected != null) {
             String type = selected.getExt().toLowerCase();
             if (type.equals("txd") || type.equals("dff")) {
-                RwDumper dlg = RwDumper.getInstance();
-                dlg.openEntry(selected);
-                dlg.setVisible(true);
+                if (dumper == null) {
+                    dumper = new RwDumper();
+                }
+                dumper.openEntry(selected);
+                dumper.setVisible(true);
             }
         }
     }//GEN-LAST:event_mnuDumpActionPerformed

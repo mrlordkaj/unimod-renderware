@@ -43,69 +43,57 @@ class WorldScriptModel extends AbstractTableModel
     public static final int COL_NAME = 1;
     public static final int COL_TYPE = 2;
     
-    ArrayList<WorldScript> scripts = new ArrayList<>();
+    final ResourceModel resource = ResourceModel.getInstance();
     final HashMap<WorldScript, ArrayList<ItemNULL>> scriptItems = new HashMap<>(); // script, items
-        
-    public void reload(ResourceModel res) throws IOException {
+    
+    public void reload() throws IOException {
         // Reload data
-        scripts = res.scripts;
         scriptItems.clear();
-        for (WorldScript script : scripts) {
+        for (WorldScript script : resource.scripts) {
             String path = script.file.getAbsolutePath();
             // Normal file
-            parseScriptFile(path, script);
+            try (FileReader fr = new FileReader(path)) {
+                BufferedReader br = new BufferedReader(fr);
+                String line;
+                mainLoop:
+                while ((line = ScriptHelper.readLine(br)) != null) {
+                    switch (line) {
+                        case "objs":
+                        case "tobj":
+                        case "inst":
+                            if (!readGroup(br, line, script)) {
+                                break mainLoop;
+                            }
+                            break;
+                    }
+                }
+            } catch (IOException ex) {}
             // Stream file (SA only)
-            if (GameConfig.ALIAS_SA.equals(GameConfig.getAlias())) {
-                parseScriptStream(script, res);
+            if (GameConfig.ALIAS_SA.equals(GameConfig.getAlias())
+                    && script.getName().toLowerCase().endsWith(".ipl")) {
+                // Read extra binary stream inside img file
+                ArrayList<ItemNULL> items = getScriptItems(script);
+                String name = script.getName();
+                String prefix = name.substring(0, name.length() - 4).concat("_stream");
+                int id = 0;
+                IArchiveEntry ae;
+                while ((ae = resource.findEntry(prefix+id+".ipl")) != null) {
+                    try {
+                        EntryStream es = new EntryStream(ae);
+                        es.position(4); // Skip "bnry"
+                        int instCount = es.getInt();
+                        es.position(0x4C); // Offset of item instances, 0x4C by default
+                        for (int i = 0; i < instCount; i++) {
+                            ItemINST inst = new ItemINST(es);
+                            items.add(inst);
+                        }
+                    }
+                    catch (IOException ex) {}
+                    id++;
+                }
             }
         }
         fireTableDataChanged();
-    }
-    
-    private void parseScriptStream(WorldScript script, ResourceModel res) {
-        // Read extra binary stream inside img file
-        if (script.getName().toLowerCase().endsWith(".ipl")) {
-            ArrayList<ItemNULL> items = getScriptItems(script);
-            String name = script.getName();
-            String prefix = name.substring(0, name.length() - 4).concat("_stream");
-            int id = 0;
-            IArchiveEntry ae;
-            while ((ae = res.findEntry(prefix+id+".ipl")) != null) {
-                try {
-                    EntryStream es = new EntryStream(ae);
-                    es.position(4); // Skip "bnry"
-                    int instCount = es.getInt();
-                    es.position(0x4C); // Offset of item instances, 0x4C by default
-                    for (int i = 0; i < instCount; i++) {
-                        ItemINST inst = new ItemINST(es);
-                        items.add(inst);
-                    }
-                }
-                catch (IOException ex) {}
-                id++;
-            }
-        }
-    }
-    
-    private void parseScriptFile(String path, WorldScript script) {
-        try (FileReader fr = new FileReader(path);
-                BufferedReader br = new BufferedReader(fr)) {
-            String line;
-            mainLoop:
-            while ((line = ScriptHelper.readLine(br)) != null) {
-                switch (line) {
-                    case "objs":
-                    case "tobj":
-                    case "inst":
-                        if (!readGroup(br, line, script)) {
-                            break mainLoop;
-                        }
-                        break;
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
     }
     
     private boolean readGroup(BufferedReader br, String type, WorldScript script) {
@@ -145,7 +133,7 @@ class WorldScriptModel extends AbstractTableModel
     }
         
     public WorldScript getScriptByName(String name) {
-        for (WorldScript script : scripts) {
+        for (WorldScript script : resource.scripts) {
             if (script.getName().equalsIgnoreCase(name)) {
                 return script;
             }
@@ -168,18 +156,14 @@ class WorldScriptModel extends AbstractTableModel
         if (script != null && !script.bActive) {
             ViewportApp app = ViewportApp.getInstance();
             for (ItemNULL e : getScriptItems(script)) {
-                try {
-                    switch (e.getType()) {
-                        case "OBJS":
-                        case "TOBJ":
-                            app.worldView.addOBJS((ItemOBJS)e);
-                            break;
-                        case "INST":
-                            app.worldView.addINST((ItemINST)e);
-                            break;
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace(System.err);
+                switch (e.getType()) {
+                    case "OBJS":
+                    case "TOBJ":
+                        app.worldView.addOBJS((ItemOBJS)e);
+                        break;
+                    case "INST":
+                        app.worldView.addINST((ItemINST)e);
+                        break;
                 }
             }
             script.bActive = true;
@@ -188,7 +172,7 @@ class WorldScriptModel extends AbstractTableModel
     
     private ArrayList<String> getActivatedGroups(WorldScript.Type type) {
         ArrayList<String> rs = new ArrayList<>();
-        for (WorldScript e : scripts) {
+        for (WorldScript e : resource.scripts) {
             if (e.type == type && e.bActive) {
                 rs.add(e.getName().toLowerCase());
             }
@@ -215,18 +199,14 @@ class WorldScriptModel extends AbstractTableModel
         if (script != null && script.bActive) {
             ViewportApp app = ViewportApp.getInstance();
             for (ItemNULL e : getScriptItems(script)) {
-                try {
-                    switch (e.getType()) {
-                        case "OBJS":
-                        case "TOBJ":
-                            app.worldView.removeOBJS((ItemOBJS)e);
-                            break;
-                        case "INST":
-                            app.worldView.removeINST((ItemINST)e);
-                            break;
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace(System.err);
+                switch (e.getType()) {
+                    case "OBJS":
+                    case "TOBJ":
+                        app.worldView.removeOBJS((ItemOBJS)e);
+                        break;
+                    case "INST":
+                        app.worldView.removeINST((ItemINST)e);
+                        break;
                 }
             }
             script.bActive = false;
@@ -260,18 +240,18 @@ class WorldScriptModel extends AbstractTableModel
     
     @Override
     public int getRowCount() {
-        return scripts.size();
+        return resource.scripts.size();
     }
 
     @Override
     public Object getValueAt(int row, int col) {
         switch (col) {
             case COL_ACTIVE:
-                return scripts.get(row).bActive;
+                return resource.scripts.get(row).bActive;
             case COL_NAME:
-                return scripts.get(row).getName();
+                return resource.scripts.get(row).getName();
             case COL_TYPE:
-                return scripts.get(row).type;
+                return resource.scripts.get(row).type;
         }
         return null;
     }
@@ -279,14 +259,14 @@ class WorldScriptModel extends AbstractTableModel
     @Override
     public boolean isCellEditable(int row, int col) {
         return col == COL_ACTIVE &&
-                scripts.get(row).type.equals(WorldScript.Type.IPL);
+                resource.scripts.get(row).type == WorldScript.Type.IPL;
     }
     
     @Override
     public void setValueAt(Object value, int row, int col) {
         if (col == COL_ACTIVE) {
             boolean active = (boolean)value;
-            WorldScript script = scripts.get(row);
+            WorldScript script = resource.scripts.get(row);
             if (script.bActive != active) {
                 if (active) activateIPL(script.getName());
                 else deactivateIPL(script.getName());

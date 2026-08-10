@@ -29,9 +29,8 @@ import com.openitvn.unicore.plugin.gta.item.*;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.RowFilter;
@@ -64,7 +63,7 @@ public class Main extends javax.swing.JFrame
         initComponents();
         recallWindowState();
         initViewpot();
-        initAssetTable();
+        initResourceTable();
         initWorldScriptTable();
         initWorldItemTable();
     }
@@ -85,16 +84,25 @@ public class Main extends javax.swing.JFrame
         onSwitchControlPanel(null);
     }
 
-    private void initAssetTable() {
+    private void initResourceTable() {
         TableColumnModel tcm = resourceTable.getColumnModel();
         tcm.getColumn(ResourceModel.COL_INDEX).setMinWidth(40);
         tcm.getColumn(ResourceModel.COL_INDEX).setMaxWidth(40);
         tcm.getColumn(ResourceModel.COL_SIZE).setMinWidth(60);
         tcm.getColumn(ResourceModel.COL_SIZE).setMaxWidth(60);
+        resourceTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) return;
+                if (texer != null) {
+                    tryOpenTexture();
+                }
+                tryOpenModel();
+            }
+        });
     }
 
     private void initWorldScriptTable() {
-        // Setup column
         TableColumnModel tcm = worldScriptTable.getColumnModel();
         tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMinWidth(20);
         tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMaxWidth(20);
@@ -102,7 +110,7 @@ public class Main extends javax.swing.JFrame
         tcm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
         // Bind data
         try {
-            worldScriptModel.reload(resourceModel);
+            worldScriptModel.reload();
             refineWorldScriptTable();
         } catch (IOException ex) {}
         
@@ -115,7 +123,7 @@ public class Main extends javax.swing.JFrame
                 int row = worldScriptTable.getSelectedRow();
                 if (row >= 0) {
                     row = worldScriptTable.convertRowIndexToModel(row);
-                    WorldScript script = worldScriptModel.scripts.get(row);
+                    WorldScript script = worldScriptModel.resource.scripts.get(row);
                     worldItemModel.entries = worldScriptModel.getScriptItems(script);
                     worldItemModel.fireTableDataChanged();
                 }
@@ -150,63 +158,129 @@ public class Main extends javax.swing.JFrame
 
     @Override
     public void dispose() {
-        instance = null;
         MainState.getInstance().saveWindowState(this);
-        if (mnuTexture.isSelected()) {
-            RwTexer.getInstance().dispose();
+        if (texer != null) {
+            texer.dispose();
         }
-        gdxApp.dispose();
+        viewpotArea.removeAll();
         super.dispose();
-        System.exit(0);
     }
 
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Texture Viewer">
+    
+    RwTexer texer;
+    
+    private void openTexerDialog() {
+        if (texer != null) return;
+        texer = new RwTexer();
+        texer.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                mnuTexer.setSelected(true);
+            }
+            @Override public void windowClosing(WindowEvent e) {}
+            @Override public void windowClosed(WindowEvent e) {
+                mnuTexer.setSelected(false);
+            }
+            @Override public void windowIconified(WindowEvent e) {}
+            @Override public void windowDeiconified(WindowEvent e) {}
+            @Override public void windowActivated(WindowEvent e) {}
+            @Override public void windowDeactivated(WindowEvent e) {}
+        });
+        texer.setVisible(true);
+    }
+    
+    private void closeTexerDialog() {
+        if (texer != null) {
+            texer.dispose();
+            texer = null;
+        }
+    }
+    
+    private void tryOpenTexture() {
+        IArchiveEntry e = getEntryFromResourceTable();
+        if (e != null && "txd".equalsIgnoreCase(e.getExt())) {
+            openTexerDialog();
+            texer.openEntry(e);
+        }
+    }
+    
+    //</editor-fold>
+    
+    //<editor-fold defaultstate="collapsed" desc="Section Dumper">
+    
+    RwDumper dumper;
+    
+    private void openDumperDialog() {
+        if (dumper != null) return;
+        dumper = new RwDumper();
+        dumper.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                mnuDumper.setSelected(true);
+            }
+            @Override public void windowClosing(WindowEvent e) {}
+            @Override public void windowClosed(WindowEvent e) {
+                mnuDumper.setSelected(false);
+            }
+            @Override public void windowIconified(WindowEvent e) {}
+            @Override public void windowDeiconified(WindowEvent e) {}
+            @Override public void windowActivated(WindowEvent e) {}
+            @Override public void windowDeactivated(WindowEvent e) {}
+        });
+        dumper.setVisible(true);
+    }
+    
+    private void closeDumperDialog() {
+        if (dumper != null) {
+            dumper.dispose();
+            dumper = null;
+        }
+    }
+    
+    private void tryOpenSection() {
+        IArchiveEntry e = getEntryFromResourceTable();
+        if (e == null) return;
+        switch (e.getExt().toLowerCase()) {
+            case "txd":
+            case "dff":
+                openDumperDialog();
+                dumper.openEntry(e);
+                break;
+        }
+    }
+    
     //</editor-fold>
     
     //<editor-fold defaultstate="collapsed" desc="RenderWare Tools">
     
     private IArchiveEntry getEntryFromResourceTable() {
-        int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
-        if (id >= 0) {
-            return resourceModel.getEntry(id);
+        int row = resourceTable.getSelectedRow();
+        if (row >= 0) {
+            row = resourceTable.convertRowIndexToModel(row);
+            return resourceModel.entries.get(row);
         }
         return null;
     }
     
-    private void openRwDump() {
+    private void tryOpenModel() {
         IArchiveEntry e = getEntryFromResourceTable();
-        if (e == null) return;
-        String type = e.getExt().toLowerCase();
-        if (type.equals("txd") || type.equals("dff")) {
-            RwDumper dlg = RwDumper.getInstance();
-            dlg.setVisible(true);
-            dlg.openEntry(e);
+        if (e == null || !"dff".equalsIgnoreCase(e.getExt())) {
+            return;
         }
-    }
-    
-    private void openRwTexture() {
-        IArchiveEntry e = getEntryFromResourceTable();
-        if (e == null) return;
-        if (e.getExt().equalsIgnoreCase("txd")) {
-            RwTexer texer = RwTexer.getInstance();
-            texer.setVisible(true);
-            texer.openEntry(e);
-        }
-    }
-    
-    private void openRwModel() {
-        IArchiveEntry e = getEntryFromResourceTable();
-        if (e == null || !e.getExt().equalsIgnoreCase("dff")) return;
         try {
             dffFileName = e.getName();
             // Find match name DFF and TXD for texture dictionary
             String modName = dffFileName.substring(0, dffFileName.length() - 4);
-            String txdName = findTexDic(modName);
+            String txdName = resourceModel.findTexDic(modName);
             gdxApp.modelView.openModel(modName, txdName);
             RpTextureDictionary texDic = gdxApp.modelView.getTexDic(txdName);
             if (texDic != null) {
                 txdFileName = txdName + ".txd";
-                if (mnuTexture.isSelected()) {
-                    RwTexer.getInstance().loadTexDic(txdFileName, texDic);
+                if (texer != null) {
+                    texer.loadTexDic(txdFileName, texDic);
                 }
             } else {
                 txdFileName = null;
@@ -215,20 +289,6 @@ public class Main extends javax.swing.JFrame
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
         }
-    }
-    
-    private String findTexDic(String modName) {
-        for (ItemNULL script : worldItemModel.entries) {
-            switch (script.getType()){
-                case "OBJS":
-                case "TOBJ":
-                    ItemOBJS objs = (ItemOBJS)script;
-                    if (modName.equals(objs.modName)) {
-                        return objs.txdName;
-                    }
-            }
-        }
-        return modName;
     }
     
     //</editor-fold>
@@ -247,13 +307,10 @@ public class Main extends javax.swing.JFrame
 
         mnuTxd = new javax.swing.JPopupMenu();
         mnuTxdViewer = new javax.swing.JMenuItem();
-        javax.swing.JPopupMenu.Separator jSeparator2 = new javax.swing.JPopupMenu.Separator();
-        mnuTxdDumper = new javax.swing.JMenuItem();
         mnuDff = new javax.swing.JPopupMenu();
         mnuDffViewer = new javax.swing.JMenuItem();
-        javax.swing.JPopupMenu.Separator jSeparator3 = new javax.swing.JPopupMenu.Separator();
-        mnuDffDumper = new javax.swing.JMenuItem();
         rdoMapDefinition = new javax.swing.ButtonGroup();
+        mnuDumperPopup = new javax.swing.JMenuItem();
         splMain = new javax.swing.JSplitPane();
         tabbedControlPanel = new javax.swing.JTabbedPane();
         javax.swing.JPanel jPanel1 = new javax.swing.JPanel();
@@ -273,7 +330,7 @@ public class Main extends javax.swing.JFrame
         javax.swing.JLabel jLabel3 = new javax.swing.JLabel();
         cboTime = new javax.swing.JComboBox<>();
         viewpotArea = new javax.swing.JPanel();
-        statusBar = new javax.swing.JToolBar();
+        javax.swing.JToolBar statusBar = new javax.swing.JToolBar();
         lblInfo = new javax.swing.JLabel();
         javax.swing.JMenuBar jMenuBar1 = new javax.swing.JMenuBar();
         javax.swing.JMenu jMenu1 = new javax.swing.JMenu();
@@ -281,43 +338,33 @@ public class Main extends javax.swing.JFrame
         javax.swing.JPopupMenu.Separator jSeparator1 = new javax.swing.JPopupMenu.Separator();
         mnuExit = new javax.swing.JMenuItem();
         javax.swing.JMenu jMenu2 = new javax.swing.JMenu();
-        mnuTexture = new javax.swing.JCheckBoxMenuItem();
+        mnuTexer = new javax.swing.JCheckBoxMenuItem();
+        mnuDumper = new javax.swing.JCheckBoxMenuItem();
 
         mnuTxdViewer.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        mnuTxdViewer.setText("Texture Viewer...");
+        mnuTxdViewer.setText("Texture Viewer");
         mnuTxdViewer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuTxdViewerActionPerformed(evt);
             }
         });
         mnuTxd.add(mnuTxdViewer);
-        mnuTxd.add(jSeparator2);
-
-        mnuTxdDumper.setText("Section Dumper...");
-        mnuTxdDumper.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuTxdDumperActionPerformed(evt);
-            }
-        });
-        mnuTxd.add(mnuTxdDumper);
 
         mnuDffViewer.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        mnuDffViewer.setText("RW Model Viewer...");
+        mnuDffViewer.setText("Model Viewer");
         mnuDffViewer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 mnuDffViewerActionPerformed(evt);
             }
         });
         mnuDff.add(mnuDffViewer);
-        mnuDff.add(jSeparator3);
 
-        mnuDffDumper.setText("RW Engine Dumper...");
-        mnuDffDumper.addActionListener(new java.awt.event.ActionListener() {
+        mnuDumperPopup.setText("Section Dumper");
+        mnuDumperPopup.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuDffDumperActionPerformed(evt);
+                mnuDumperPopupActionPerformed(evt);
             }
         });
-        mnuDff.add(mnuDffDumper);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("GTA Viewer");
@@ -341,17 +388,8 @@ public class Main extends javax.swing.JFrame
         resourceTable.getTableHeader().setResizingAllowed(false);
         resourceTable.getTableHeader().setReorderingAllowed(false);
         resourceTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                onResouceTablePopupTriggered(evt);
-            }
             public void mouseReleased(java.awt.event.MouseEvent evt) {
-                onResouceTablePopupTriggered(evt);
-                onResourceTableClicked(evt);
-            }
-        });
-        resourceTable.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                onResourceTableKeyReleased(evt);
+                resourceTableMouseReleased(evt);
             }
         });
         jScrollPane1.setViewportView(resourceTable);
@@ -504,7 +542,7 @@ public class Main extends javax.swing.JFrame
             .addContainerGap())
     );
 
-    tabbedControlPanel.addTab("Map", new javax.swing.ImageIcon(getClass().getResource("/icon16/map.png")), jPanel2); // NOI18N
+    tabbedControlPanel.addTab("World", new javax.swing.ImageIcon(getClass().getResource("/icon16/map.png")), jPanel2); // NOI18N
 
     tabbedControlPanel.setSelectedIndex(1);
 
@@ -548,15 +586,23 @@ public class Main extends javax.swing.JFrame
 
     jMenu2.setText("Tools");
 
-    mnuTexture.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-    mnuTexture.setText("Texture Viewer...");
-    mnuTexture.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon16/application_view_gallery.png"))); // NOI18N
-    mnuTexture.addItemListener(new java.awt.event.ItemListener() {
+    mnuTexer.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.ALT_DOWN_MASK));
+    mnuTexer.setText("Texture Viewer");
+    mnuTexer.addItemListener(new java.awt.event.ItemListener() {
         public void itemStateChanged(java.awt.event.ItemEvent evt) {
-            mnuTextureItemStateChanged(evt);
+            mnuTexerItemStateChanged(evt);
         }
     });
-    jMenu2.add(mnuTexture);
+    jMenu2.add(mnuTexer);
+
+    mnuDumper.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_D, java.awt.event.InputEvent.ALT_DOWN_MASK));
+    mnuDumper.setText("Section Dumper");
+    mnuDumper.addItemListener(new java.awt.event.ItemListener() {
+        public void itemStateChanged(java.awt.event.ItemEvent evt) {
+            mnuDumperItemStateChanged(evt);
+        }
+    });
+    jMenu2.add(mnuDumper);
 
     jMenuBar1.add(jMenu2);
 
@@ -584,18 +630,6 @@ public class Main extends javax.swing.JFrame
     pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void onResourceTableClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onResourceTableClicked
-        if (evt.getButton() == MouseEvent.BUTTON3)
-            return; // Cancel right mouse for popup trigger
-        boolean isDoubleClick = (evt.getClickCount() == 2);
-        if (mnuTexture.isSelected() || isDoubleClick) {
-            openRwTexture();
-        }
-        if (gdxApp.getViewpotMode() == ViewportMode.SingleModel || isDoubleClick) {
-            openRwModel();
-        }
-    }//GEN-LAST:event_onResourceTableClicked
-
     private void txtFindResourceKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFindResourceKeyTyped
         String regex = txtFindResource.getText();
         regex = String.format("(?i)(%1$s)", regex);
@@ -603,61 +637,29 @@ public class Main extends javax.swing.JFrame
         sorter.setRowFilter(RowFilter.regexFilter(regex, ResourceModel.COL_NAME));
     }//GEN-LAST:event_txtFindResourceKeyTyped
 
-    private void onResouceTablePopupTriggered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_onResouceTablePopupTriggered
-        int x = evt.getX();
-        int y = evt.getY();
-        if (evt.getButton() == MouseEvent.BUTTON3) {
-            int selRow = resourceTable.rowAtPoint(new Point(x, y));
-            resourceTable.setRowSelectionInterval(selRow, selRow);
-        }
-        int id = resourceTable.convertRowIndexToModel(resourceTable.getSelectedRow());
-        if (evt.isPopupTrigger() && id > -1) {
-            IArchiveEntry e = resourceModel.getEntry(id);
-            switch (e.getExt().toLowerCase()) {
-                case "txd":
-                    mnuTxd.show(evt.getComponent(), x, y);
-                    break;
-                    
-                case "dff":
-                    mnuDff.show(evt.getComponent(), x, y);
-                    break;
-            }
-        }
-    }//GEN-LAST:event_onResouceTablePopupTriggered
-
     private void mnuTxdViewerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuTxdViewerActionPerformed
-        openRwTexture();
+        tryOpenTexture();
     }//GEN-LAST:event_mnuTxdViewerActionPerformed
 
-    private void mnuTxdDumperActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuTxdDumperActionPerformed
-        openRwDump();
-    }//GEN-LAST:event_mnuTxdDumperActionPerformed
-
-    private void mnuDffDumperActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuDffDumperActionPerformed
-        openRwDump();
-    }//GEN-LAST:event_mnuDffDumperActionPerformed
-
-    private void onResourceTableKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_onResourceTableKeyReleased
-        if (mnuTexture.isSelected()) {
-            openRwTexture();
-        }
-        if (gdxApp.getViewpotMode() == ViewportMode.SingleModel) {
-            openRwModel();
-        }
-    }//GEN-LAST:event_onResourceTableKeyReleased
+    private void mnuDumperPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuDumperPopupActionPerformed
+        tryOpenSection();
+    }//GEN-LAST:event_mnuDumperPopupActionPerformed
 
     private void mnuDffViewerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuDffViewerActionPerformed
-        openRwModel();
+        tryOpenModel();
     }//GEN-LAST:event_mnuDffViewerActionPerformed
 
     private void worldItemTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_worldItemTableMouseClicked
-        int id = worldItemTable.convertRowIndexToModel(worldItemTable.getSelectedRow());
-        ItemNULL e = worldItemModel.entries.get(id);
-        switch (e.getType()) {
-            case "INST":
-                ItemINST inst = (ItemINST)e;
-                gdxApp.worldView.moveCameraTo(inst.posX, inst.posZ, -inst.posY);
-                break;
+        int row = worldItemTable.getSelectedRow();
+        if (row >= 0) {
+            row = worldItemTable.convertRowIndexToModel(row);
+            ItemNULL e = worldItemModel.entries.get(row);
+            switch (e.getType()) {
+                case "INST":
+                    ItemINST inst = (ItemINST)e;
+                    gdxApp.worldView.moveCameraTo(inst.posX, inst.posZ, -inst.posY);
+                    break;
+            }
         }
     }//GEN-LAST:event_worldItemTableMouseClicked
 
@@ -686,20 +688,14 @@ public class Main extends javax.swing.JFrame
             setViewportMode((ViewportMode)evt.getItem());
     }//GEN-LAST:event_cboDistanceItemStateChanged
 
-    private void mnuTextureItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_mnuTextureItemStateChanged
-        RwTexer dialog = RwTexer.getInstance();
+    private void mnuTexerItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_mnuTexerItemStateChanged
         if (evt.getStateChange() == ItemEvent.SELECTED) {
-            dialog.setVisible(true);
-            dialog.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent evt) {
-                    mnuTexture.setSelected(false);
-                }
-            });
-        } else {
-            dialog.dispose();
+            openTexerDialog();
         }
-    }//GEN-LAST:event_mnuTextureItemStateChanged
+        else {
+            closeTexerDialog();
+        }
+    }//GEN-LAST:event_mnuTexerItemStateChanged
 
     private void cboTimeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cboTimeItemStateChanged
         gdxApp.worldView.setTime(cboTime.getSelectedIndex());
@@ -715,17 +711,55 @@ public class Main extends javax.swing.JFrame
         dispose();
     }//GEN-LAST:event_mnuExitActionPerformed
 
+    private void mnuDumperItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_mnuDumperItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            openDumperDialog();
+        }
+        else {
+            closeDumperDialog();
+        }
+    }//GEN-LAST:event_mnuDumperItemStateChanged
+
+    private void resourceTableMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_resourceTableMouseReleased
+        if (evt.isPopupTrigger()) {
+            int x = evt.getX();
+            int y = evt.getY();
+            // Select row at mouse location
+            int row = resourceTable.rowAtPoint(new Point(x, y));
+            if (row >= 0) {
+                resourceTable.setRowSelectionInterval(row, row);
+                row = resourceTable.convertRowIndexToModel(row);
+                // Show popup menu
+                IArchiveEntry e = resourceModel.entries.get(row);
+                switch (e.getExt().toLowerCase()) {
+                    case "txd":
+                        mnuTxd.add(mnuDumperPopup);
+                        mnuTxd.show(evt.getComponent(), x, y);
+                        break;
+                    case "dff":
+                        mnuDff.add(mnuDumperPopup);
+                        mnuDff.show(evt.getComponent(), x, y);
+                        break;
+                }
+            }
+        }
+        else if (texer == null && (evt.getClickCount() == 2)) {
+            // Open Texer on double click
+            tryOpenTexture();
+        }
+    }//GEN-LAST:event_resourceTableMouseReleased
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JComboBox<ViewportMode> cboDistance;
     private javax.swing.JComboBox<String> cboTime;
     private javax.swing.JLabel lblInfo;
     private javax.swing.JPopupMenu mnuDff;
-    private javax.swing.JMenuItem mnuDffDumper;
     private javax.swing.JMenuItem mnuDffViewer;
+    private javax.swing.JCheckBoxMenuItem mnuDumper;
+    private javax.swing.JMenuItem mnuDumperPopup;
     private javax.swing.JMenuItem mnuExit;
-    private javax.swing.JCheckBoxMenuItem mnuTexture;
+    private javax.swing.JCheckBoxMenuItem mnuTexer;
     private javax.swing.JPopupMenu mnuTxd;
-    private javax.swing.JMenuItem mnuTxdDumper;
     private javax.swing.JMenuItem mnuTxdViewer;
     private javax.swing.JMenuItem mnuWorkspace;
     private javax.swing.JRadioButton rdoIDE;
@@ -733,7 +767,6 @@ public class Main extends javax.swing.JFrame
     private javax.swing.ButtonGroup rdoMapDefinition;
     private javax.swing.JTable resourceTable;
     private javax.swing.JSplitPane splMain;
-    private javax.swing.JToolBar statusBar;
     private javax.swing.JTabbedPane tabbedControlPanel;
     private javax.swing.JTextField txtFindResource;
     private javax.swing.JPanel viewpotArea;

@@ -75,14 +75,17 @@ public class GtaCanvasWorld extends GtaCanvas
     }
     
     public void addOBJS(ItemOBJS objs) {
+        if (modMap.containsKey(objs.modId)) {
+            return;
+        }
         GtaModel mod = new GtaModel(objs, this);
         modMap.put(objs.modId, mod);
     }
     
     public void removeOBJS(ItemOBJS e) {
-        if (modMap.containsKey(e.modId)) {
-            modMap.get(e.modId).dispose();
-            modMap.remove(e.modId);
+        GtaModel mod = modMap.remove(e.modId);
+        if (mod != null) {
+            mod.dispose();
         }
     }
     
@@ -99,9 +102,6 @@ public class GtaCanvasWorld extends GtaCanvas
     }
     
     public void removeINST(ItemINST e) {
-        if (!instMap.containsKey(e)) {
-            return;
-        }
         instMap.remove(e);
     }
     

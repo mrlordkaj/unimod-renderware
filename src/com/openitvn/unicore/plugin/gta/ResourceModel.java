@@ -39,8 +39,8 @@ import javax.swing.table.AbstractTableModel;
  *
  * @author Thinh Pham
  */
-public class ResourceModel extends AbstractTableModel {
-    
+public class ResourceModel extends AbstractTableModel
+{
     public static final String[] COLUMNS = { "", "Name", "Size" };
     public static final int COL_INDEX = 0;
     public static final int COL_NAME = 1;
@@ -55,7 +55,7 @@ public class ResourceModel extends AbstractTableModel {
         return instance;
     }
     
-    final ArrayList<IArchiveEntry> entries;
+    public final ArrayList<IArchiveEntry> entries;
     public final ArrayList<WorldScript> scripts;
     final HashMap<String, String> dffTxdMap;
     
@@ -191,16 +191,22 @@ public class ResourceModel extends AbstractTableModel {
         }
     }
     
-    Collection<INode> extractModel(String modName, RwWorld target) {
-        // try load dependency texDic
-        String txdName = dffTxdMap.get(modName.toLowerCase());
-        if (txdName == null) {
-            txdName = modName;
+    public String findTexDic(String modName) {
+        modName = modName.toLowerCase();
+        String txdName = dffTxdMap.get(modName);
+        if (txdName != null) {
+            return txdName;
         }
+        return modName;
+    }
+    
+    Collection<INode> extractModel(String modName, RwWorld target) {
+        // Try to load dependency texDic
+        String txdName = findTexDic(modName);
         try (EntryStream ts = getEntryStream(txdName, "txd")) {
             target.loadTexDic(ts);
-        } catch (IOException ex) { }
-        // try load model content
+        } catch (IOException ex) {}
+        // Try to load model content
         try (EntryStream ms = getEntryStream(modName, "dff")) {
             return target.loadData(ms, false);
         } catch (IOException ex) {
@@ -266,10 +272,5 @@ public class ResourceModel extends AbstractTableModel {
                 return size / 1024 + " kB";
         }
         return null;
-    }
-    
-    @Deprecated
-    public IArchiveEntry getEntry(int index) {
-        return entries.get(index);
     }
 }

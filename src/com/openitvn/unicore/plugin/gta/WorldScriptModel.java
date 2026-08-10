@@ -59,7 +59,7 @@ class WorldScriptModel extends AbstractTableModel
         return scripts.get(id);
     }
     
-    //<editor-fold defaultstate="collapsed" desc="Active / Deactive">
+    //<editor-fold defaultstate="collapsed" desc="Activate / Deactivate">
     
     private ArrayList<String> getActivatedGroups(WorldScript.Type type) {
         ArrayList<String> rs = new ArrayList<>();

@@ -46,14 +46,6 @@ public final class RwTexer extends javax.swing.JDialog
 {
     private static final String DIALOG_TITLE = "RW Texture Viewer";
     
-    private static RwTexer instance;
-    public static RwTexer getInstance() {
-        if (instance == null) {
-            instance = new RwTexer();
-        }
-        return instance;
-    }
-    
     private final RwTexerModel texLibModel = new RwTexerModel();
     private RwTexture texture;
     private File curFile;
@@ -89,16 +81,10 @@ public final class RwTexer extends javax.swing.JDialog
     /**
      * Creates new form RwTexer
      */
-    private RwTexer() {
+    public RwTexer() {
         super(Unicore.getMainFrame(), false);
         initComponents();
         loadTexDic(null, null);
-    }
-    
-    @Override
-    public void dispose() {
-        instance = null;
-        super.dispose();
     }
     
     public void openEntry(IArchiveEntry entry) {

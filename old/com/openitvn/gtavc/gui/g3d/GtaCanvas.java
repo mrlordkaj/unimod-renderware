@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.openitvn.engine.renderware.RpSection;
 import com.openitvn.engine.renderware.RpTextureDictionary;
+import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.world.resource.ResourceManager;
@@ -89,7 +90,7 @@ public abstract class GtaCanvas
                 txd = RpSection.loadRoot(ds, RpTextureDictionary.class);
                 texDic.put(txdName, txd);
             } catch (IOException ex) {
-                System.err.println("TXD not found: " + txdName);
+                Logger.printWarning("TXD not found: " + txdName);
             }
         }
         return txd;

@@ -40,15 +40,7 @@ public class RwDumper extends javax.swing.JDialog
     private final HashMap<Object, RwDumperTab> entryMap = new HashMap<>(); // key is String or RwArchiveEntry
     private File currentFile; // for file chooser default location
     
-    private static RwDumper instance;
-    public static RwDumper getInstance() {
-        if (instance == null) {
-            instance = new RwDumper();
-        }
-        return instance;
-    }
-    
-    private RwDumper() {
+    public RwDumper() {
         super(Unicore.getMainFrame(), false);
         initComponents();
         onSwitchTab(null);
@@ -58,7 +50,6 @@ public class RwDumper extends javax.swing.JDialog
     public void dispose() {
         removeAllTabs(null);
         super.dispose();
-        instance = null;
     }
     
     public void openEntry(IArchiveEntry entry) {

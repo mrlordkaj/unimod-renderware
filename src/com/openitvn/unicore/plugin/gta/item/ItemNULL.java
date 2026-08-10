@@ -21,7 +21,7 @@ package com.openitvn.unicore.plugin.gta.item;
  *
  * @author Thinh Pham
  */
-public class ItemNULL
+public abstract class ItemNULL
 {
     public String getType() {
         return "NULL";
