@@ -22,16 +22,22 @@ import com.openitvn.engine.renderware.RpTextureDictionary;
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
 import com.openitvn.gtavc.gui.g3d.ViewportMode;
 import com.openitvn.gtavc.gui.pref.MainState;
+import com.openitvn.helper.FormHelper;
+import com.openitvn.unicore.Workspace;
 import com.openitvn.unicore.archive.IArchiveEntry;
+import com.openitvn.unicore.plugin.gta.GameConfig;
 import com.openitvn.unicore.plugin.gta.ResourceModel;
 import com.openitvn.unicore.plugin.gta.WorldScript;
 import com.openitvn.unicore.plugin.gta.item.*;
 import java.awt.Canvas;
 import java.awt.Point;
 import java.awt.event.ItemEvent;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
+import javax.swing.ButtonGroup;
+import javax.swing.ButtonModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.RowFilter;
 import javax.swing.event.ListSelectionEvent;
@@ -78,7 +84,7 @@ public class Main extends javax.swing.JFrame
         initWorldScriptTable();
         initWorldItemTable();
     }
-
+    
     //<editor-fold defaultstate="collapsed" desc="Initialize and Dispose">
     
     private void recallWindowState() {
@@ -114,30 +120,37 @@ public class Main extends javax.swing.JFrame
     }
 
     private void initWorldScriptTable() {
+        // Setup radio buttons
+        ButtonGroup grp = new ButtonGroup() {
+            @Override
+            public void setSelected(ButtonModel m, boolean b) {
+                super.setSelected(m, b);
+                refineWorldScriptTable();
+            }
+        };
+        grp.add(rdoIDE);
+        grp.add(rdoIPL);
+        // Setup column size
         TableColumnModel tcm = worldScriptTable.getColumnModel();
         tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMinWidth(20);
         tcm.getColumn(WorldScriptModel.COL_ACTIVE).setMaxWidth(20);
         tcm.getColumn(WorldScriptModel.COL_TYPE).setMinWidth(40);
         tcm.getColumn(WorldScriptModel.COL_TYPE).setMaxWidth(40);
-        // Bind data
-        try {
-            worldScriptModel.reload();
-            refineWorldScriptTable();
-        } catch (IOException ex) {}
-        
+        // View items from a script
         worldScriptTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
                 if (e.getValueIsAdjusting()) {
                     return;
                 }
+                WorldScript script = null;
                 int row = worldScriptTable.getSelectedRow();
                 if (row >= 0) {
                     row = worldScriptTable.convertRowIndexToModel(row);
-                    WorldScript script = worldScriptModel.resource.scripts.get(row);
-                    worldItemModel.entries = worldScriptModel.getScriptItems(script);
-                    worldItemModel.fireTableDataChanged();
+                    script = worldScriptModel.resource.scripts.get(row);
                 }
+                worldItemModel.entries = worldScriptModel.getScriptItems(script);
+                worldItemModel.fireTableDataChanged();
             }
         });
     }
@@ -179,11 +192,28 @@ public class Main extends javax.swing.JFrame
             texer.dispose();
         }
         super.dispose();
+        System.exit(0);
     }
 
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="Texture Viewer">
+    void switchWorkspace(Workspace workspace) {
+        worldScriptModel.deactivateAll();
+        GameConfig.setWorkspace(workspace);
+        worldScriptModel.reload();
+        refineWorldScriptTable();
+    }
+    
+    private IArchiveEntry getEntryFromResourceTable() {
+        int row = resourceTable.getSelectedRow();
+        if (row >= 0) {
+            row = resourceTable.convertRowIndexToModel(row);
+            return resourceModel.entries.get(row);
+        }
+        return null;
+    }
+    
+    //<editor-fold defaultstate="collapsed" desc="Model/Texture Viewer">
     
     RwTexer texer;
     
@@ -219,6 +249,32 @@ public class Main extends javax.swing.JFrame
         if (e != null && "txd".equalsIgnoreCase(e.getExt())) {
             openTexerDialog();
             texer.openEntry(e);
+        }
+    }
+    
+    private void tryOpenModel() {
+        IArchiveEntry e = getEntryFromResourceTable();
+        if (e == null || !"dff".equalsIgnoreCase(e.getExt())) {
+            return;
+        }
+        try {
+            dffFileName = e.getName();
+            // Find match name DFF and TXD for texture dictionary
+            String modName = dffFileName.substring(0, dffFileName.length() - 4);
+            String txdName = resourceModel.findTexDic(modName);
+            gdxApp.modelView.openModel(modName, txdName);
+            RpTextureDictionary texDic = gdxApp.modelView.getTexDic(txdName);
+            if (texDic != null) {
+                txdFileName = txdName + ".txd";
+                if (texer != null) {
+                    texer.loadTexDic(txdFileName, texDic);
+                }
+            } else {
+                txdFileName = null;
+            }
+            updateInfoLabel();
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
         }
     }
     
@@ -269,45 +325,6 @@ public class Main extends javax.swing.JFrame
     
     //</editor-fold>
     
-    //<editor-fold defaultstate="collapsed" desc="RenderWare Tools">
-    
-    private IArchiveEntry getEntryFromResourceTable() {
-        int row = resourceTable.getSelectedRow();
-        if (row >= 0) {
-            row = resourceTable.convertRowIndexToModel(row);
-            return resourceModel.entries.get(row);
-        }
-        return null;
-    }
-    
-    private void tryOpenModel() {
-        IArchiveEntry e = getEntryFromResourceTable();
-        if (e == null || !"dff".equalsIgnoreCase(e.getExt())) {
-            return;
-        }
-        try {
-            dffFileName = e.getName();
-            // Find match name DFF and TXD for texture dictionary
-            String modName = dffFileName.substring(0, dffFileName.length() - 4);
-            String txdName = resourceModel.findTexDic(modName);
-            gdxApp.modelView.openModel(modName, txdName);
-            RpTextureDictionary texDic = gdxApp.modelView.getTexDic(txdName);
-            if (texDic != null) {
-                txdFileName = txdName + ".txd";
-                if (texer != null) {
-                    texer.loadTexDic(txdFileName, texDic);
-                }
-            } else {
-                txdFileName = null;
-            }
-            updateInfoLabel();
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-        }
-    }
-    
-    //</editor-fold>
-    
     private void updateInfoLabel() {
         ViewportMode mode = gdxApp.getViewpotMode();
         lblInfo.setText(mode.toString());
@@ -324,7 +341,6 @@ public class Main extends javax.swing.JFrame
         mnuTxdViewer = new javax.swing.JMenuItem();
         mnuDff = new javax.swing.JPopupMenu();
         mnuDffViewer = new javax.swing.JMenuItem();
-        rdoMapDefinition = new javax.swing.ButtonGroup();
         mnuDumperPopup = new javax.swing.JMenuItem();
         splMain = new javax.swing.JSplitPane();
         tabbedControlPanel = new javax.swing.JTabbedPane();
@@ -335,7 +351,17 @@ public class Main extends javax.swing.JFrame
         javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
         javax.swing.JPanel jPanel2 = new javax.swing.JPanel();
         javax.swing.JScrollPane jScrollPane2 = new javax.swing.JScrollPane();
-        worldScriptTable = new javax.swing.JTable();
+        worldScriptTable = new javax.swing.JTable() {
+            public String getToolTipText(MouseEvent evt) {
+                int row = worldScriptTable.rowAtPoint(evt.getPoint());
+                if (row >= 0) {
+                    row = worldScriptTable.convertRowIndexToModel(row);
+                    WorldScript e = resourceModel.scripts.get(row);
+                    return e.path;
+                }
+                return null;
+            }
+        };
         javax.swing.JScrollPane jScrollPane3 = new javax.swing.JScrollPane();
         worldItemTable = new javax.swing.JTable();
         rdoIDE = new javax.swing.JRadioButton();
@@ -470,22 +496,10 @@ public class Main extends javax.swing.JFrame
         });
         jScrollPane3.setViewportView(worldItemTable);
 
-        rdoMapDefinition.add(rdoIDE);
         rdoIDE.setText("Definition (IDE)");
-        rdoIDE.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                onWorldScriptChanged(evt);
-            }
-        });
 
-        rdoMapDefinition.add(rdoIPL);
         rdoIPL.setSelected(true);
         rdoIPL.setText("Placement (IPL)");
-        rdoIPL.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                onWorldScriptChanged(evt);
-            }
-        });
 
         jLabel5.setLabelFor(cboDistance);
         jLabel5.setText("Distance Mode:");
@@ -577,8 +591,7 @@ public class Main extends javax.swing.JFrame
     jMenu1.setText("File");
 
     mnuWorkspace.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-    mnuWorkspace.setText("Switch Workspace");
-    mnuWorkspace.setEnabled(false);
+    mnuWorkspace.setText("Workspace...");
     mnuWorkspace.addActionListener(new java.awt.event.ActionListener() {
         public void actionPerformed(java.awt.event.ActionEvent evt) {
             mnuWorkspaceActionPerformed(evt);
@@ -677,10 +690,6 @@ public class Main extends javax.swing.JFrame
         }
     }//GEN-LAST:event_worldItemTableMouseClicked
 
-    private void onWorldScriptChanged(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onWorldScriptChanged
-        refineWorldScriptTable();
-    }//GEN-LAST:event_onWorldScriptChanged
-
     private void setViewportMode(ViewportMode mode) {
         gdxApp.setViewpotMode(mode);
         updateInfoLabel();
@@ -717,6 +726,7 @@ public class Main extends javax.swing.JFrame
 
     private void mnuWorkspaceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuWorkspaceActionPerformed
         Startup dlg = new Startup(this, true);
+        FormHelper.centerToParent(dlg);
         dlg.setVisible(true);
     }//GEN-LAST:event_mnuWorkspaceActionPerformed
 
@@ -777,7 +787,6 @@ public class Main extends javax.swing.JFrame
     private javax.swing.JMenuItem mnuWorkspace;
     private javax.swing.JRadioButton rdoIDE;
     private javax.swing.JRadioButton rdoIPL;
-    private javax.swing.ButtonGroup rdoMapDefinition;
     private javax.swing.JTable resourceTable;
     private javax.swing.JSplitPane splMain;
     private javax.swing.JTabbedPane tabbedControlPanel;

@@ -40,8 +40,6 @@
         </MenuItem>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.ButtonGroup" name="rdoMapDefinition">
-    </Component>
     <Component class="javax.swing.JMenuItem" name="mnuDumperPopup">
       <Properties>
         <Property name="text" type="java.lang.String" value="Section Dumper"/>
@@ -70,8 +68,7 @@
                 <Property name="accelerator" type="javax.swing.KeyStroke" editor="org.netbeans.modules.form.editors.KeyStrokeEditor">
                   <KeyStroke key="Ctrl+W"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Switch Workspace"/>
-                <Property name="enabled" type="boolean" value="false"/>
+                <Property name="text" type="java.lang.String" value="Workspace..."/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="mnuWorkspaceActionPerformed"/>
@@ -401,6 +398,9 @@
                           <TableHeader reorderingAllowed="false" resizingAllowed="false"/>
                         </Property>
                       </Properties>
+                      <AuxValues>
+                        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable() {&#xa;    public String getToolTipText(MouseEvent evt) {&#xa;        int row = worldScriptTable.rowAtPoint(evt.getPoint());&#xa;        if (row &gt;= 0) {&#xa;            row = worldScriptTable.convertRowIndexToModel(row);&#xa;            WorldScript e = resourceModel.scripts.get(row);&#xa;            return e.path;&#xa;        }&#xa;        return null;&#xa;    }&#xa;}"/>
+                      </AuxValues>
                     </Component>
                   </SubComponents>
                 </Container>
@@ -437,26 +437,14 @@
                 </Container>
                 <Component class="javax.swing.JRadioButton" name="rdoIDE">
                   <Properties>
-                    <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-                      <ComponentRef name="rdoMapDefinition"/>
-                    </Property>
                     <Property name="text" type="java.lang.String" value="Definition (IDE)"/>
                   </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="onWorldScriptChanged"/>
-                  </Events>
                 </Component>
                 <Component class="javax.swing.JRadioButton" name="rdoIPL">
                   <Properties>
-                    <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
-                      <ComponentRef name="rdoMapDefinition"/>
-                    </Property>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="Placement (IPL)"/>
                   </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="onWorldScriptChanged"/>
-                  </Events>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel5">
                   <Properties>

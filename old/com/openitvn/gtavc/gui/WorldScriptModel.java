@@ -18,6 +18,7 @@
 package com.openitvn.gtavc.gui;
 
 import com.openitvn.gtavc.gui.g3d.ViewportApp;
+import com.openitvn.maintain.Logger;
 import com.openitvn.unicore.archive.IArchiveEntry;
 import com.openitvn.unicore.data.EntryStream;
 import com.openitvn.unicore.plugin.gta.GameConfig;
@@ -46,8 +47,7 @@ class WorldScriptModel extends AbstractTableModel
     final ResourceModel resource = ResourceModel.getInstance();
     final HashMap<WorldScript, ArrayList<ItemNULL>> scriptItems = new HashMap<>(); // script, items
     
-    public void reload() throws IOException {
-        // Reload data
+    public void reload() {
         scriptItems.clear();
         for (WorldScript script : resource.scripts) {
             String path = script.file.getAbsolutePath();
@@ -70,11 +70,10 @@ class WorldScriptModel extends AbstractTableModel
             } catch (IOException ex) {}
             // Stream file (SA only)
             if (GameConfig.ALIAS_SA.equals(GameConfig.getAlias())
-                    && script.getName().toLowerCase().endsWith(".ipl")) {
+                    && script.name.toLowerCase().endsWith(".ipl")) {
                 // Read extra binary stream inside img file
                 ArrayList<ItemNULL> items = getScriptItems(script);
-                String name = script.getName();
-                String prefix = name.substring(0, name.length() - 4).concat("_stream");
+                String prefix = script.name.substring(0, script.name.length() - 4).concat("_stream");
                 int id = 0;
                 IArchiveEntry ae;
                 while ((ae = resource.findEntry(prefix+id+".ipl")) != null) {
@@ -127,14 +126,16 @@ class WorldScriptModel extends AbstractTableModel
             return scriptItems.get(script);
         }
         // Not found
-        ArrayList<ItemNULL> rs = new ArrayList<>();
-        scriptItems.put(script, rs);
-        return rs;
+        ArrayList<ItemNULL> ret = new ArrayList<>();
+        if (script != null) {
+            scriptItems.put(script, ret);
+        }
+        return ret;
     }
         
     public WorldScript getScriptByName(String name) {
         for (WorldScript script : resource.scripts) {
-            if (script.getName().equalsIgnoreCase(name)) {
+            if (script.name.equalsIgnoreCase(name)) {
                 return script;
             }
         }
@@ -143,16 +144,46 @@ class WorldScriptModel extends AbstractTableModel
         
     //<editor-fold defaultstate="collapsed" desc="Activate / Deactivate">
     
+    private ArrayList<String> getActivatedIPLs() {
+        ArrayList<String> rs = new ArrayList<>();
+        for (WorldScript e : resource.scripts) {
+            if (e.type == WorldScript.Type.IPL && e.bActive) {
+                rs.add(e.name.toLowerCase());
+            }
+        }
+        return rs;
+    }
+    
+    private ArrayList<String> getActivatedIDEs(ArrayList<String> ignores) {
+        ArrayList<String> rs = new ArrayList<>();
+        for (WorldScript e : resource.scripts) {
+            if (e.type == WorldScript.Type.IDE && e.bActive) {
+                String name = e.name.toLowerCase();
+                if (!ignores.contains(name)) {
+                    rs.add(name);
+                }
+            }
+        }
+        return rs;
+    }
+    
+    public void deactivateAll() {
+        ArrayList<String> IPLs = getActivatedIPLs();
+        for (String IPL : IPLs) {
+            deactivateIPL(IPL);
+        }
+    }
+    
     private void activateIPL(String ipl) {
         // Activate dependecies
         for (String dp : GameConfig.getDependencies(ipl)) {
-            activateGroup(getScriptByName(dp));
+            activateScript(getScriptByName(dp));
         }
         // Activate target
-        activateGroup(getScriptByName(ipl));
+        activateScript(getScriptByName(ipl));
     }
     
-    private void activateGroup(WorldScript script) {
+    private void activateScript(WorldScript script) {
         if (script != null && !script.bActive) {
             ViewportApp app = ViewportApp.getInstance();
             for (ItemNULL e : getScriptItems(script)) {
@@ -167,30 +198,19 @@ class WorldScriptModel extends AbstractTableModel
                 }
             }
             script.bActive = true;
+            Logger.printNotice("%s triggered: %s [on]", script.type, script.name);
         }
     }
-    
-    private ArrayList<String> getActivatedGroups(WorldScript.Type type) {
-        ArrayList<String> rs = new ArrayList<>();
-        for (WorldScript e : resource.scripts) {
-            if (e.type == type && e.bActive) {
-                rs.add(e.getName().toLowerCase());
-            }
-        }
-        return rs;
-    }
-    
+        
     private void deactivateIPL(String ipl) {
         // Deactivate target
         deactivateScript(getScriptByName(ipl));
         // Deactivate dependencies
-        ArrayList<String> ipls = getActivatedGroups(WorldScript.Type.IPL);
-        ArrayList<String> ides = getActivatedGroups(WorldScript.Type.IDE);
-        ArrayList<String> kept = GameConfig.getDependencies(ipls);
-        for (String ide : ides) {
-            if (!kept.contains(ide)) {
-                deactivateScript(getScriptByName(ide));
-            }
+        ArrayList<String> IPLs = getActivatedIPLs();
+        ArrayList<String> kept = GameConfig.getDependencies(IPLs);
+        ArrayList<String> IDEs = getActivatedIDEs(kept);
+        for (String IDE : IDEs) {
+            deactivateScript(getScriptByName(IDE));
         }
         System.gc();
     }
@@ -210,6 +230,7 @@ class WorldScriptModel extends AbstractTableModel
                 }
             }
             script.bActive = false;
+            Logger.printNotice("%s triggered: %s [off]", script.type, script.name);
         }
     }
     
@@ -249,7 +270,7 @@ class WorldScriptModel extends AbstractTableModel
             case COL_ACTIVE:
                 return resource.scripts.get(row).bActive;
             case COL_NAME:
-                return resource.scripts.get(row).getName();
+                return resource.scripts.get(row).name;
             case COL_TYPE:
                 return resource.scripts.get(row).type;
         }
@@ -265,11 +286,15 @@ class WorldScriptModel extends AbstractTableModel
     @Override
     public void setValueAt(Object value, int row, int col) {
         if (col == COL_ACTIVE) {
-            boolean active = (boolean)value;
+            boolean bActive = (boolean)value;
             WorldScript script = resource.scripts.get(row);
-            if (script.bActive != active) {
-                if (active) activateIPL(script.getName());
-                else deactivateIPL(script.getName());
+            if (script.bActive != bActive) {
+                if (bActive) {
+                    activateIPL(script.name);
+                }
+                else {
+                    deactivateIPL(script.name);
+                }
             }
         }
     }

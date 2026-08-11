@@ -65,9 +65,9 @@ public class ResourceModel extends AbstractTableModel
         dffTxdMap = new HashMap<>();
     }
     
-    private boolean isScriptAbsent(String name) {
+    private boolean isScriptAbsent(String path) {
         for (WorldScript e : scripts) {
-            if (e.path.equals(name)) {
+            if (e.path.equals(path)) {
                 return false;
             }
         }

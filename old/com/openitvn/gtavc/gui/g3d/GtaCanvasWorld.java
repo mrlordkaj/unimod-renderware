@@ -83,6 +83,13 @@ public class GtaCanvasWorld extends GtaCanvas
     }
     
     public void removeOBJS(ItemOBJS e) {
+        // Check usage
+        for (GtaInstance inst : instMap.values()) {
+            if (inst.mod.modName.equals(e.modName)) {
+                return;
+            }
+        }
+        // Remove model
         GtaModel mod = modMap.remove(e.modId);
         if (mod != null) {
             mod.dispose();

@@ -18,7 +18,6 @@ package com.openitvn.gtavc.gui;
 
 import com.openitvn.gtavc.gui.pref.Setting;
 import com.openitvn.unicore.Workspace;
-import com.openitvn.unicore.plugin.gta.GameConfig;
 import java.awt.Window;
 import javax.swing.JFileChooser;
 
@@ -89,6 +88,7 @@ public class StartupWorkspace extends javax.swing.JPanel
         jLabel8.setText("Game Directory:");
 
         txtDir.setEditable(false);
+        txtDir.setMinimumSize(new java.awt.Dimension(40, 20));
 
         btnBrowser.setText("...");
         btnBrowser.addActionListener(new java.awt.event.ActionListener() {
@@ -115,7 +115,7 @@ public class StartupWorkspace extends javax.swing.JPanel
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel8)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtDir)
+                        .addComponent(txtDir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnBrowser)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -151,17 +151,17 @@ public class StartupWorkspace extends javax.swing.JPanel
     }//GEN-LAST:event_btnBrowserActionPerformed
 
     private void btnLaunchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLaunchActionPerformed
-        // Setup workspace
-        Workspace w = new Workspace();
-        w.name = alias;
-        w.location = txtDir.getText();
-        GameConfig.setWorkspace(w);
         // Close Startup dialog
         window.dispose();
         // Open Main frame
         Main m = Main.getInstance();
         m.setTitle(lblTitle.getText());
         m.setVisible(true);
+        // Setup workspace
+        Workspace w = new Workspace();
+        w.name = alias;
+        w.location = txtDir.getText();
+        m.switchWorkspace(w);
     }//GEN-LAST:event_btnLaunchActionPerformed
 
 

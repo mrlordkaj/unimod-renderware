@@ -28,6 +28,7 @@ public class WorldScript
     
     public final String path;
     public final File file;
+    public final String name;
     public final Type type;
     public boolean bActive = false;
 
@@ -35,9 +36,6 @@ public class WorldScript
         this.path = path;
         this.type = type;
         this.file = new File(GameConfig.getDirectory() + "/" + path);
-    }
-
-    public String getName() {
-        return file.getName();
+        this.name = file.getName();
     }
 }

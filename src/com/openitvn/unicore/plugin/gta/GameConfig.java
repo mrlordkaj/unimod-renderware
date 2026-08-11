@@ -82,7 +82,7 @@ public abstract class GameConfig {
     public static ArrayList<String> getDependencies(ArrayList<String> ipls) {
         ArrayList<String> rs = new ArrayList<>();
         for (String ipl : ipls) {
-            for (String dp : GameConfig.getDependencies(ipl)) {
+            for (String dp : getDependencies(ipl)) {
                 if (!rs.contains(dp)) {
                     rs.add(dp);
                 }
@@ -111,11 +111,11 @@ public abstract class GameConfig {
                     break;
 
                 case ALIAS_SA:
-                    // load generic
+                    // Load generic
                     String loc = workspace.location + "/data/maps/";
                     for (File f : new File(loc+"generic").listFiles())
                         rs.add(f.getName());
-                    // load xref
+                    // Load xref
                     if (ipl.startsWith("vega"))
                         rs.add("vegaxref.ide");
                     if (ipl.startsWith("coun"))
@@ -171,22 +171,5 @@ public abstract class GameConfig {
                 return "(shad)|(null)";
         }
         return null;
-    }
-    
-    @Deprecated
-    public static ArrayList<Integer> getWheelIds() {
-        ArrayList<Integer> rs = new ArrayList<>();
-        switch (workspace.name) {
-            case ALIAS_III:
-                for (int i = 160; i <= 169; i++)
-                    rs.add(i);
-                break;
-                
-            case ALIAS_VC:
-                for (int i = 250; i <= 257; i++)
-                    rs.add(i);
-                break;
-        }
-        return rs;
     }
 }

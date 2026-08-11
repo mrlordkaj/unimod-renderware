@@ -192,7 +192,7 @@ public final class WorldPanel extends PanelViewer {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -205,7 +205,7 @@ public final class WorldPanel extends PanelViewer {
                         .addComponent(btnOptimizePath)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnExportPath)))
-                .addGap(0, 28, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {rdoIDE, rdoIPL});
@@ -218,7 +218,7 @@ public final class WorldPanel extends PanelViewer {
                     .addComponent(rdoIDE)
                     .addComponent(rdoAll))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 238, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnExportPath)
@@ -238,11 +238,10 @@ public final class WorldPanel extends PanelViewer {
             int i = tblMap.convertRowIndexToModel(tblMap.getSelectedRow());
             WorldScript script = scriptModel.getScript(i);
             if (script.type == WorldScript.Type.IDE) {
-                String scriptName = script.getName();
                 // destroy previously world
                 Unicore.unregisterWorld(ideWorld);
                 // build new world
-                ideWorld = new GWorld(scriptName);
+                ideWorld = new GWorld(script.name);
                 ideWorld.setLayerVisible(GWorld.LAYER_COLLISION, true);
                 Unicore.registerWorld(ideWorld);
                 // read objects from script
@@ -254,7 +253,7 @@ public final class WorldPanel extends PanelViewer {
                         switch (line) {
                             case "objs":
                             case "tobj":
-                                ideWorld.executeOBJSGroup(scriptName, br, true);
+                                ideWorld.executeOBJSGroup(script.name, br, true);
                                 break;
                         }
                     }

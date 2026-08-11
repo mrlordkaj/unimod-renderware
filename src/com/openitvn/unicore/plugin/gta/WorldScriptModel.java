@@ -48,7 +48,7 @@ class WorldScriptModel extends AbstractTableModel
     
     WorldScript findScript(String name) {
         for (WorldScript e : scripts) {
-            if (e.getName().equalsIgnoreCase(name)) {
+            if (e.name.equalsIgnoreCase(name)) {
                 return e;
             }
         }
@@ -61,11 +61,24 @@ class WorldScriptModel extends AbstractTableModel
     
     //<editor-fold defaultstate="collapsed" desc="Activate / Deactivate">
     
-    private ArrayList<String> getActivatedGroups(WorldScript.Type type) {
+    private ArrayList<String> getActivatedIPLs() {
         ArrayList<String> rs = new ArrayList<>();
         for (WorldScript e : scripts) {
-            if (e.type == type && e.bActive) {
-                rs.add(e.getName().toLowerCase());
+            if (e.type == WorldScript.Type.IPL && e.bActive) {
+                rs.add(e.name.toLowerCase());
+            }
+        }
+        return rs;
+    }
+    
+    private ArrayList<String> getActivatedIDEs(ArrayList<String> ignores) {
+        ArrayList<String> rs = new ArrayList<>();
+        for (WorldScript e : scripts) {
+            if (e.type == WorldScript.Type.IDE && e.bActive) {
+                String name = e.name.toLowerCase();
+                if (!ignores.contains(name)) {
+                    rs.add(name);
+                }
             }
         }
         return rs;
@@ -74,14 +87,14 @@ class WorldScriptModel extends AbstractTableModel
     private void executeStreamScript(WorldScript script, boolean bActive) {
         if (script.type == WorldScript.Type.IPL) {
             // For SA only, IPLs may have extra streamed data inside archive
-            String prefix = script.getName().toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
+            String prefix = script.name.toLowerCase().replace(".ipl", "_stream");/* name.substring(0, name.length() - 4).concat("_stream");*/
             ResourceModel res = ResourceModel.getInstance();
             int i = 0;
             while (true) {
                 try (EntryStream ds = res.getEntryStream(prefix + i, "ipl")) {
                     String name = ds.getLastPath();
-                    String state = bActive ? "on" : "off";
-                    Logger.printNotice("IPL triggered: %s [%s]", name, state);
+                    String status = bActive ? "on" : "off";
+                    Logger.printNotice("IPL triggered: %s [%s]", name, status);
                     app.executeINSTGroup(name, ds, bActive);
                     i++;
                 } catch (IOException ex) {
@@ -93,9 +106,9 @@ class WorldScriptModel extends AbstractTableModel
     
     private void executeScript(WorldScript script, boolean bActive) {
         if (script != null && script.bActive != bActive) {
-            String name = script.getName();
-            String state = bActive ? "on" : "off";
-            Logger.printNotice("%s triggered: %s [%s]", script.type, name, state);
+            String status = bActive ? "on" : "off";
+            Logger.printNotice("%s triggered: %s [%s]", script.type, script.name, status);
+            // Normal file
             try (FileReader fr = new FileReader(script.file);
                 BufferedReader br = new BufferedReader(fr)) {
                 String line;
@@ -103,22 +116,23 @@ class WorldScriptModel extends AbstractTableModel
                     switch (line) {
                         case "objs":
                         case "tobj":
-                            app.executeOBJSGroup(name, br, bActive);
+                            app.executeOBJSGroup(script.name, br, bActive);
                             break;
                             
                         case "inst":
-                            app.executeINSTGroup(name, br, bActive);
+                            app.executeINSTGroup(script.name, br, bActive);
                             break;
                             
                         case "path":
-                            app.executePATHGroup(name, br, bActive);
+                            app.executePATHGroup(script.name, br, bActive);
                             break;
                     }
                 }
             } catch (IOException ex) {
-                Logger.printError("%1$s failed: %2$s [%3$s]", script.type, name, state);
+                Logger.printError("%1$s failed: %2$s [%3$s]", script.type, script.name, status);
                 return;
             }
+            // Stream file (SA only)
             executeStreamScript(script, bActive);
             script.bActive = bActive;
             System.gc();
@@ -163,7 +177,7 @@ class WorldScriptModel extends AbstractTableModel
             case COL_ACTIVE:
                 return scripts.get(row).bActive;
             case COL_NAME:
-                return scripts.get(row).getName();
+                return scripts.get(row).name;
             case COL_TYPE:
                 return scripts.get(row).type;
         }
@@ -180,12 +194,11 @@ class WorldScriptModel extends AbstractTableModel
         boolean active = (boolean)value;
         WorldScript e = scripts.get(row);
         if (e.bActive != active) {
-            String name = e.getName();
             if (active) {
                 // Activation need a async task because it take long time
                 // in fact, deactivation is very fast, so it not need to
-                final ArrayList<String> deps = GameConfig.getDependencies(name);
-                BackgroundTask.run(new BackgroundTask(name, deps.size()+1) {
+                final ArrayList<String> deps = GameConfig.getDependencies(e.name);
+                BackgroundTask.run(new BackgroundTask(e.name, deps.size()+1) {
                     @Override
                     protected Void doInBackground() {
                         try {
@@ -211,15 +224,13 @@ class WorldScriptModel extends AbstractTableModel
                 });
             } else {
                 // Deactivate target
-                executeScript(findScript(name), false);
+                executeScript(findScript(e.name), false);
                 // Deactivate dependencies
-                ArrayList<String> ipls = getActivatedGroups(WorldScript.Type.IPL);
-                ArrayList<String> ides = getActivatedGroups(WorldScript.Type.IDE);
-                ArrayList<String> kept = GameConfig.getDependencies(ipls);
-                for (String ide : ides) {
-                    if (!kept.contains(ide)) {
-                        executeScript(findScript(ide), false);
-                    }
+                ArrayList<String> IPLs = getActivatedIPLs();
+                ArrayList<String> kept = GameConfig.getDependencies(IPLs);
+                ArrayList<String> IDEs = getActivatedIDEs(kept);
+                for (String IDE : IDEs) {
+                    executeScript(findScript(IDE), false);
                 }
             }
         }
